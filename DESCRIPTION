@@ -1,0 +1,62 @@
+Package: treeforce
+Title: What the Package Does (One Line, Title Case)
+Version: 0.0.0.9000
+Authors@R: c(person(given = "Georges",
+                    family = "Kunstler",
+                    role = "aut",
+                    email = "georges.kunstler@inrae.fr"),
+              person(given = "Julien",
+                    family = "Barrere",
+                    role = "aut",
+                    email = "julien.barrere@inrae.fr"),
+              person(given = "Bjoern",
+                    family = "Reineking",
+                    role = "aut",
+                    email = "bjoern.reineking@inrae.fr"),
+              person(given = "Laura",
+                    family = "Touzot>",
+                    role = "aut",
+                    email = "laura.touzot@inrae.fr"),
+              person(given = "Arnaud",
+                    family = "Guyennon",
+                    role = "aut",
+                    email = "arnaud.guyennon@inrae.fr"),
+              person(given = "Thomas",
+                    family = "Cordonnier",
+                    role = "aut",
+                    email = "thomas.cordonnier@inrae.fr"),
+              person(given = "Anne",
+                    family = "Baranger",
+                    role = "aut",
+                    email = "anne.baranger@inrae.fr"),
+              person(given = "Valentin",
+                    family = "Journe",
+                    role = "aut",
+                    email = "valentin.journe@inrae.fr"),
+              person(given = "Maxime",
+                    family = "Jaunatre",
+                    role = c("aut", "cre"),
+                    email = "maxime.jaunatre@inrae.fr"),
+              person(given = "INRAE",
+                    role = c("cph"))
+              )
+Description: What the package does (one paragraph).
+License: MIT + file LICENSE
+Imports: checkmate,
+    Matrix,
+    here,
+    dplyr,
+    rlang,
+    tidyr,
+    magrittr,
+    tibble
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1
+Depends: 
+    R (>= 2.10)
+LazyData: true
+LazyDataCompression: bzip2
+Suggests: 
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
