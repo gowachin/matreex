@@ -1,0 +1,93 @@
+test_that("new_species works", {
+
+    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+                  "testthat", "testdata")
+
+    file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
+    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- raw_IPM[[1]]
+    IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
+
+    expect_identical(new_species(IPM, def_init, def_harv, raw_IPM$RecFun),
+                     structure(list(
+                         IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
+                         recruit_fun = raw_IPM$RecFun,
+                         info = c(species = "Yggdrasil", climatic = "1")),
+                         class = "species"))
+})
+
+
+test_that("validate_species works", {
+
+    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+                 "testthat", "testdata")
+
+    file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
+    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- raw_IPM[[1]]
+    IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
+
+    x <- new_species(IPM, def_init, def_harv, raw_IPM$RecFun)
+
+
+    expect_identical(x, validate_species(x))
+    tmp <- x
+    names(tmp) <- c("IPM", "init_pop", "harvest_func", "recruit_fun", "info")
+    expect_error(
+        validate_species(tmp),
+        "IPM class must be composed of elements IPM, init_pop, harvest_fun, recruit_fun and info"
+    )
+    tmp <- x
+    names(tmp$info) <- c("sp", "climatic")
+    expect_error(
+        validate_species(tmp),
+        "IPM class must have info of elements species and climatic"
+    )
+})
+
+
+test_that("old_ipm2species works", {
+
+    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+                 "testthat", "testdata")
+
+    file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
+    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- raw_IPM[[1]]
+
+    expect_identical(
+        old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1),
+        new_species(
+            old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
+            def_init, def_harv, raw_IPM$RecFun)
+    )
+
+})
+
+
+test_that("def_init works", {
+
+    x <- seq(30, 40, by = 2)
+
+    set.seed(666)
+    expect_identical(
+        def_init(x),
+        c(10.34157240534874, 1e-10, 1e-10, 10.513225511464572, 10.571074040683468,
+          1e-10)
+    )
+
+    # NOTE Case with all(alea) require specific seed that I don't know.
+
+})
+
+
+test_that("def_harv works", {
+
+    x <- 1:10
+
+    expect_identical(
+        def_harv(x),
+        x * 0.006
+    )
+
+})

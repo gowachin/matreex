@@ -1,0 +1,94 @@
+---
+title: "Running multi species deterministic simulations"
+output: rmarkdown::html_vignette
+vignette: >
+  %\VignetteIndexEntry{Running multi species deterministic simulations}
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteEncoding{UTF-8}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+```{r setup}
+library(treeforce)
+```
+
+# Introduction
+
+Simulation run on the Forest class object, that contains all elements. It's composed of *n* species. Each species is defined by multiples functions :
+
+-   init_pop is the function to initiate the population at time 1.
+-   recruit_fun is the function that depend on the total basal area. **it's the old RecFun used in case of single species simulations, It should take other species BA in the future**
+-   harvest_fun is the function that return the harvested population that should be substracted to the population at time t.
+-   IPM is the list of integrated matrices for several basal area.
+
+# Loading previous work IPM
+
+Functions are defined to load the previous IPM saved as *.Rds*. The files must located in specific directory format which is :
+
+**`path/output/species/IPM_Clim_X.Rds`**
+
+Once the files are in place, the code below allow to create the species of interest. One last argument is *replicat* which select one of the 100 simulations of previous work. **A mean IPM should replace this later**.
+
+Default functions of initialization and harvest are used. You can write your own functions as long as they use the same arguments. Try to write function that don't initialize negative populations
+
+```{r, loading species Yggdrasil}
+spe <- "Yggdrasil" # Example dataset given with the package
+# Warning, loading an old IPM takes around 10s
+Yggdrasil <- old_ipm2species(
+    spe, climatic = 1, replicat = 1,
+    path = system.file("extdata", package = "treeforce", mustWork = TRUE),
+)
+
+def_harv
+def_init
+```
+
+A forest is just a list of the species. **Later it will also require harvest rules with target BA and species**
+
+```{r, single sp sim}
+Forest <- forest(list(Yggdrasil))
+
+set.seed(42)
+res <- sim_deter_forest(Forest, tlim = 100, equil_time = 1e3,
+                 correction = "cut", equil_dist = 50,
+                 verbose = TRUE)
+
+m <- length(Forest$species$Yggdrasil$IPM$mesh)
+res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
+times <- as.numeric(sub("t", "", colnames(res)))
+
+plot(times, res[grepl("BA",rownames(res)),], 
+     type = "b", ylab = "BA", xlab = "time", cex = 0.1)
+```
+
+Below, I create a mock second species to illustrate how to combine species in simulation and recreate the same plot for total basal area.
+
+We expect the same equilibrium result (minus the initial population random effect), since the species dynamics are similar. 
+
+```{r, two sp sim}
+Ents <- Yggdrasil
+Ents$info["species"] <- "Ents"
+Forest2 <- forest(list(Yggdrasil, Ents))
+
+set.seed(42)
+res <- sim_deter_forest(Forest2, tlim = 100, equil_time = 1e3,
+                 correction = "cut", equil_dist = 50,
+                 verbose = TRUE)
+
+m2 <- m *2 + 3
+res[c(1:2, m:(m+3), (2 *m + 2):m2, 
+      (m2 +1):(m2 +2), (m2 + m):(m2 + m +3), (m2 + 2 *m + 2):(2*m2)),
+         c(1:2,30:31)]
+
+times <- as.numeric(sub("t", "", colnames(res)))
+
+plot(times, colSums(res[grepl("BA",rownames(res)),]), 
+     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1)
+```
+

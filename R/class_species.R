@@ -15,13 +15,13 @@
 #' Argument must be \code{BATOTSP}. # TODO rename argument !
 #' Should return a single numeric value.
 #'
-#' @noRD
+#' @noRd
 new_species <- function(IPM, init_pop, harvest_fun, recruit_fun){
 
     species <- list(
         IPM = IPM, init_pop = init_pop,
         harvest_fun = harvest_fun, recruit_fun = recruit_fun,
-        info = c(species = species(IPM), climatic = climatic(IPM))
+        info = c(species = sp_name(IPM), climatic = climatic(IPM))
     )
 
     class(species) <- "species"
@@ -38,6 +38,7 @@ new_species <- function(IPM, init_pop, harvest_fun, recruit_fun){
 #' @noRd
 validate_species <- function(x){
 
+    assertClass(x, "species")
     values <- unclass(x)
     names <- attr(x, "names")
 
@@ -45,14 +46,15 @@ validate_species <- function(x){
     assertCharacter(names)
     if(any(names != c("IPM", "init_pop", "harvest_fun",
                       "recruit_fun", "info"))){
-        stop(paste0("IPM class must be composed of elements IPM, init_pop",
+        stop(paste0("IPM class must be composed of elements IPM, init_pop,",
                     " harvest_fun, recruit_fun and info"))
     }
 
     # check all values ####
-    validate_species(values$IPM)
-    assertFunction(value$init_pop, args = c("mesh", "SurfEch}"))
+    validate_ipm(values$IPM)
+    assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
     assertFunction(values$harvest_fun, args = c("x"))
+    # TODO : check that X return >= 0 values of same length
     assertFunction(values$recruit_fun, args = c("BATOTSP")) # FIXME args must be changed.
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
@@ -100,7 +102,7 @@ species <- function(IPM, init_pop, harvest_fun, recruit_fun){
 #' each one or else this climatic value will be skipped. int.
 #' @param path Place to save the resulting file. Single Char.
 #' @param replicat Numeric for the simulation to select. By default, the 42th.
-#' @param harvest_fun Function to impact the population with harvest rule.
+#' @param harvest Function to impact the population with harvest rule.
 #' Argument must be \code{pop}.
 #' Should return a population state as it's take it in input, with less
 #' population than before. Unless you want zombie trees.
@@ -110,6 +112,7 @@ species <- function(IPM, init_pop, harvest_fun, recruit_fun){
 #' population.
 #'
 #' @import checkmate
+#' @import here
 #'
 #' @export
 old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
@@ -121,18 +124,18 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
     assertCount(replicat)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
-    IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
-    assertNumber(replicat, lower = 1, upper = length(IPM))
-    IPM <- IPM[[42]]
+    raw_IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
+    assertNumber(replicat, lower = 1, upper = length(raw_IPM))
+    raw_IPM <- raw_IPM[[replicat]]
 
     res_ipm <- new_ipm(
-        IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
+        IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
         species = species, climatic = climatic, compress = TRUE
     )
 
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        recruit_fun = IPM$RecFun
+        recruit_fun = raw_IPM$RecFun
     )
 
     return(res)
@@ -157,6 +160,7 @@ def_init <- function(mesh, SurfEch = 0.03) {
     }
     ini[alea] <- 0
     res <- as.numeric(ini / sum(ct * ini) )
+    res <- res + 1e-10 # HACK to limit falling in floating point trap !
 
     return(res)
 }
@@ -165,8 +169,12 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #'
 #' @param x population state at time t
 #'
+#' @return
+#' Distribution of harvest achieved on the population.
+#' Values are between 0 (null harvest) and Xi.
+#'
 #' @export
 def_harv <- function(x){
-    return(x * (1 - 0.006))
+    return(x * 0.006)
 }
 

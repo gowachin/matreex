@@ -5,14 +5,11 @@
 \title{Deterministic Tree population simulation}
 \usage{
 sim_deter_forest(
-  Model,
-  Xini,
+  Forest,
   tlim = 3000,
   equil_dist = 250,
   equil_diff = 1,
   equil_time = 10000,
-  Harv = 0.006,
-  BAsup = 200,
   correction = "none",
   SurfEch = 0.03,
   delay = 0,
@@ -20,11 +17,10 @@ sim_deter_forest(
 )
 }
 \arguments{
-\item{Model}{IPM for deterministic transition for \eqn{Z_{t}} state
-in a population to \eqn{Z_{t+1}} state. ipm object class # TODO link to class ipm}
-
-\item{Xini}{Population state at T0. Must have the same mesh as Model.
-pop_state object class # TODO : link to class pop_state}
+\item{Forest}{Group of species that each contains IPM for deterministic
+transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
+A species is also defined with recruitment and harvest functions.
+test # TODO link to class species}
 
 \item{tlim}{Number of simulation iterations (years) in the future. single int.}
 
@@ -38,16 +34,11 @@ equilibrium is assumed. single real.}
 \item{equil_time}{Total maximum time simulation allowed in equilibrium
 research. Must be higher or equal to tlim and equil_dist. single int.}
 
-\item{Harv}{Percentage of harvest in the population per year.}
-
-\item{BAsup}{Maximum basal area per hectare. This should be inferior or equal
-to the BAsup of the Model. single int.}
-
 \item{correction}{Choice of correction of the IPM between \code{"none"}
 (default) and \code{"cut"}. The second option set the last column to 0 in the
 IPM so that no individual can grow outside of the defines classes.}
 
-\item{SurfEch}{Value of plot size surface in \eqn{m^2}}
+\item{SurfEch}{Value of plot size surface in ha}
 
 \item{delay}{Number of year delay between the recruitment of an individual
 and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal

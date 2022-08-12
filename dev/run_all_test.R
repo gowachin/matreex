@@ -19,8 +19,11 @@ report(x = package_coverage())
 # df_cov[df_cov$functions=='tank',]
 
 
-x <- file_coverage('R/Sim_Deter.R', c('tests/testthat/test-Sim_Deter.R',
-                                      'tests/testthat/test-Run_Sim_Deter.R'))
+x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
+x <- file_coverage('R/class_ipm.R', 'tests/testthat/test-class_ipm.R')
+x <- file_coverage('R/class_species.R', 'tests/testthat/test-class_species.R')
+x <- file_coverage('R/class_forest.R', 'tests/testthat/test-class_forest.R')
+x <- file_coverage('R/generic_methods.R', 'tests/testthat/test-gen_meth.R')
 report(x)
 # zero_coverage() shows only uncovered lines.
 # If run within RStudio, `zero_coverage()` will open a marker pane with the

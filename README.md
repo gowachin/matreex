@@ -1,53 +1,55 @@
 # Treeforce
 
-Creation of the package for IPM and european forest.
+<!-- badges: start -->
 
-## Getting started
+[![Lifecycle:
+experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
+[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-blue.svg)](https://gitlab.com/gowachin/treeforce)
 
-To make it easy for you to get started with GitLab, here's a list of recommended next steps.
+<!-- badges: end -->
 
-Already a pro? Just edit this README.md and make it your own. Want to make it easy? [Use the template at the bottom](#editing-this-readme)!
+Creation of the package for IPM and european forest. Based on Georges and Arnaud work !
 
-## Add your files
+## Installation
 
-- [ ] [Create](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#create-a-file) or [upload](https://docs.gitlab.com/ee/user/project/repository/web_editor.html#upload-a-file) files
-- [ ] [Add files using the command line](https://docs.gitlab.com/ee/gitlab-basics/add-file.html#add-a-file-using-the-command-line) or push an existing Git repository with the following command:
+### Dependencies
+
+This package relies on very few packages listed below, that you can install with the following code.
 
 ```
-cd existing_repo
-git remote add origin https://gitlab.com/gowachin/treeforce.git
-git branch -M main
-git push -uf origin main
+for (i in c('graphics', 'stats', 'viridisLite') ){
+  if(!require(i,character.only = TRUE))
+    install.packages(i)
 ```
 
-## Integrate with your tools
+### Development version
 
-- [ ] [Set up project integrations](https://gitlab.com/gowachin/treeforce/-/settings/integrations)
+You can install the development version of `{treeforce}` from [gitlab](https://gitlab.com/gowachin/treeforce) with:
 
-## Collaborate with your team
+```
+# install.packages("remotes")
+remotes::install_gitlab("gowachin/treeforce")
+# or
+# install.packages("devtools")
+# devtools::install_gitlab('https://github.com/gowachin/treeforce')
+```
 
-- [ ] [Invite team members and collaborators](https://docs.gitlab.com/ee/user/project/members/)
-- [ ] [Create a new merge request](https://docs.gitlab.com/ee/user/project/merge_requests/creating_merge_requests.html)
-- [ ] [Automatically close issues from merge requests](https://docs.gitlab.com/ee/user/project/issues/managing_issues.html#closing-issues-automatically)
-- [ ] [Enable merge request approvals](https://docs.gitlab.com/ee/user/project/merge_requests/approvals/)
-- [ ] [Automatically merge when pipeline succeeds](https://docs.gitlab.com/ee/user/project/merge_requests/merge_when_pipeline_succeeds.html)
+*Github repository is only a mirror from gitlab*
 
-## Test and Deploy
+## Support
 
-Use the built-in continuous integration in GitLab.
+Issues are centralized on [the gitlab project.](https://gitlab.com/gowachin/treeforce/-/issues). 
 
-- [ ] [Get started with GitLab CI/CD](https://docs.gitlab.com/ee/ci/quick_start/index.html)
-- [ ] [Analyze your code for known vulnerabilities with Static Application Security Testing(SAST)](https://docs.gitlab.com/ee/user/application_security/sast/)
-- [ ] [Deploy to Kubernetes, Amazon EC2, or Amazon ECS using Auto Deploy](https://docs.gitlab.com/ee/topics/autodevops/requirements.html)
-- [ ] [Use pull-based deployments for improved Kubernetes management](https://docs.gitlab.com/ee/user/clusters/agent/)
-- [ ] [Set up protected environments](https://docs.gitlab.com/ee/ci/environments/protected_environments.html)
+## Roadmap
 
-***
+Future dev is listed on the github repository project to keep tracks of what we are working on.
+Link is [here](https://github.com/gowachin/treeforce/projects/1)
 
-# Editing this README
+## License
 
-When you're ready to make this README your own, just edit this file and use the handy template below (or feel free to structure it however you want - this is just a starting point!). Thank you to [makeareadme.com](https://www.makeareadme.com/) for this template.
+Project is under MIT Licence.
 
+<!--
 ## Suggestions for a good README
 Every project is different, so consider which of these sections apply to yours. The sections used in the template are suggestions for most open source projects. Also keep in mind that while a README can be too long and detailed, too long is better than too short. If you think your README is too long, consider utilizing another form of documentation rather than cutting out information.
 
@@ -90,3 +92,5 @@ For open source projects, say how it is licensed.
 
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
+-->
+

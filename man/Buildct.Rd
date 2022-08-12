@@ -11,7 +11,7 @@ Buildct(mesh, SurfEch = 0.03)
 (L being the smallest size and U the largest.). Length of this vector is
 the number of size class in the IPM. num.}
 
-\item{SurfEch}{Value of plot size surface in m^2}
+\item{SurfEch}{Value of plot size surface in ha}
 }
 \value{
 numeric vector of basal area computed depending on plot size

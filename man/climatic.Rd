@@ -3,11 +3,17 @@
 \name{climatic}
 \alias{climatic}
 \alias{climatic.ipm}
+\alias{climatic.species}
 \title{Get climatic values in treeforce class object}
 \usage{
 climatic(x)
 
 \method{climatic}{ipm}(x)
+
+\method{climatic}{species}(x)
+}
+\arguments{
+\item{x}{treeforce class object. Used on ipm and species at this time.}
 }
 \description{
 Get climatic values in treeforce class object

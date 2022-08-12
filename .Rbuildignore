@@ -5,7 +5,6 @@
 dev/
 ^data-raw$
 
-R/class_ipm.R
 R/R_0_sp.R
 R/Sim_DemStock.R
 R/old_Sim_NonDem.R

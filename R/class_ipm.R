@@ -32,6 +32,7 @@ new_ipm <- function(IPM, BA, mesh, species, climatic, compress = FALSE){
 #' @noRd
 validate_ipm <- function(x){
 
+    assertClass(x, "ipm")
     values <- unclass(x)
     names <- attr(x, "names")
 
@@ -42,7 +43,7 @@ validate_ipm <- function(x){
     }
 
     # check the IPM part ####
-    assertList(values$IPM, types = c("dtCMatrix"),
+    assertList(values$IPM, types = c("dtCMatrix", "dgCMatrix"),
                any.missing = FALSE, min.len = 1)
     # check other values ####
     assertNumeric(values$BA, lower = 0, any.missing = FALSE, min.len = 1)
@@ -68,6 +69,7 @@ validate_ipm <- function(x){
 #' @param replicat Numeric for the simulation to select. By default, the 42th.
 #'
 #' @import checkmate
+#' @import here
 #'
 #' @noRd
 old_ipm2ipm <- function(species, climatic = 1, path = here(), replicat = 42){
