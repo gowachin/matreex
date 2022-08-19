@@ -117,7 +117,7 @@ species <- function(IPM, init_pop, harvest_fun, recruit_fun){
 #' @export
 old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
                             harvest = def_harv, init_pop = def_init){
-
+    species <- "Yggdrasil"
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
     assertCount(climatic)

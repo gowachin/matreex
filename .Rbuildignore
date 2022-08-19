@@ -2,10 +2,11 @@
 ^\.Rproj\.user$
 ^LICENSE\.md$
 
-dev/
+^dev$
 ^data-raw$
 
 R/R_0_sp.R
 R/Sim_DemStock.R
 R/old_Sim_NonDem.R
 ^output$
+^outputSim$

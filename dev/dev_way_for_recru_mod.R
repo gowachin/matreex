@@ -2,6 +2,8 @@
 
 #' In recruitmenent function, the function is written and get values from
 #' a binded environment coming from function definition.
+load_all()
+library(rlang)
 
 species <- "Yggdrasil"
 climatic <- 1
@@ -12,6 +14,24 @@ fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
 raw_IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
 assertNumber(replicat, lower = 1, upper = length(raw_IPM))
 raw_IPM <- raw_IPM[[replicat]]
+
+
+func <- raw_IPM$RecFun
+raw_IPM$RecFun
+raw_IPM$rec$formula
+raw_IPM$rec$params_m
+raw_IPM$list_m
+
+str(lobstr::ast(!!eval(parse(text = raw_IPM$rec$formula))))
+
+e <- body(func)
+ts <- e[[2]]
+lobstr::ast(!!ts)
+lobstr::sxp(ts)
+rlang::parse_expr(!!ts)
+parse(text  = parse(text = ts)[[2]])[[1]]
+
+accumulate(ts, ~ parse(text = .x), .dir = "backward")
 
 foo <- function(x) {
     browser()
@@ -78,12 +98,18 @@ call2("{",
 )
 
 z <- 3
-tot <- function(x, y){x + z * y}
+tot <- function(x, y){
+    tmp <- z * y
+    tmp <- x +  tmp
+    tmp
+    }
 tot
 tot(1, y = 0.5) # 2.5
 formals(tot)
 names(formals(tot))[2] <- "Y" # Change argument name !
 formals(tot)
+body(tot)[[4]] <- call2("<-", expr(tmp), call2("+", 1, expr(tmp)))
+body(tot)[[5]] <- call2("return", expr(tmp))
 body(tot)
 body(tot) <- call2("{",
                    call2( "+", expr(x), call2("*", z, expr(Y))
@@ -105,4 +131,13 @@ function(x) {1}
 lobstr::ast(foo <- function(x){x +1})
 
 # it works !
+
+# Final test ####
+
+list_covs <- raw_IPM$list_m
+params <- raw_IPM$rec$params_m
+
+foo <- exp_recFun(params = raw_IPM$rec$params_m, list_covs = raw_IPM$list_m)
+foo
+foo(1, 2, 1:5, 0.03)
 

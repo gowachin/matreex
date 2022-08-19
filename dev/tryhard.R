@@ -8,6 +8,8 @@ o_Yggdrasil$info["species"] <- "Pinea"
 Forest <- forest(list(Yggdrasil, o_Yggdrasil))
 Forest <- forest(list(Yggdrasil))
 
+Forest$species$Yggdrasil$recruit_fun
+
 set.seed(42)
 res <- sim_deter_forest(Forest, tlim = 10, equil_time = 1e3,
                  correction = "cut",
