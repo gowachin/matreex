@@ -8,7 +8,8 @@ devtools::check()
 # library(covr, testthat)
 # get a shiny to find which line is not yet tested. Very helpfull
 report(x = package_coverage(line_exclusions = list("R/Sim_NonDem.R")))
-report(x = package_coverage())
+x <- package_coverage()
+report(x)
 # covr::package_coverage()
 
 # rerun all coverage for dataframe analysis.
@@ -24,6 +25,7 @@ x <- file_coverage('R/class_ipm.R', 'tests/testthat/test-class_ipm.R')
 x <- file_coverage('R/class_species.R', 'tests/testthat/test-class_species.R')
 x <- file_coverage('R/class_forest.R', 'tests/testthat/test-class_forest.R')
 x <- file_coverage('R/generic_methods.R', 'tests/testthat/test-gen_meth.R')
+x <- file_coverage('R/load_oldIPM_rec.R', 'tests/testthat/test-oldIPM_rec.R')
 report(x)
 # zero_coverage() shows only uncovered lines.
 # If run within RStudio, `zero_coverage()` will open a marker pane with the

@@ -155,6 +155,7 @@ sim_deter_forest <- function(Forest,
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
     ))
     sim_BA <- rep(NA_real_, equil_time)
+    sim_BAnonSp <- rep(NA_real_, nsp)
 
     ## Initiate pop ####
     X <- map2(map(Forest$species, `[[`, "init_pop"),
@@ -167,6 +168,8 @@ sim_deter_forest <- function(Forest,
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
     sim_BA[1] <- sum(sim_BAsp[1,])
+    sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
+
     # tmp <- map2(X, sim_BAsp[1, ,drop = TRUE], ~ c(.x, .y, sum(.x)))
     tmp <- imap(X, function(x, .y, ba, harv){
         c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]) )
@@ -202,11 +205,6 @@ sim_deter_forest <- function(Forest,
             x} )
     }
 
-    # QUESTION change this ?
-    b  <- map(map(Forest$species, ~ length(get_mesh(.x))),
-               ~ c(rep(1 / 2, 2), numeric(.x - 2))
-    )
-
     if (verbose) {
         message("Starting while loop. Maximum t = ", equil_time)
     }
@@ -223,14 +221,21 @@ sim_deter_forest <- function(Forest,
         X <- map2(sim_ipm, X, ~ drop( .x %*% .y ) ) # Growth
         Harv <- map2(map(Forest$species, `[[`, "harvest_fun"), X, exec) # Harvest
         X <- map2(X, Harv, `-`)
-        recrues <- map2(map(Forest$species, `[[`, "recruit_fun"),
-                        # QUESTION is this BA below ??
-                        map2(ct, X, `%*%`), exec)
-        recrues <- map2(recrues, b, ~ exp(.x) * SurfEch / 0.03 * .y)
+
+        recrues <- imap(
+            map(Forest$species, `[[`, "recruit_fun"),
+            function(x, .y, basp, banonsp, mesh, SurfEch){
+                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
+            }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
+            mesh = map(Forest$species, get_mesh), SurfEch = SurfEch )
+
         X <- map2(X, recrues, `+`) # Recruitment
         # compute new BA for selecting the right IPM and save values
-        sim_BAsp[t, ] <- map2_dbl(X, ct, ~ .x %*% .y )
+        sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
         sim_BA[t] <- sum(sim_BAsp[t,])
+        sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
+
+        # Update X
         if (t <= tlim) {
             # tmp <- map2(X, sim_BAsp[t, ,drop = TRUE], ~ c(.x, .y, sum(.x)))
             tmp <- imap(X, function(x, .y, ba, harv){

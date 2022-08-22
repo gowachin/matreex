@@ -110,14 +110,17 @@ test_that("delay forest works", {
     species = "darwin", climatic = 1, compress = FALSE)
     validate_ipm(IPM)
 
-    harv <- function(BATOTSP){NULL}
+    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv, recruit_fun = harv)
+                     harvest_fun = def_harv, recruit_fun = rec)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = delay(sp, 2)))
     # HACK ne pas nommer les elements ici fout la merde.
+
+    # validate_forest(x)
+    # validate_forest(exp)
 
     expect_identical( delay(x, 2), exp )
     expect_identical( delay(x, 0), x )
@@ -167,18 +170,18 @@ test_that("delay species works", {
     species = "darwin", climatic = 1, compress = FALSE)
     validate_ipm(IPM)
 
-    harv <- function(BATOTSP){NULL}
+    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
 
-    x <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv, recruit_fun = harv)
+    sp <- new_species(IPM = IPM, init_pop = def_init,
+                      harvest_fun = def_harv, recruit_fun = rec)
 
     exp <- new_species(correction(IPM, "cut"), init_pop = def_init,
-                       harvest_fun = def_harv, recruit_fun = harv)
-    # validate_species(x)
+                       harvest_fun = def_harv, recruit_fun = rec)
+    # validate_species(sp)
     # validate_species(exp)
 
-    expect_identical( correction(x, "cut"), exp )
-    expect_identical( correction(x), x )
+    expect_identical( correction(sp, "cut"), exp )
+    expect_identical( correction(sp), sp )
 
 })
 
@@ -193,10 +196,10 @@ test_that("delay forest works", {
     species = "darwin", climatic = 1, compress = FALSE)
     validate_ipm(IPM)
 
-    harv <- function(BATOTSP){NULL}
+    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv, recruit_fun = harv)
+                      harvest_fun = def_harv, recruit_fun = rec)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = correction(sp, "cut")))

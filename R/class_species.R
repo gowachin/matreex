@@ -55,7 +55,8 @@ validate_species <- function(x){
     assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
     assertFunction(values$harvest_fun, args = c("x"))
     # TODO : check that X return >= 0 values of same length
-    assertFunction(values$recruit_fun, args = c("BATOTSP")) # FIXME args must be changed.
+    assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
+                                                "mesh", "SurfEch"))
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "climatic"))){
@@ -135,7 +136,8 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        recruit_fun = raw_IPM$RecFun
+        recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                 list_covs = raw_IPM$list_m)
     )
 
     return(res)
