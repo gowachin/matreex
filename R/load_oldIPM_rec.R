@@ -78,15 +78,30 @@ format_fit <- function(params, list_covs){
 
 #' Export recruitment function from estimated parameters.
 #'
+#' Rebuild the function to use BASp and BAnonSp for a species.
+#'
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
 #'
 #' @importFrom purrr map
 #' @importFrom dplyr filter
-#' @importFrom rlang expr call2
+#' @importFrom rlang expr call2 env_unbind
+#'
+#' @details
+#' Each function has an environment binded with params and list_covs.
+#' I can't remove it and it may be usefull later after all.
 #'
 #' @return
 #' Function with 4 parameters : BATOTSP, BATOTNonSP, mesh and SurfEch
+#'
+#' @examples
+#' params <- c(intercept = -0.864, BATOTSP = -0.018, sgddb = 286.813,
+#' wai = -0.057, wai2 = 0.288 )
+#' list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
+#'
+#' foo <- exp_recFun(params, list_covs)
+#' foo
+#' foo(1, 2, 1:5, 0.03)
 #'
 #' @noRd
 exp_recFun <- function(params, list_covs){

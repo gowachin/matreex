@@ -27,7 +27,9 @@ test_that("validate_species works", {
     raw_IPM <- raw_IPM[[1]]
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
-    x <- new_species(IPM, def_init, def_harv, raw_IPM$RecFun)
+    x <- new_species(IPM, def_init, def_harv,
+                     exp_recFun(params = raw_IPM$rec$params_m,
+                                list_covs = raw_IPM$list_m))
 
 
     expect_identical(x, validate_species(x))
@@ -59,7 +61,8 @@ test_that("old_ipm2species works", {
         old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1),
         new_species(
             old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
-            def_init, def_harv, raw_IPM$RecFun)
+            def_init, def_harv, exp_recFun(params = raw_IPM$rec$params_m,
+                                           list_covs = raw_IPM$list_m))
     )
 
 })

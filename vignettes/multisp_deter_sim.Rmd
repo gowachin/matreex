@@ -15,7 +15,8 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-library(treeforce)
+# library(treeforce)
+devtools::load_all()
 ```
 
 # Introduction
@@ -35,7 +36,9 @@ Functions are defined to load the previous IPM saved as *.Rds*. The files must l
 
 Once the files are in place, the code below allow to create the species of interest. One last argument is *replicat* which select one of the 100 simulations of previous work. **A mean IPM should replace this later**.
 
-Default functions of initialization and harvest are used. You can write your own functions as long as they use the same arguments. Try to write function that don't initialize negative populations
+Default functions of initialization and harvest are used. You can write your own functions as long as they use the same arguments. Try to write function that don't initialize negative populations.
+
+Example data set is a cropped IPM with a mesh of length 30 with BA from 1 to 10.
 
 ```{r, loading species Yggdrasil}
 spe <- "Yggdrasil" # Example dataset given with the package
@@ -55,10 +58,13 @@ A forest is just a list of the species. **Later it will also require harvest rul
 Forest <- forest(list(Yggdrasil))
 
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 100, equil_time = 1e3,
+res <- sim_deter_forest(Forest, tlim = 30, equil_time = 1e3,
                  correction = "cut", equil_dist = 50,
                  verbose = TRUE)
+```
 
+
+```{r, single_print}
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
 res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
 times <- as.numeric(sub("t", "", colnames(res)))
@@ -74,21 +80,34 @@ We expect the same equilibrium result (minus the initial population random effec
 ```{r, two sp sim}
 Ents <- Yggdrasil
 Ents$info["species"] <- "Ents"
-Forest2 <- forest(list(Yggdrasil, Ents))
+Roger <- Yggdrasil
 
 set.seed(42)
-res <- sim_deter_forest(Forest2, tlim = 100, equil_time = 1e3,
+res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
                  correction = "cut", equil_dist = 50,
                  verbose = TRUE)
+```
 
+
+```{r, two_print, echo = FALSE}
 m2 <- m *2 + 3
 res[c(1:2, m:(m+3), (2 *m + 2):m2, 
       (m2 +1):(m2 +2), (m2 + m):(m2 + m +3), (m2 + 2 *m + 2):(2*m2)),
          c(1:2,30:31)]
 
 times <- as.numeric(sub("t", "", colnames(res)))
+value <- colSums(res[grepl("BA",rownames(res)),])
+plot(times, value, type = "b", ylab = "Total BA", xlab = "time", 
+     cex = 0.1, ylim = c(1, max(value) * 1.05))
+points(times, res[grepl("Ygg.*BA",rownames(res)),], 
+     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
+points(times, res[grepl("Ent.*BA",rownames(res)),], 
+     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
+```
 
-plot(times, colSums(res[grepl("BA",rownames(res)),]), 
-     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1)
+Run all previous code
+
+```{r}
+
 ```
 

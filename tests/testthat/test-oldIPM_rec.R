@@ -40,7 +40,7 @@ test_that("format_fit works", {
     expect_identical( format_fit(params, list_covs), exp)
 })
 
-load_all()
+
 test_that("format_fit works", {
     params <- c(intercept = -0.864, BATOTSP = -0.018, sgddb = 286.813,
                 wai = -0.057, wai2 = 0.288
@@ -62,6 +62,6 @@ test_that("format_fit works", {
     body(empty)[[2]][[3]] <- -0.755421
     body(empty)[[4]][[3]][[2]] <- -0.018
 
-
-    expect_identical(exp_recFun(params, list_covs),  empty)
+    expect_identical(formals(exp_recFun(params, list_covs)),  formals(empty))
+    expect_identical(body(exp_recFun(params, list_covs)),  body(empty))
 })
