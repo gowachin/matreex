@@ -1,32 +1,36 @@
 document()
 load_all()
 library(profvis)
-spe <- "Yggdrasil"
-# Yggdrasil <- old_ipm2species(spe, path = "tests/testthat/testdata/", replicat = 1)
-Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1)
-Ents <- Yggdrasil
-Ents$info["species"] <- "Ents"
 
-Forest <- forest(list(Yggdrasil))
-# Forest$species$Yggdrasil$recruit_fun
+spe <- "Yggdrasil"
+Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
+                             harvest = def_harv)
 
 load_all()
-profvis({
+Yggdrasil$harvest_fun <- Uneven_harv
+Forest <- forest(list(Yggdrasil),
+                 harv_rules = c(Pmax = 1, dBAmin = 3, freq = 20))
+# Forest$species$Yggdrasil$recruit_fun
+
+
+# profvis({
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 2000, equil_time = 1e4,
+res <- sim_deter_forest(Forest, tlim = 1500, equil_time = 2e3,
                  correction = "cut",
                  verbose = TRUE)
-})
-
+# })
 
 
 times <- as.numeric(sub("t", "", colnames(res)))
 plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-     cex = 0.1, type = "b", ylim = c(0, 100))
-# plot(res[grepl("N",rownames(res)),])
+     cex = 0.1, ylim = c(0, 100), type = "b")
 text(700, res[grepl("BA",rownames(res)),ncol(res)],
      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
+# abline(v = seq(0, 2000, by = 200), lty = 3, col = "red")
 
+# Two species
+Ents <- Yggdrasil
+Ents$info["species"] <- "Ents"
 set.seed(42)
 Forest2 <- forest(list(Yggdrasil, Ents))
 res2 <- sim_deter_forest(Forest2, tlim = 600, equil_time = 1e3,
@@ -84,9 +88,4 @@ microbenchmark::microbenchmark(
 
 
 ## Test zone ####
-
-expr(final <- exp(res) * SurfEch / 0.03 * distrib )
-
-call2("<-", expr(final), call2("*", expr(exp(res)),
-                               expr(SurfEch / 0.03 * distrib)))
 

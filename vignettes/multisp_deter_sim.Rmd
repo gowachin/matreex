@@ -23,8 +23,8 @@ library(treeforce)
 Simulation run on the Forest class object, that contains all elements. It's composed of *n* species. Each species is defined by multiples functions :
 
 -   init_pop is the function to initiate the population at time 1.
--   recruit_fun is the function that depend on the total basal area. **it's the old RecFun used in case of single species simulations, It should take other species BA in the future**
--   harvest_fun is the function that return the harvested population that should be substracted to the population at time t.
+-   recruit_fun is the function that depend on the total basal area. 
+-   harvest_fun is the function that return the harvested population that should be subtracted to the population at time t.
 -   IPM is the list of integrated matrices for several basal area.
 
 # Loading previous work IPM
@@ -46,22 +46,38 @@ Yggdrasil <- old_ipm2species(
     spe, climatic = 1, replicat = 1,
     path = system.file("extdata", package = "treeforce", mustWork = TRUE),
 )
-
-def_harv
 def_init
 ```
 
 A forest is just a list of the species. **Later it will also require harvest rules with target BA and species**
 
-```{r, single sp sim}
+```{r, Forest}
 Forest <- forest(list(Yggdrasil))
+```
 
+# Simulation
+
+Simulations are done with the function `sim_deter_forest`. Such simulations are deterministic once the initial population is defined. As the species *Yggdrasil* we have defined use random generation for the initial population, we will use a seed before each simulation.
+
+## Single species
+
+A simulation is mostly defined by the time limitation (*tlim*) and an equilibrium time (*equil_time*). 
+
+```{r, single sp sim}
 set.seed(42)
 res <- sim_deter_forest(Forest, tlim = 30, equil_time = 1e3,
                  correction = "cut", equil_dist = 50,
                  verbose = TRUE)
 ```
 
+The output is a single table with time in column and different variables in rows. The variables are given at each time point plus equilibrium state. 
+They are defined below :
+
+- Distribution in the mesh of the species
+- Basal Area
+- Sum of the distribution
+- Distribution of harvest
+- Sum of harvest
 
 ```{r, single_print}
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
@@ -71,6 +87,8 @@ times <- as.numeric(sub("t", "", colnames(res)))
 plot(times, res[grepl("BA",rownames(res)),], 
      type = "b", ylab = "BA", xlab = "time", cex = 0.1)
 ```
+
+## Multiple species 
 
 Below, I create a mock second species to illustrate how to combine species in simulation and recreate the same plot for total basal area.
 
@@ -89,6 +107,7 @@ res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
                  verbose = TRUE)
 ```
 
+The result is the same table with each species tables grouped one under the other. Since the species names is pasted with the variable name in row names, one can extract variables of interest.
 
 ```{r, two_print, echo = FALSE}
 m2 <- m *2 + 3
@@ -106,9 +125,53 @@ points(times, res[grepl("Ent.*BA",rownames(res)),],
      type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
 ```
 
+## Changing harvesting rules.
 
+Once a species is defined, you can modify it and say use a different harvest function. For example, the default function apply a constant harvesting rate of 0.6 percent per year.
+
+```{r}
+Yggdrasil$harvest_fun
+```
+
+We can use another function that set an Uneven harvest a specified intervals. To modify this interval, we need to edit the harvest rules (*harv_rules*) when creating a Forest
+
+```{r}
+Yggdrasil$harvest_fun <- Uneven_harv
+
+# Because this example is a redced mesh, I need to modify the harv_lim of the species
+Yggdrasil$harv_lim <- c(dth = 95, dha = 110, hmax = 1)
+Forest_harv <- forest(list(Yggdrasil),
+                 harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 10))
+targetBA <- 2
+set.seed(42)
+res <- sim_deter_forest(Forest_harv, tlim = 60, 
+                        equil_time = 60, equil_dist = 5,
+                        correction = "cut", targetBA = targetBA,
+                        verbose = TRUE)
+```
+
+
+```{r, harv_print, echo = FALSE}
+m <- length(Forest$species$Yggdrasil$IPM$mesh)
+res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
+times <- as.numeric(sub("t", "", colnames(res)))
+
+plot(times, res[grepl("BA",rownames(res)),], 
+     type = "b", ylab = "BA", xlab = "time", cex = 0.1)
+abline(h = targetBA, col = "darkgreen")
+plot(times, res[grepl("H",rownames(res)),], 
+     type = "b", ylab = "H", xlab = "time", cex = 0.1)
+```
+
+Here we observe that harvest is not enough to reach targetBA. This could be explained by a restriction in tree size target.
 
 ```{r, echo = FALSE}
-# Run all previous code
+m <- Forest_harv$species$Yggdrasil$IPM$mesh
+plot(m, res[grepl("m",rownames(res)),59], 
+     type = "b", ylab = "X", xlab = "size", cex = 0.1, col = "darkblue",
+     )
+points(m, res[grepl("m",rownames(res)),60], 
+     type = "b", cex = 0.1, col = "darkgreen")
+legend("bottomleft", c("before (t59)", "after (t60)"), text.col = c("darkblue", "darkgreen"))
 ```
 

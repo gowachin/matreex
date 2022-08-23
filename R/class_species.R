@@ -8,19 +8,32 @@
 #' Using the arguments is not mandatory, it's most useful when creating random
 #' population.
 #' @param harvest_fun Function to impact the population with harvest rule.
-#' Argument must be \code{pop}.
+#' Argument must be \code{x}, \code{species},  \code{harv_rule},
+#' \code{BAtarget}, \code{ct} and \code{t}.
 #' Should return a population state as it's take it in input, with less
-#' population than before. Unless you want zombie trees.
+#' population than before. Unless you want zombie trees. It represent the
+#' distribution of the population to harvest
+#' @param harv_lim Limits of harvest for a population size distribution.
+#' \describe{
+#'   \item{dth}{minimum diameter at which we cut the size distribution}
+#'   \item{dha}{harvest diameter}
+#'   \item{hmax}{maximum harvest rate for a size class}
+#' }
 #' @param recruit_fun Function to recruit new individual into the population.
 #' Argument must be \code{BATOTSP}. # TODO rename argument !
 #' Should return a single numeric value.
 #'
-#' @noRd
-new_species <- function(IPM, init_pop, harvest_fun, recruit_fun){
+#' @keywords internal
+#' @export
+new_species <- function(IPM, init_pop,
+                        harvest_fun,
+                        harv_lim = c(dth = 175, dha = 575, hmax = 1),
+                        recruit_fun){
 
     species <- list(
         IPM = IPM, init_pop = init_pop,
-        harvest_fun = harvest_fun, recruit_fun = recruit_fun,
+        harvest_fun = harvest_fun, harv_lim = harv_lim,
+        recruit_fun = recruit_fun,
         info = c(species = sp_name(IPM), climatic = climatic(IPM))
     )
 
@@ -44,7 +57,7 @@ validate_species <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("IPM", "init_pop", "harvest_fun",
+    if(any(names != c("IPM", "init_pop", "harvest_fun", "harv_lim",
                       "recruit_fun", "info"))){
         stop(paste0("IPM class must be composed of elements IPM, init_pop,",
                     " harvest_fun, recruit_fun and info"))
@@ -53,7 +66,10 @@ validate_species <- function(x){
     # check all values ####
     validate_ipm(values$IPM)
     assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
-    assertFunction(values$harvest_fun, args = c("x"))
+    assertFunction(values$harvest_fun,
+                   args = c("x", "species", "harv_rule", "targetBA", "ct", "t"))
+    # assertNumeric(values$harv_lim[1:2], lower = 0)
+    # assertNumber(values$harv_lim[3], lower = 0, upper = 1)
     # TODO : check that X return >= 0 values of same length
     assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
                                                 "mesh", "SurfEch"))
@@ -70,21 +86,12 @@ validate_species <- function(x){
 #'
 #' Only used in the treeforce package
 #'
-#' @param IPM ipm class object from the treeforce package.
-#' @param init_pop Function to initiate the population at simulation start.
-#' Arguments must be \code{mesh} and \code{SurfEch}.
-#' Using the arguments is not mandatory, it's most useful when creating random
-#' population.
-#' @param harvest_fun Function to impact the population with harvest rule.
-#' Argument must be \code{pop}.
-#' Should return a population state as it's take it in input, with less
-#' population than before. Unless you want zombie trees.
-#' @param recruit_fun Function to recruit new individual into the population.
-#' Argument must be \code{BATOTSP}. # TODO rename argument !
-#' Should return a single numeric value.
+#' @inheritParams new_species
 #'
 #' @export
-species <- function(IPM, init_pop, harvest_fun, recruit_fun){
+species <- function(IPM, init_pop, harvest_fun,
+                    harv_lim = c(dth = 175, dha = 575, hmax = 1),
+                    recruit_fun){
 
     res <- validate_species(new_species(
         IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun,
@@ -170,13 +177,18 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #' Default population harvest
 #'
 #' @param x population state at time t
+#' @param species ignored
+#' @param harv_rule ignored
+#' @param targetBA ignored
+#' @param ct ignored
+#' @param t ignored
 #'
 #' @return
-#' Distribution of harvest achieved on the population.
+#' Distribution of population to harvest.
 #' Values are between 0 (null harvest) and Xi.
 #'
 #' @export
-def_harv <- function(x){
+def_harv <- function(x, species, harv_rule, targetBA, ct, t){
     return(x * 0.006)
 }
 

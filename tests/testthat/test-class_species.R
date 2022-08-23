@@ -8,9 +8,12 @@ test_that("new_species works", {
     raw_IPM <- raw_IPM[[1]]
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
-    expect_identical(new_species(IPM, def_init, def_harv, raw_IPM$RecFun),
+    expect_identical(new_species(IPM = IPM, init_pop = def_init,
+                                 harvest_fun = def_harv,
+                                 recruit_fun = raw_IPM$RecFun),
                      structure(list(
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
+                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                          recruit_fun = raw_IPM$RecFun,
                          info = c(species = "Yggdrasil", climatic = "1")),
                          class = "species"))
@@ -28,7 +31,7 @@ test_that("validate_species works", {
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
     x <- new_species(IPM, def_init, def_harv,
-                     exp_recFun(params = raw_IPM$rec$params_m,
+                     recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
                                 list_covs = raw_IPM$list_m))
 
 
@@ -61,7 +64,8 @@ test_that("old_ipm2species works", {
         old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1),
         new_species(
             old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
-            def_init, def_harv, exp_recFun(params = raw_IPM$rec$params_m,
+            def_init, def_harv,
+            recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
                                            list_covs = raw_IPM$list_m))
     )
 

@@ -54,6 +54,8 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' equilibrium is assumed. single real.
 #' @param equil_time Total maximum time simulation allowed in equilibrium
 #' research. Must be higher or equal to tlim and equil_dist. single int.
+#' @param targetBA BA value that is targetted by the Harvest module.
+#' Single numeric in \eqn{m^2}.
 #' @param correction Choice of correction of the IPM between \code{"none"}
 #' (default) and \code{"cut"}. The second option set the last column to 0 in the
 #' IPM so that no individual can grow outside of the defines classes.
@@ -86,8 +88,7 @@ sim_deter_forest  <- function(Forest,
                              equil_dist = 250,
                              equil_diff = 1,
                              equil_time = 1e4,
-                             # Harv = 0.006, # TEMP dev
-                             # BAsup = 200, # TEMP dev
+                             targetBA = 20,
                              correction = "none",
                              SurfEch = 0.03,
                              delay = 0,
@@ -102,8 +103,7 @@ sim_deter_forest.species  <- function(Forest,
                               equil_dist = 250,
                               equil_diff = 1,
                               equil_time = 1e4,
-                              # Harv = 0.006, # TEMP dev
-                              # BAsup = 200, # TEMP dev
+                              targetBA = 20,
                               correction = "none",
                               SurfEch = 0.03,
                               delay = 0,
@@ -111,9 +111,12 @@ sim_deter_forest.species  <- function(Forest,
     sim_deter_forest(
         Forest = forest(species = list(Forest)),
         tlim = tlim,
+
         equil_dist = equil_dist,
         equil_diff = equil_diff,
         equil_time = equil_time,
+
+        targetBA = targetBA,
         correction = correction,
         SurfEch = SurfEch,
         delay = delay,
@@ -124,16 +127,15 @@ sim_deter_forest.species  <- function(Forest,
 #' @rdname sim_deter_forest
 #' @export
 sim_deter_forest.forest  <- function(Forest,
-                                      tlim = 3e3,
-                                      equil_dist = 250,
-                                      equil_diff = 1,
-                                      equil_time = 1e4,
-                                      # Harv = 0.006, # TEMP dev
-                                      # BAsup = 200, # TEMP dev
-                                      correction = "none",
-                                      SurfEch = 0.03,
-                                      delay = 0,
-                                      verbose = FALSE) {
+                                     tlim = 3e3,
+                                     equil_dist = 250,
+                                     equil_diff = 1,
+                                     equil_time = 1e4,
+                                     targetBA = 20,
+                                     correction = "none",
+                                     SurfEch = 0.03,
+                                     delay = 0,
+                                     verbose = FALSE) {
 
 
     # Idiot Proof ####
@@ -145,15 +147,14 @@ sim_deter_forest.forest  <- function(Forest,
     if (equil_time < tlim || equil_time < equil_dist) {
         stop("equil_time must be higher or equal to tlim and equil_dist")
     }
+
+    assertNumber(targetBA, lower = 0)
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertCount(delay)
     assertLogical(verbose, any.missing = FALSE, len = 1)
 
     # Initialisation ####
-    get_mesh <- function(x){ # TODO : set function outside of here
-        return(x$IPM$mesh)
-    }
     get_ipm <- function(x, n){
         return(x$IPM$IPM[[n]])
     }
@@ -189,9 +190,10 @@ sim_deter_forest.forest  <- function(Forest,
     }
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
+    meshs <- map(Forest$species, ~ .x$IPM$mesh)
 
     ## Create output ####
-    sim_X <- init_sim(nsp, tlim, map(Forest$species, get_mesh))
+    sim_X <- init_sim(nsp, tlim, meshs)
     sim_X <- do.call("rbind", sim_X)
     sim_BAsp <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
@@ -201,11 +203,10 @@ sim_deter_forest.forest  <- function(Forest,
 
     ## Initiate pop ####
     X <- map2(map(Forest$species, `[[`, "init_pop"),
-              map(Forest$species, get_mesh),
+              meshs,
               exec, SurfEch = SurfEch)
-    Harv <- map(lengths(map(Forest$species, get_mesh)), ~ rep(0, .x))
-    ct <- map(map(Forest$species, get_mesh),
-              Buildct, SurfEch = SurfEch)
+    Harv <- map(lengths(meshs), ~ rep(0, .x))
+    ct <- map(meshs, Buildct, SurfEch = SurfEch)
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
@@ -259,8 +260,17 @@ sim_deter_forest.forest  <- function(Forest,
     ) > equil_diff))) {
 
         ## t size distrib ####
-        X <- map2(sim_ipm, X, ~ drop( .x %*% .y ) ) # Growth
-        Harv <- map2(map(Forest$species, `[[`, "harvest_fun"), X, exec) # Harvest
+        X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
+        # Harv <- map2(map(Forest$species, `[[`, "harvest_fun"), X, exec,
+        #              Forest, targetBA, ct, t) # Harvest
+
+        Harv <- imap(
+            map(Forest$species, `[[`, "harvest_fun"),
+            function(x, .y, X, Forest, tba, ct, t){
+                exec(x, X[[.y]], Forest$species[[.y]],
+                     Forest$harv_rule, tba, ct[[.y]], t)
+            }, X = X, Forest = Forest, tba = targetBA, ct = ct, t = t
+        )
         X <- map2(X, Harv, `-`)
 
         recrues <- imap(
@@ -268,7 +278,7 @@ sim_deter_forest.forest  <- function(Forest,
             function(x, .y, basp, banonsp, mesh, SurfEch){
                 exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
-            mesh = map(Forest$species, get_mesh), SurfEch = SurfEch )
+            mesh = meshs, SurfEch = SurfEch )
 
         X <- map2(X, recrues, `+`) # Recruitment
         # compute new BA for selecting the right IPM and save values
@@ -303,7 +313,9 @@ sim_deter_forest.forest  <- function(Forest,
         low_ba <- map2(Forest$species, lower_ba, get_ipm)
         high_ba <- map2(Forest$species, higher_ba, get_ipm)
 
-        sim_ipm <- lapply( # NOTE : bottleneck of the function
+        sim_ipm <- lapply(
+            # NOTE : bottleneck of the function because of sum of sparse matrix !
+            # But using as.matrix is even longer so long live the sparse matrix !
             seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
                 low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
                     high_ba[[i]] * ( floor(ba)  - nipm[i] )
@@ -340,7 +352,7 @@ sim_deter_forest.forest  <- function(Forest,
 
 
     if (verbose) {
-        message("Simulation ended after time ", ifelse(is.null(the), t-1, the))
+        message("Simulation ended after time ", ifelse(is.na(the), t-1, the))
         message(sprintf(
             "BA stabilized at %.2f with diff of %.2f at time %i",
             sim_BA[t - 1],

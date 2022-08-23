@@ -3,14 +3,23 @@
 #' Only used in the treeforce package
 #'
 #' @param species List of species created with treeforce package.
-#'
+#' @param harv_rules Vector for harvest rules at the scale of the forest.
+#' \describe{
+#'   \item{Pmax}{maximum proportion of BAcut / BA}
+#'   \item{dBAmin}{the minimum BA to perform cut}
+#'   \item{freq}{Frequence at which the harvest will be executed.}
+#' }
 #' @importFrom purrr map_chr
-#' @noRd
-new_forest <- function(species = list()){
+#'
+#' @keywords internal
+#' @export
+new_forest <- function(species = list(),
+                       harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                                      freq = 10)){
 
     sp <- names(species) <- map_chr(species, sp_name)
     forest <- list(
-        species = species,
+        species = species, harv_rules = harv_rules,
         info = list(species = sp,
                  climatic = map_dbl(species, climatic))
     )
@@ -44,13 +53,16 @@ validate_forest <- function(x){
 #'
 #' Only used in the treeforce package
 #'
-#' @param species List of species created with treeforce package.
+#' @inheritParams new_forest
 #'
 #' @export
-forest <- function(species = list()){
+forest <- function(species = list(),
+                   harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 10)
+                   ){
 
     res <- validate_forest(new_forest(
-        species = species
+        species = species,
+        harv_rules = harv_rules
     ))
 
     return(res)

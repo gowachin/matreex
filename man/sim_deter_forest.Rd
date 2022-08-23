@@ -12,6 +12,7 @@ sim_deter_forest(
   equil_dist = 250,
   equil_diff = 1,
   equil_time = 10000,
+  targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
   delay = 0,
@@ -24,6 +25,7 @@ sim_deter_forest(
   equil_dist = 250,
   equil_diff = 1,
   equil_time = 10000,
+  targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
   delay = 0,
@@ -36,6 +38,7 @@ sim_deter_forest(
   equil_dist = 250,
   equil_diff = 1,
   equil_time = 10000,
+  targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
   delay = 0,
@@ -59,6 +62,9 @@ equilibrium is assumed. single real.}
 
 \item{equil_time}{Total maximum time simulation allowed in equilibrium
 research. Must be higher or equal to tlim and equil_dist. single int.}
+
+\item{targetBA}{BA value that is targetted by the Harvest module.
+Single numeric in \eqn{m^2}.}
 
 \item{correction}{Choice of correction of the IPM between \code{"none"}
 (default) and \code{"cut"}. The second option set the last column to 0 in the

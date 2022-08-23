@@ -50,7 +50,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[2], "apply a IPM cut correction\n")
     expect_equal(res$messages[3], "Starting while loop. Maximum t = 1000\n")
     expect_equal(res$messages[4], "time 500 | BA diff : 0.00\n")
-    expect_equal(res$messages[5], "Simulation ended after time NA\n")
+    expect_equal(res$messages[5], "Simulation ended after time 500\n")
     expect_equal(res$messages[6], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
 
     expect_equal(dim(new), c(65, 501))

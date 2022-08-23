@@ -70,6 +70,7 @@ getPcutUneven <- function(x,
 # mesh is the meshpts associated with x
 # ct is the vector to compute BA with x (ct=Buildct(mesh, SurfEch))
 # dth is the minimum diameter at which we cut (same unit as x)
+
 # dha is the harvest diameter
 # hmax is the maximum harvest rate for a size class
 # BAtarget is the basal area to reach after maximum cut
