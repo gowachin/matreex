@@ -17,7 +17,9 @@ Creation of the package for IPM and european forest. Based on Georges and Arnaud
 This package relies on very few packages listed below, that you can install with the following code.
 
 ```
-for (i in c('graphics', 'stats', 'viridisLite') ){
+deps <- c('checkmate', 'Matrix', 'here', 'dplyr', 
+          'rlang', 'tidyr', 'purrr', 'tibble')
+for (i in deps ){
   if(!require(i,character.only = TRUE))
     install.packages(i)
 ```
@@ -31,10 +33,18 @@ You can install the development version of `{treeforce}` from [gitlab](https://g
 remotes::install_gitlab("gowachin/treeforce")
 # or
 # install.packages("devtools")
-# devtools::install_gitlab('https://github.com/gowachin/treeforce')
+# devtools::install_gitlab('https://gitlab.com/gowachin/treeforce')
 ```
 
-*Github repository is only a mirror from gitlab*
+*Github repository is only a mirror from gitlab. If you are added in the github private repo, the code below will do it !*
+
+```
+# install.packages("remotes")
+remotes::install_github("gowachin/treeforce")
+# or
+# install.packages("devtools")
+# devtools::install_github('https://github.com/gowachin/treeforce')
+```
 
 ## Support
 

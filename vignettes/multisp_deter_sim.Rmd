@@ -15,8 +15,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup}
-# library(treeforce)
-devtools::load_all()
+library(treeforce)
 ```
 
 # Introduction
@@ -80,7 +79,9 @@ We expect the same equilibrium result (minus the initial population random effec
 ```{r, two sp sim}
 Ents <- Yggdrasil
 Ents$info["species"] <- "Ents"
-Roger <- Yggdrasil
+
+Forest2 <- forest(species = list(Yggdrasil = Yggdrasil,
+                                 Ents = Ents))
 
 set.seed(42)
 res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
@@ -105,9 +106,9 @@ points(times, res[grepl("Ent.*BA",rownames(res)),],
      type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
 ```
 
-Run all previous code
 
-```{r}
 
+```{r, echo = FALSE}
+# Run all previous code
 ```
 

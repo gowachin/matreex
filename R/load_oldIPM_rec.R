@@ -57,6 +57,7 @@ multi <- function(x, df){
 #' @importFrom dplyr left_join mutate
 #' @importFrom tidyr pivot_longer everything separate
 #' @importFrom tibble rownames_to_column
+#' @importFrom rlang .data
 #'
 #' @noRd
 format_fit <- function(params, list_covs){
@@ -66,10 +67,10 @@ format_fit <- function(params, list_covs){
     lc <- pivot_longer(list_covs, cols = everything())
     lc <- rbind(lc, data.frame(name= c(invar, NA),  value=1))
     p <- as.data.frame(params) %>% rownames_to_column(var = "var") %>%
-        separate(var, c("var1", "var2"), sep = "\\:", fill = "right")
+        separate(.data$var, c("var1", "var2"), sep = "\\:", fill = "right")
     res <- left_join(p, lc, by=c('var1'='name')) %>%
         left_join(lc, by=c('var2'='name')) %>%
-        mutate(K = params * value.x * value.y)
+        mutate(K = params * .data$value.x * .data$value.y)
 
     return(res)
 }
@@ -85,7 +86,7 @@ format_fit <- function(params, list_covs){
 #'
 #' @importFrom purrr map
 #' @importFrom dplyr filter
-#' @importFrom rlang expr call2 env_unbind
+#' @importFrom rlang expr call2 env_unbind .data
 #'
 #' @details
 #' Each function has an environment binded with params and list_covs.
@@ -110,13 +111,14 @@ exp_recFun <- function(params, list_covs){
 
     invar <- names(params)[!names(params) %in% names(list_covs)]
     invar <- invar[! grepl("ntercept", invar)]
-    inter <- sum(filter(df2, ! var1 %in% invar | var2 %in% invar)$K)
+    inter <- sum(filter(df2, ! .data$var1 %in% invar | .data$var2 %in% invar)$K)
 
 
     exp_invar <- map(invar, multi, df2)
     add_invar <- map(c(list(expr(intercept <- 1)),exp_invar),
                      ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
 
+    SurfEch <- NULL # HACK rm the note in devtools::check() about unbinded
     final_res <- list(
         expr(mesh <- length(mesh)),
         expr(distrib <- c(rep(1/2, 2), numeric(mesh - 2)) ),
@@ -125,7 +127,7 @@ exp_recFun <- function(params, list_covs){
     )
     calls <- c(exp_invar, add_invar, final_res)
 
-    empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.003){}
+    empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03){}
 
     body(empty)[[2]] <- call2("<-", expr(intercept), inter)
     body(empty)[[3]] <- expr(res <- 0)
@@ -136,7 +138,7 @@ exp_recFun <- function(params, list_covs){
     # this is messy and is to remove binded env.
     env_unbind(env = environment(empty), c("i", "calls", "final_res",
                                            "add_invar", "exp_invar",
-                                           "inter", "invar", "df2"),
+                                           "inter", "invar", "df2", "SurfEch"),
                inherit = FALSE)
     # empty
     return(empty)

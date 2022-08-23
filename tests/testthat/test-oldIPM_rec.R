@@ -41,14 +41,14 @@ test_that("format_fit works", {
 })
 
 
-test_that("format_fit works", {
+test_that("exp_recFun works", {
     params <- c(intercept = -0.864, BATOTSP = -0.018, sgddb = 286.813,
                 wai = -0.057, wai2 = 0.288
     )
 
     list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
 
-    empty <- function (BATOTSP, BATOTNonSP, mesh, SurfEch = 0.003) {
+    empty <- function (BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03) {
         intercept <- -0.755421
         res <- 0
         BATOTSP_in <- -0.018 * BATOTSP
@@ -56,7 +56,7 @@ test_that("format_fit works", {
         res <- res + BATOTSP_in
         mesh <- length(mesh)
         distrib <- c(rep(1/2, 2), numeric(mesh - 2))
-        final <- exp(res) * SurfEch/0.03 * distrib
+        final <- exp(res) * SurfEch / 0.03 * distrib
         return(final)
     }
     body(empty)[[2]][[3]] <- -0.755421

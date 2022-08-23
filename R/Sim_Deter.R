@@ -79,8 +79,9 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' @import purrr
 #' @importFrom dplyr between
 #'
+#' @name sim_deter_forest
 #' @export
-sim_deter_forest <- function(Forest,
+sim_deter_forest  <- function(Forest,
                              tlim = 3e3,
                              equil_dist = 250,
                              equil_diff = 1,
@@ -91,6 +92,49 @@ sim_deter_forest <- function(Forest,
                              SurfEch = 0.03,
                              delay = 0,
                              verbose = FALSE) {
+    UseMethod("sim_deter_forest")
+}
+
+#' @rdname sim_deter_forest
+#' @export
+sim_deter_forest.species  <- function(Forest,
+                              tlim = 3e3,
+                              equil_dist = 250,
+                              equil_diff = 1,
+                              equil_time = 1e4,
+                              # Harv = 0.006, # TEMP dev
+                              # BAsup = 200, # TEMP dev
+                              correction = "none",
+                              SurfEch = 0.03,
+                              delay = 0,
+                              verbose = FALSE) {
+    sim_deter_forest(
+        Forest = forest(species = list(Forest)),
+        tlim = tlim,
+        equil_dist = equil_dist,
+        equil_diff = equil_diff,
+        equil_time = equil_time,
+        correction = correction,
+        SurfEch = SurfEch,
+        delay = delay,
+        verbose = verbose
+    )
+}
+
+#' @rdname sim_deter_forest
+#' @export
+sim_deter_forest.forest  <- function(Forest,
+                                      tlim = 3e3,
+                                      equil_dist = 250,
+                                      equil_diff = 1,
+                                      equil_time = 1e4,
+                                      # Harv = 0.006, # TEMP dev
+                                      # BAsup = 200, # TEMP dev
+                                      correction = "none",
+                                      SurfEch = 0.03,
+                                      delay = 0,
+                                      verbose = FALSE) {
+
 
     # Idiot Proof ####
     validate_forest(Forest)
@@ -116,11 +160,9 @@ sim_deter_forest <- function(Forest,
     init_sim <- function(nsp, tlim, mesh){ # TODO : set function outside of here
         res <- vector("list", nsp)
         res <- map2(lengths(mesh), names(mesh), function(x, y) {
-            # tmp <- as.data.frame(
             tmp <- matrix(
                 data = NA_real_, ncol = tlim + 1, nrow = x + 2 + x + 1
             )
-            # )
             colnames(tmp) <- c(paste0("t", 1:(tlim+1))) #, "sp")
             rownames(tmp) <- c(paste0(y, ".m", 1:x), paste0(y, c(".BAsp", ".N")),
                                paste0(y, ".h", 1:x), paste0(y,".H"))
@@ -133,7 +175,6 @@ sim_deter_forest <- function(Forest,
     nsp <- length(Forest$species)
 
     ## Modify IPM ####
-    # QUESTION group these two modif as one ?
     if (delay > 0) { ### Apply Delay ####
         if (verbose) {
             message("apply a IPM delay of ", delay)
@@ -151,6 +192,7 @@ sim_deter_forest <- function(Forest,
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, map(Forest$species, get_mesh))
+    sim_X <- do.call("rbind", sim_X)
     sim_BAsp <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
     ))
@@ -170,12 +212,12 @@ sim_deter_forest <- function(Forest,
     sim_BA[1] <- sum(sim_BAsp[1,])
     sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
 
-    # tmp <- map2(X, sim_BAsp[1, ,drop = TRUE], ~ c(.x, .y, sum(.x)))
     tmp <- imap(X, function(x, .y, ba, harv){
         c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]) )
     }, ba = sim_BAsp[1,, drop = FALSE], harv = Harv )
 
-    sim_X <- map2(sim_X, tmp, ~ `[<-`(.x, 1:nrow(.x), 1, value = .y))
+    tmp <- do.call("c", tmp)
+    sim_X[, 1] <- tmp
 
     if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
         stop(paste(
@@ -192,7 +234,7 @@ sim_deter_forest <- function(Forest,
 
     sim_ipm <- lapply(
         seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-            low_ba[[i]] * (1 - (floor(ba) - nipm[i])) + # TODO check if this is correct formula !
+            low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
                 high_ba[[i]] * ( floor(ba)  - nipm[i] )
         }, low_ba, high_ba, sim_BA[1], lower_ba
     )
@@ -212,12 +254,11 @@ sim_deter_forest <- function(Forest,
     # While tlim & eq ####
     t <- 2
     the <- NA_real_ # real time of simulation ending in case of outbound BA
-    while (t <= equil_time && (t <= tlim || diff(
+    while (t < tlim || (t <= equil_time && (t <= tlim || diff(
         range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
-    ) > equil_diff)) {
+    ) > equil_diff))) {
 
         ## t size distrib ####
-        old_X <- X # TEMP dev
         X <- map2(sim_ipm, X, ~ drop( .x %*% .y ) ) # Growth
         Harv <- map2(map(Forest$species, `[[`, "harvest_fun"), X, exec) # Harvest
         X <- map2(X, Harv, `-`)
@@ -237,11 +278,12 @@ sim_deter_forest <- function(Forest,
 
         # Update X
         if (t <= tlim) {
-            # tmp <- map2(X, sim_BAsp[t, ,drop = TRUE], ~ c(.x, .y, sum(.x)))
             tmp <- imap(X, function(x, .y, ba, harv){
                 c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]))
             }, ba = sim_BAsp[t,,drop = FALSE], harv = Harv )
-            sim_X <- map2(sim_X, tmp, ~ `[<-`(.x, 1:nrow(.x), t, value = .y))
+
+            tmp <- do.call("c", tmp)
+            sim_X[, t] <- tmp
         }
 
         ## Stop loop if BA larger than LIPM largest BA ####
@@ -261,9 +303,9 @@ sim_deter_forest <- function(Forest,
         low_ba <- map2(Forest$species, lower_ba, get_ipm)
         high_ba <- map2(Forest$species, higher_ba, get_ipm)
 
-        sim_ipm <- lapply(
+        sim_ipm <- lapply( # NOTE : bottleneck of the function
             seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-                low_ba[[i]] * (1 - (floor(ba) - nipm[i])) + # TODO check if this is correct formula !
+                low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
                     high_ba[[i]] * ( floor(ba)  - nipm[i] )
             }, low_ba, high_ba, sim_BA[t], lower_ba
         )
@@ -288,23 +330,21 @@ sim_deter_forest <- function(Forest,
     }
 
     # Format output ####
-    # tmp <- map2(X, sim_BAsp[t-1, ,drop = TRUE], ~ c(.x, .y, sum(.x)))
     tmp <- imap(X, function(x, .y, ba, harv){
         c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]))
     }, ba = sim_BAsp[t-1,,drop = FALSE], harv = Harv )
-    sim_X <- map2(sim_X, tmp, ~ `[<-`(.x, 1:nrow(.x), tlim+1, value = .y))
-    sim_X <- map(sim_X, ~ {
-        `<-`(`[`(colnames(.x), tlim+1), paste0("t", t-1))
-        .x
-    })
-    sim_X <- do.call(rbind, sim_X)
+    tmp <- do.call("c", tmp)
+    sim_X[, tlim +1] <- tmp
+
+    colnames(sim_X)[tlim + 1] <- paste0("t", t-1)
 
 
     if (verbose) {
         message("Simulation ended after time ", ifelse(is.null(the), t-1, the))
         message(sprintf(
             "BA stabilized at %.2f with diff of %.2f at time %i",
-            sim_BA[t - 1], diff(range(sim_BA[max(1, t - equil_dist - 1):(t - 1)])),
+            sim_BA[t - 1],
+            diff(range(sim_BA[max(1, t - equil_dist - 1):(t - 1)])),
             t -1
         ))
     }
@@ -312,134 +352,3 @@ sim_deter_forest <- function(Forest,
     # Return ####
     return(sim_X)
 }
-
-#' Class of deterministic simulation
-#'
-#' @param x a matrix.
-#'
-#' @details Format is specified in \code{\link{treeforce}{sim_deter_forest}}
-#'
-#' @noRd
-new_deter_sim <- function(x = matrix()){
-    assertMatrix(x)
-    structure(x, class = "deter_sim")
-}
-
-#' Summary for treeforce package objects.
-#'
-#' @param object deter_sim class
-#' @param ... Ignored
-#'
-#' @keywords internal
-#' @method summary deter_sim
-#' @export
-summary.deter_sim <- function(object, ...){
-
-    res <- list(
-        BA = object["BA",],
-        N = object["N",],
-        state_eq = head(object[, ncol(object)], nrow(object) - 2)
-    )
-
-    res$BA_eq <- tail(res$BA, 1)
-    res$time_eq <- sub("t", "", names(res$BA_eq))
-
-    class(res) <- "summary_sim"
-    return(res)
-}
-
-#' Summary for treeforce package objects.
-#'
-#' @param object summary_sim class
-#' @param ... Ignored
-#'
-#' @keywords internal
-#' @method summary summary_sim
-#' @export
-summary.summary_sim <- function(object, ...){
-    return(object)
-}
-
-#' Generics for treeforce classes.
-#'
-#' @rdname print_treeforce
-#'
-#' @param x deter_sim class
-#' @param ... Ignored
-#'
-#' @keywords internal
-#' @method print deter_sim
-#' @export
-print.deter_sim <- function(x, ...){
-    print(summary(x))
-
-    return(x)
-}
-
-#' @rdname print_treeforce
-#'
-#' @param x summary_sim class
-#' @param ... Ignored
-#'
-#' @keywords internal
-#' @method print summary_sim
-#' @export
-print.summary_sim <- function(x, ...){
-
-    cat("Summary of deterministic simulation :\n")
-    cat("Equilibrium reached after time", x$time_eq, "for an initial duration ")
-    cat("of", length(x$N) -1, "times\n")
-    cat("BA stabilized at", x$BA_eq, "\n")
-    cat("Mesh dimension :", length(x$state_eq))
-
-    return(invisible(x))
-}
-
-#' tree_format generic
-#'
-#' @param x any treeforce package object available.
-#'
-#' @name tree_format
-#' @export
-tree_format <- function(x){
-    UseMethod("tree_format")
-}
-
-
-#' @rdname tree_format
-#' @importFrom dplyr mutate relocate
-#' @importFrom tidyr pivot_longer
-#' @importFrom rlang .data
-#' @importFrom tibble rownames_to_column
-#' @importFrom purrr %>%
-#' @export
-tree_format.deter_sim <- function(x) {
-  summ <- summary(x)
-  time <- summ$time_eq
-
-  equi <- as.data.frame(summ["state_eq"]) %>%
-    rownames_to_column("m") %>%
-    mutate(m = as.numeric(sub("m", "", .data$m))) %>%
-    pivot_longer(cols = -.data$m) %>%
-    mutate(t = NA_real_) %>%
-    relocate(.data$name, .data$t, .data$m, .data$value)
-
-  along <- as.data.frame(summ[c("BA", "N")]) %>%
-    rownames_to_column("t") %>%
-    mutate(t = as.numeric(sub("t", "", .data$t))) %>%
-    pivot_longer(cols = -.data$t) %>%
-    mutate(m = NA_real_) %>%
-    relocate(.data$name, .data$t, .data$m, .data$value)
-
-  res <- rbind(equi, along)
-
-  res[which(res$t == time), "name"] <- paste0(
-    res[which(res$t == time), "name", drop = TRUE], "eq"
-  )
-
-  return(res)
-}
-
-#' @rdname tree_format
-#' @export
-tree_format.summary_sim <- tree_format.deter_sim
