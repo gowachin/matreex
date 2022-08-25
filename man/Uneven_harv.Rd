@@ -4,7 +4,7 @@
 \alias{Uneven_harv}
 \title{Perform the harvest Uneven}
 \usage{
-Uneven_harv(x, species, harv_rule, targetBA, ct, t)
+Uneven_harv(x, species, targetBAcut, ct)
 }
 \arguments{
 \item{x}{population state distribution at time t}
@@ -12,18 +12,9 @@ Uneven_harv(x, species, harv_rule, targetBA, ct, t)
 \item{species}{The species class object of interest to get mesh and harv_lim
 values from.}
 
-\item{harv_rule}{Vector for harvest rules at the scale of the forest.
-\describe{
-\item{Pmax}{maximum proportion of BAcut / BA}
-\item{dBAmin}{the minimum BA to perform cut}
-\item{freq}{Frequence at which the harvest will be executed.}
-}}
-
-\item{targetBA}{the basal area to reach after maximum cut}
+\item{targetBAcut}{Basal Area to cut.}
 
 \item{ct}{define this # TODO}
-
-\item{t}{time t of simulation}
 }
 \description{
 Perform the harvest Uneven

@@ -67,7 +67,7 @@ validate_species <- function(x){
     validate_ipm(values$IPM)
     assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
     assertFunction(values$harvest_fun,
-                   args = c("x", "species", "harv_rule", "targetBA", "ct", "t"))
+                   args = c("x", "species", "targetBAcut", "ct"))
     # assertNumeric(values$harv_lim[1:2], lower = 0)
     # assertNumber(values$harv_lim[3], lower = 0, upper = 1)
     # TODO : check that X return >= 0 values of same length
@@ -178,17 +178,15 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #'
 #' @param x population state at time t
 #' @param species ignored
-#' @param harv_rule ignored
-#' @param targetBA ignored
+#' @param targetBAcut ignored
 #' @param ct ignored
-#' @param t ignored
 #'
 #' @return
 #' Distribution of population to harvest.
 #' Values are between 0 (null harvest) and Xi.
 #'
 #' @export
-def_harv <- function(x, species, harv_rule, targetBA, ct, t){
+def_harv <- function(x, species, targetBAcut, ct){
     return(x * 0.006)
 }
 

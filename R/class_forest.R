@@ -15,7 +15,7 @@
 #' @export
 new_forest <- function(species = list(),
                        harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                                      freq = 10)){
+                                      freq = 1, alpha = 1)){
 
     sp <- names(species) <- map_chr(species, sp_name)
     forest <- list(
@@ -45,6 +45,7 @@ validate_forest <- function(x){
     if(length(unique(values$info$climatic)) > 1){
         stop("All species are not defined for the same climatic.")
     }
+    # TODO check forest harv rules
 
     x
 }
@@ -57,7 +58,7 @@ validate_forest <- function(x){
 #'
 #' @export
 forest <- function(species = list(),
-                   harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 10)
+                   harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
                    ){
 
     res <- validate_forest(new_forest(

@@ -6,7 +6,7 @@
 \usage{
 new_forest(
   species = list(),
-  harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 10)
+  harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
 )
 }
 \arguments{

@@ -4,20 +4,16 @@
 \alias{def_harv}
 \title{Default population harvest}
 \usage{
-def_harv(x, species, harv_rule, targetBA, ct, t)
+def_harv(x, species, targetBAcut, ct)
 }
 \arguments{
 \item{x}{population state at time t}
 
 \item{species}{ignored}
 
-\item{harv_rule}{ignored}
-
-\item{targetBA}{ignored}
+\item{targetBAcut}{ignored}
 
 \item{ct}{ignored}
-
-\item{t}{ignored}
 }
 \value{
 Distribution of population to harvest.

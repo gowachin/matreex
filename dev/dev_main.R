@@ -61,6 +61,7 @@ devtools::check() # takes few minutes
 
 ## Compile documentation site ####
 devtools::load_all()
+rmarkdown::render("vignettes/multisp_deter_sim.Rmd")
 rmarkdown::render("README.rmd", clean = TRUE, quiet = TRUE)
 fs::file_delete("README.html")
 pkgdown::build_site(preview = TRUE, devel = TRUE) # will open website
@@ -96,32 +97,7 @@ setwd("../../")
 # options(treeforce.dev = TRUE) # TRUE show verbose, FALSE not. NULL equal FALSE
 
 # Index of files ####
-#' @name dev_cp_datarmor File copy and name removing from datarmor runs
-#' in F. work (2017-2018). Require access to Z: disk. Copy files in
-#' dev/raw_data/. File exported in gitlab treeforce/dataex_setup.
-#'
-#' @name dev_graphic Work file to test plots about treeforce.
-#' Objective is to remove it and present plots in main vignette.
-#'
-#' @name dev_init_exdata Script to build treeforce_xxx_2009 example dataset.
-#' It use files in dev/raw_data/ and produce cache dev/data .RData to be
-#' more efficient.
-#'
-#' @name dev_init_simpl_exdata Similar to previous file but aim to build a
-#' single .xlsx file (rm fleet dir dependancy and SS3 species.). Not finalised.
-#'
-#' @name dev_load_oldRdata Old .RData produced by treeforce are dependent of these
-#' versions because S4 classes remember package of creation.
-#' Tricks R but creating an empty namespace. To use with caution.
-#'
-#' @name format_var Scrip to test treeforce.model, treeforce.format and treeforce.format_quant
-#' @name shiny_plot Scrip for testing the treeforce.test_plot function
-#' @name shiny_test Script for testing the treeforce.args function and shiny app.
-#'
-#' @name dev_manhattan Small exploration project for treeforce.input refactoring
-#' and speed
-#' @name stripe_input Small exploration project for treeforce.input refactoring
-#' and speed
+
 
 # Notes ####
 #' I can't put simulation in data/ because maximum recommended is 5MB

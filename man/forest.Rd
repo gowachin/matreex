@@ -4,7 +4,10 @@
 \alias{forest}
 \title{Create a new forest for simulation}
 \usage{
-forest(species = list(), harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 10))
+forest(
+  species = list(),
+  harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
+)
 }
 \arguments{
 \item{species}{List of species created with treeforce package.}

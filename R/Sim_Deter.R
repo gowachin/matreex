@@ -255,24 +255,41 @@ sim_deter_forest.forest  <- function(Forest,
     # While tlim & eq ####
     t <- 2
     the <- NA_real_ # real time of simulation ending in case of outbound BA
+    # Harv cst
+    alpha <- Forest$harv_rule["alpha"]
+    Pmax <- Forest$harv_rule["Pmax"]
+    dBAmin <- Forest$harv_rule["dBAmin"]
+
     while (t < tlim || (t <= equil_time && (t <= tlim || diff(
         range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
     ) > equil_diff))) {
 
         ## t size distrib ####
         X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
-        # Harv <- map2(map(Forest$species, `[[`, "harvest_fun"), X, exec,
-        #              Forest, targetBA, ct, t) # Harvest
 
-        Harv <- imap(
-            map(Forest$species, `[[`, "harvest_fun"),
-            function(x, .y, X, Forest, tba, ct, t){
-                exec(x, X[[.y]], Forest$species[[.y]],
-                     Forest$harv_rule, tba, ct[[.y]], t)
-            }, X = X, Forest = Forest, tba = targetBA, ct = ct, t = t
-        )
-        X <- map2(X, Harv, `-`)
+        ### Harvest ####
+        if(t %% Forest$harv_rule["freq"] == 0){
+            BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
+            BAstand <- sum(BAstandsp)
+            BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
+            # if(BAcut > 0){
+            #     browser()
+            # }
+            pi <- BAstandsp / BAstand
+            Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
+            targetBAcut <- Hi * BAstandsp
 
+            Harv <- imap(
+                map(Forest$species, `[[`, "harvest_fun"),
+                function(f, .y, X, sp, bacut, ct){
+                    exec(f, X[[.y]], sp[[.y]], bacut[[.y]], ct[[.y]])
+                }, X = X, sp = Forest$species, bacut = targetBAcut, ct = ct
+            )
+
+            X <- map2(X, Harv, `-`)
+        }
+
+        ### Recruitment ####
         recrues <- imap(
             map(Forest$species, `[[`, "recruit_fun"),
             function(x, .y, basp, banonsp, mesh, SurfEch){
@@ -280,7 +297,9 @@ sim_deter_forest.forest  <- function(Forest,
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
             mesh = meshs, SurfEch = SurfEch )
 
-        X <- map2(X, recrues, `+`) # Recruitment
+        X <- map2(X, recrues, `+`)
+
+        ## Save BA ####
         # compute new BA for selecting the right IPM and save values
         sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
         sim_BA[t] <- sum(sim_BAsp[t,])

@@ -10,7 +10,7 @@ test_that("new_forest works", {
                      structure(list(
                          species = list(Yggdrasil = Yggdrasil),
                          harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                                        freq = 10),
+                                        freq = 1, alpha = 1),
                          info = list(species = c("Yggdrasil"),
                                      climatic = c(Yggdrasil = 1))),
                          class = "forest"))
@@ -21,7 +21,7 @@ test_that("new_forest works", {
             species = list(Yggdrasil = Yggdrasil,
                            Yggdrasil = Yggdrasil),
             harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                           freq = 10),
+                           freq = 1, alpha = 1),
             info = list(species = c("Yggdrasil", "Yggdrasil"),
                         climatic = c(Yggdrasil = 1, Yggdrasil = 1))),
             class = "forest")

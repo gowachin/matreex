@@ -9,32 +9,50 @@ Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
 load_all()
 Yggdrasil$harvest_fun <- Uneven_harv
 Forest <- forest(list(Yggdrasil),
-                 harv_rules = c(Pmax = 1, dBAmin = 3, freq = 20))
+                 harv_rules = c(Pmax = 0.7, dBAmin = 3,
+                                freq = 30, alpha = 1))
 # Forest$species$Yggdrasil$recruit_fun
-
+targetBA <- 30
 
 # profvis({
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 1500, equil_time = 2e3,
-                 correction = "cut",
+res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
+                 correction = "cut", targetBA = targetBA,
                  verbose = TRUE)
 # })
 
 
 times <- as.numeric(sub("t", "", colnames(res)))
 plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-     cex = 0.1, ylim = c(0, 100), type = "b")
+     cex = 0.1, ylim = c(0, 100), type = "n")
 text(700, res[grepl("BA",rownames(res)),ncol(res)],
      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
-# abline(v = seq(0, 2000, by = 200), lty = 3, col = "red")
+abline(h = targetBA, lty = 3, col = "red")
 
 # Two species
 Ents <- Yggdrasil
 Ents$info["species"] <- "Ents"
+Ents$init_pop <- function(mesh, SurfEch = 0.03) {
+    ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
+    ini <- exp(runif(1, -.005, .005) * mesh)
+    alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
+    while(all(alea)){ # because god knows it's fucking possible.
+        # and it will return NaN
+        alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
+    }
+    ini[alea] <- 0
+    res <- as.numeric(ini / sum(ct * ini) )
+    res <- res + 1e-10 # HACK to limit falling in floating point trap !
+    res <- res * 80
+    return(res)
+}
+load_all()
 set.seed(42)
-Forest2 <- forest(list(Yggdrasil, Ents))
-res2 <- sim_deter_forest(Forest2, tlim = 600, equil_time = 1e3,
-                        correction = "cut",
+Forest2 <- forest(list(Yggdrasil, Ents),
+                  harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                                 freq = 10, alpha = 1))
+res2 <- sim_deter_forest(Forest2, tlim = 600, equil_time = 600,
+                        correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
 
 

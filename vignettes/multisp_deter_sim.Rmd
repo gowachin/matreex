@@ -1,16 +1,20 @@
 ---
 title: "Running multi species deterministic simulations"
-output: rmarkdown::html_vignette
+output: 
+    github_document:
+    rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Running multi species deterministic simulations}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 ---
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
+    collapse = TRUE,
+    comment = "#>",
+    fig.width = 7, # default vignette figure size is too small
+    fig.height = 5
 )
 ```
 
@@ -66,8 +70,8 @@ A simulation is mostly defined by the time limitation (*tlim*) and an equilibriu
 ```{r, single sp sim}
 set.seed(42)
 res <- sim_deter_forest(Forest, tlim = 30, equil_time = 1e3,
-                 correction = "cut", equil_dist = 50,
-                 verbose = TRUE)
+                        correction = "cut", equil_dist = 50,
+                        verbose = TRUE)
 ```
 
 The output is a single table with time in column and different variables in rows. The variables are given at each time point plus equilibrium state. 
@@ -103,8 +107,8 @@ Forest2 <- forest(species = list(Yggdrasil = Yggdrasil,
 
 set.seed(42)
 res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
-                 correction = "cut", equil_dist = 50,
-                 verbose = TRUE)
+                        correction = "cut", equil_dist = 50,
+                        verbose = TRUE)
 ```
 
 The result is the same table with each species tables grouped one under the other. Since the species names is pasted with the variable name in row names, one can extract variables of interest.
@@ -113,16 +117,16 @@ The result is the same table with each species tables grouped one under the othe
 m2 <- m *2 + 3
 res[c(1:2, m:(m+3), (2 *m + 2):m2, 
       (m2 +1):(m2 +2), (m2 + m):(m2 + m +3), (m2 + 2 *m + 2):(2*m2)),
-         c(1:2,30:31)]
+    c(1:2,30:31)]
 
 times <- as.numeric(sub("t", "", colnames(res)))
 value <- colSums(res[grepl("BA",rownames(res)),])
 plot(times, value, type = "b", ylab = "Total BA", xlab = "time", 
      cex = 0.1, ylim = c(1, max(value) * 1.05))
 points(times, res[grepl("Ygg.*BA",rownames(res)),], 
-     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
+       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
 points(times, res[grepl("Ent.*BA",rownames(res)),], 
-     type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
+       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
 ```
 
 ## Changing harvesting rules.
@@ -138,10 +142,10 @@ We can use another function that set an Uneven harvest a specified intervals. To
 ```{r}
 Yggdrasil$harvest_fun <- Uneven_harv
 
-# Because this example is a redced mesh, I need to modify the harv_lim of the species
+# Because this example is a reduced mesh, I need to modify the harv_lim of the species
 Yggdrasil$harv_lim <- c(dth = 95, dha = 110, hmax = 1)
 Forest_harv <- forest(list(Yggdrasil),
-                 harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 10))
+                      harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 10, alpha = 1))
 targetBA <- 2
 set.seed(42)
 res <- sim_deter_forest(Forest_harv, tlim = 60, 
@@ -169,9 +173,42 @@ Here we observe that harvest is not enough to reach targetBA. This could be expl
 m <- Forest_harv$species$Yggdrasil$IPM$mesh
 plot(m, res[grepl("m",rownames(res)),59], 
      type = "b", ylab = "X", xlab = "size", cex = 0.1, col = "darkblue",
-     )
+)
 points(m, res[grepl("m",rownames(res)),60], 
-     type = "b", cex = 0.1, col = "darkgreen")
+       type = "b", cex = 0.1, col = "darkgreen")
 legend("bottomleft", c("before (t59)", "after (t60)"), text.col = c("darkblue", "darkgreen"))
 ```
 
+The uneven harvest is possible with multiple species. Multiple parameters will scale the effect of harvest :
+
+- Pmax, the maximum percentage of harvest possible
+- freq, the frequency of harvest
+- alpha, which will modulate the distribution of the cut on the species according to their abundances. When alpha = 1, the species are cut according to their abundance, which tends to balance the ratio of species. Alpha > 1 will overcut the most present species, which can lead to unstable equilibrium. Alpha < 1 will undercut the abundant species as well.
+
+```{r, two sp harv sim}
+Ents <- Yggdrasil
+Ents$info["species"] <- "Ents"
+
+Forest_harv2 <- forest(species = list(Yggdrasil = Yggdrasil,
+                                      Ents = Ents),
+                       harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 5, alpha = 1))
+
+set.seed(42)
+res <- sim_deter_forest(Forest_harv2, tlim = 60, 
+                        equil_time = 60, equil_dist = 5,
+                        correction = "cut", targetBA = targetBA,
+                        verbose = TRUE)
+```
+
+
+```{r, harv_two_print, echo = FALSE}
+times <- as.numeric(sub("t", "", colnames(res)))
+value <- colSums(res[grepl("BA",rownames(res)),])
+plot(times, value, type = "b", ylab = "Total BA", xlab = "time", 
+     cex = 0.1, ylim = c(1, max(value) * 1.05))
+points(times, res[grepl("Ygg.*BA",rownames(res)),], 
+       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
+points(times, res[grepl("Ent.*BA",rownames(res)),], 
+       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
+abline(h = targetBA, lty = 2, col = "gray")
+```
