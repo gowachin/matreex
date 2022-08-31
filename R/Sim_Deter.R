@@ -162,7 +162,8 @@ sim_deter_forest.forest  <- function(Forest,
         res <- vector("list", nsp)
         res <- map2(lengths(mesh), names(mesh), function(x, y) {
             tmp <- matrix(
-                data = NA_real_, ncol = tlim + 1, nrow = x + 2 + x + 1
+                data = NA_real_, ncol = tlim + 1,
+                nrow = x + 2 + x + 1
             )
             colnames(tmp) <- c(paste0("t", 1:(tlim+1))) #, "sp")
             rownames(tmp) <- c(paste0(y, ".m", 1:x), paste0(y, c(".BAsp", ".N")),
@@ -272,9 +273,6 @@ sim_deter_forest.forest  <- function(Forest,
             BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
             BAstand <- sum(BAstandsp)
             BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
-            # if(BAcut > 0){
-            #     browser()
-            # }
             pi <- BAstandsp / BAstand
             Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
             targetBAcut <- Hi * BAstandsp
@@ -287,6 +285,8 @@ sim_deter_forest.forest  <- function(Forest,
             )
 
             X <- map2(X, Harv, `-`)
+        } else {
+            Harv <- map(meshs, ~ rep(0, length(.x)))
         }
 
         ### Recruitment ####
@@ -367,7 +367,7 @@ sim_deter_forest.forest  <- function(Forest,
     tmp <- do.call("c", tmp)
     sim_X[, tlim +1] <- tmp
 
-    colnames(sim_X)[tlim + 1] <- paste0("t", t-1)
+    colnames(sim_X)[tlim + 1] <- paste0("eqt", t-1)
 
 
     if (verbose) {
@@ -380,6 +380,62 @@ sim_deter_forest.forest  <- function(Forest,
         ))
     }
 
+    sim_X <- new_deter_sim(sim_X)
+
     # Return ####
     return(sim_X)
+}
+
+
+#' Class of deterministic simulation
+#'
+#' @param x a matrix.
+#'
+#' @details Format is specified in \code{\link{treeforce}{sim_deter_forest}}
+#'
+#' @noRd
+new_deter_sim <- function(x = matrix()){
+    assertMatrix(x)
+    structure(x, class = c("deter_sim", "matrix"))
+}
+
+#' tree_format generic
+#'
+#' @param x Simulations created with sim_deter_forest
+#'
+#' @name tree_format
+#' @export
+tree_format <- function(x){
+    UseMethod("tree_format")
+}
+
+
+#' @rdname tree_format
+#' @importFrom dplyr mutate relocate
+#' @importFrom tidyr pivot_longer separate
+#' @importFrom rlang .data
+#' @importFrom tibble rownames_to_column
+#' @export
+tree_format.deter_sim <- function(x){
+
+    res <- x %>%
+        as.data.frame() %>%
+        tibble::rownames_to_column(var = "var") %>%
+        tidyr::pivot_longer( -.data$var, names_to = "time") %>%
+        mutate( species = sub( "\\..*$", "", .data$var, perl = TRUE)) %>%
+        mutate( var = sub("^.*\\.", "", .data$var, perl = TRUE)) %>%
+        dplyr::mutate(
+            equil = grepl("eq", .data$time),
+            time = as.numeric(
+                sub("([[:alpha:]]+)([[:digit:]]+)", "\\2", .data$time,
+                    perl = TRUE)
+            )) %>%
+        dplyr::mutate( mesh = as.numeric(
+            sub("([[:alpha:]]+)([[:digit:]]*)", "\\2", .data$var, perl = TRUE)
+        )) %>%
+        dplyr::mutate( var = sub("([[:alpha:]]+)([[:digit:]]*)",
+                                 "\\1", .data$var, perl = TRUE)) %>%
+        dplyr::relocate(.data$species, .data$var, .data$time, .data$mesh,
+                        .data$equil, .data$value)
+    return(res)
 }

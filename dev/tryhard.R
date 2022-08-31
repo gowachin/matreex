@@ -24,7 +24,7 @@ res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
 
 times <- as.numeric(sub("t", "", colnames(res)))
 plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-     cex = 0.1, ylim = c(0, 100), type = "n")
+     cex = 0.1, ylim = c(0, 100), type = "b")
 text(700, res[grepl("BA",rownames(res)),ncol(res)],
      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
 abline(h = targetBA, lty = 3, col = "red")
@@ -43,7 +43,7 @@ Ents$init_pop <- function(mesh, SurfEch = 0.03) {
     ini[alea] <- 0
     res <- as.numeric(ini / sum(ct * ini) )
     res <- res + 1e-10 # HACK to limit falling in floating point trap !
-    res <- res * 80
+    res <- res * 80 # modif pour avoir un BA d'origine de 80
     return(res)
 }
 load_all()
@@ -54,6 +54,38 @@ Forest2 <- forest(list(Yggdrasil, Ents),
 res2 <- sim_deter_forest(Forest2, tlim = 600, equil_time = 600,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
+
+library(ggplot2)
+library(viridis)
+tmp <- tree_format(res2)
+
+tmp %>%
+    filter(! var %in%  c("m", "h")) %>%
+    filter(value > 0) %>% # For H
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .5) +
+    NULL
+
+tmp %>%
+    filter(var == "h") %>%
+    dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = mesh, fill = value)) +
+    facet_wrap(~ species) +
+    geom_tile() +
+    scale_fill_viridis_c(na.value="transparent") +
+    theme_dark() +
+    NULL
+
+tmp %>%
+    filter(var == "m") %>%
+    dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = mesh, fill = value)) +
+    facet_wrap(~ species) +
+    geom_tile() +
+    scale_fill_viridis_c(na.value="transparent") +
+    theme_dark() +
+    NULL
 
 
 value <- colSums(res2[grepl("BA",rownames(res2)),])

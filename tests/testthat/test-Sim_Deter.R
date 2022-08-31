@@ -11,7 +11,7 @@ test_that("sim_deter_forest simple", {
                             correction = "cut")
 
     expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), paste0("t", c(1:30, 260)))
+    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
 })
 
 
@@ -28,7 +28,7 @@ test_that("sim_deter_forest simple", {
                             correction = "cut")
 
     expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), paste0("t", c(1:30, 260)))
+    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
 })
 
 
@@ -54,7 +54,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[6], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
 
     expect_equal(dim(new), c(65, 501))
-    expect_equal(colnames(new), paste0("t", c(1:500, 500)))
+    expect_equal(colnames(new), c(paste0("t", 1:500), "eqt500"))
 })
 
 
@@ -80,7 +80,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
     expect_equal(dim(new), c(73, 11))
-    expect_equal(colnames(new), paste0("t", c(1:10, 3)))
+    expect_equal(colnames(new), c(paste0("t", 1:10), "eqt3"))
 })
 
 
@@ -129,4 +129,32 @@ test_that("sim_deter_forest error equil_time", {
     expect_error( sim_deter_forest(Forest = model, tlim = 30, equil_time = 10,
                                    correction = "cut")
                   , err)
+})
+
+
+test_that("sim_deter format work", {
+
+    res <- structure(
+        c(0.26, 0.00, 0.00, 0.27, 0.27, 1.00, 2.57, 0, 0, 0, 0, 0, 0.00,
+          0.28, 0.37, 0.05, 0.05, 0.18, 1.04, 2.83, 0, 0, 0, 0, 0, 0.01,
+          0.28, 0.44, 0.26, 0.13, 0.09, 1.10, 3.12, 0, 0, 0, 0, 0, 0.02,
+          0.28, 0.45, 0.33, 0.27, 0.17, 1.20, 3.45, 0, 0, 0, 0, 0, 0.02,
+          0.27, 0.44, 0.35, 0.32, 0.26, 1.27, 3.73, 0, 0, 0, 0, 0, 0.02),
+        dim = c(13L, 5L),
+        dimnames = list( c(
+            "Ygg.m1", "Ygg.m2", "Ygg.m3", "Ygg.m4", "Ygg.m5", "Ygg.BAsp", "Ygg.N",
+            "Ygg.h1", "Ygg.h2", "Ygg.h3", "Ygg.h4", "Ygg.h5", "Ygg.H"
+        ), c("t1", "t2", "t3", "t4", "t5")))
+    res <- new_deter_sim(res)
+
+    exp <- structure(list(
+        species = c("Ygg", "Ygg", "Ygg", "Ygg", "Ygg", "Ygg"),
+        var = c("m", "m", "m", "m", "m", "m"),
+        time = c(1, 2, 3, 4, 5, 1), mesh = c(1, 1, 1, 1, 1, 2),
+        equil = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
+        value = c(0.26, 0.28, 0.28, 0.28, 0.27, 0)),
+        row.names = c(NA, -6L), class = c("tbl_df", "tbl", "data.frame"))
+
+    expect_identical(head(tree_format(res)), exp)
+
 })

@@ -22,6 +22,16 @@ sp_name.species <- function(x){
     return(unname(x$info["species"]))
 }
 
+#' @rdname sp_name
+#' @export
+sp_name.deter_sim <- function(x){
+    nms <- rownames(x)
+    nms <- nms[grepl(".*.BAsp", nms)]
+    res <- sub("(.*)\\.(BAsp)", "\\1", nms)
+
+    return(res)
+}
+
 # Climatic ####
 #' Get climatic values in treeforce class object
 #'
