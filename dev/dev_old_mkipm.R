@@ -257,9 +257,7 @@ fun_mid_int <- function(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100){
 }
 
 fun_mid_int_stripe <- function(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100){
-    # require(dplyr)
-    # require(data.table)
-    # profvis({
+
     mesh <- seq(L, U, length.out=m)
     h <- (U - L)/m
     sig_gr <- gr$sigma
@@ -267,27 +265,22 @@ fun_mid_int_stripe <- function(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=1
     sv_mesh <- fun_surv_mean(sv, list_covs, mesh)
     dx1 <- seq(N_ini*h, (N_ini+N_int)*h, by=h/Level)[-1]
     inf <- dx1 > 0
-    ldx1 <- log(dx1[inf])
+    dx1i <- dx1[inf]
+    ldx1 <- log(dx1i)
+
+    n <- 0:N_int
+    ca <- rep(n, c(Level/2, rep(Level, N_int-1), Level/2))
+    rep0 <- numeric(length = length(dx1))
 
     P_incr <- matrix(NA_real_, ncol=m, nrow=N_int)
     for (k in seq_along(mu_mesh)){
-        mui <- mu_mesh[[k]]
-        svi <- sv_mesh[[k]]
-        out <- rep(0, length.out = length(dx1))
-        out[inf] <- dnorm(ldx1, mui, sig_gr) / dx1[inf]
-        g <- out * svi
-        v <- data.frame(
-            g=g,
-            ca=rep(0:N_int, c(Level/2, rep(Level, N_int-1), Level/2))
-        )
-
-        v$ca[v$ca<0] <- 0  # can N_int be inf to 2 ?
-        v <- group_by(v, ca) %>%
-            summarise(P=sum(g) * h / Level) %>%
-            ungroup()
-        P_incr[, k] <- v$P[1:(N_int)]
+        out <- rep0
+        out[inf] <- dnorm(ldx1, mu_mesh[[k]], sig_gr) / dx1i
+        g <- out * sv_mesh[[k]] * h /Level
+        res <- split(g, ca)
+        res <- unlist(lapply(res, sum))
+        P_incr[, k] <- res[1:N_int]
     }
-    # })
     return(P_incr)
 }
 

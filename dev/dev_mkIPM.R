@@ -92,6 +92,7 @@ microbenchmark::microbenchmark(
     times =  10
 )
 
+
 source("dev/dev_old_mkipm.R")
 tic()
 set.seed(42)
@@ -103,23 +104,38 @@ edit <- fun_mid_int_stripe(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100)
 toc()
 all.equal(init, edit)
 
+gt <- c(3.11367626649636e-08, 2.82295872819631e-08, 2.56129586967654e-08,
+        2.32559264224615e-08, 2.11310406647111e-08, 1.92139333796995e-08,
+        1.74829522105495e-08, 1.59188402834669e-08)
+cat <- c(0L, 0L, 1L, 1L, 1L, 1L, 2L, 2L)
+h <- 2.29771428571429
+Level <- 100
+fuu <- function(gt, cat, h, Level){
+    old <- data.frame(gt = gt, cat = cat) %>%
+        group_by(cat) %>% summarise(P = sum(gt) * h / Level)
+    old$P
+}
 
+foo <- function(gt, cat, h, Level){
+    n <- unique(cat)
+    res <- numeric(length = length(n))
+    for(i in seq_along(n)){
+        res[i] <- sum(gt[cat == n[i]]) * h /Level
+    }
+    res
+}
 
-gt <- g[1:150]
-cat <- ca[1:150]
+fii <- function(gt, cat, h, Level){
+    res <- split(gt, cat)
+    res <-  unlist(lapply(res, sum)) * h / Level
+}
 
-old <- data.frame(gt = gt, cat = cat) %>%
-    group_by(cat) %>% summarise(P = sum(gt) * h / Level)
-old
-
-all.equal(
-    rep(0:n, c(l/2, rep(l, n-1), l/2)),
-    c(rep(0, l/2), rep(1:(n-1), each = l), rep(n, l/2))
-)
-
-n = 100
-l = 100
 microbenchmark::microbenchmark(
-    new = rep(0:n, c(l/2, rep(l, n-1), l/2)),
-    old = c(rep(0, l/2), rep(1:(n-1), each = l), rep(n, l/2))
+    old = fuu(g, ca, h, Level),
+    new = foo(g, ca, h, Level),
+    best = fii(g, ca, h, Level),
+    times = 100
 )
+
+
+
