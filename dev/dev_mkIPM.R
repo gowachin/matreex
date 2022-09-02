@@ -73,53 +73,54 @@ rm(data_plots_pred, data_plots_predBA,fit_sgr, list_m,
    out2, i, iClim, m_size, maxSize, minSize,
    mesh_x, meshpts, N_int, NbIPM, NbModel, spsel)
 rm(make_FullIPM_iClim, make_FullIPM_iClim_resample,
-   make_IPM_GL_2_i, mk_P_GL_2)
+   make_IPM_GL_2_i)
+
+load_all()
+source("dev/dev_old_mkipm.R")
+tic()
+set.seed(42)
+old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                 level=420, correction="none", WMat,
+                 IsSurv=TRUE, midPoint=TRUE)
+toc()
+tic()
+set.seed(42)
+new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                 level=420, correction="none", WMat,
+                 IsSurv=TRUE, midPoint=TRUE)
+toc()
+all.equal(old, new)
+
+# microbenchmark::microbenchmark(
+#     old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+#                      level=420, correction="none", WMat,
+#                      IsSurv=TRUE, midPoint=TRUE),
+#     new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+#                             level=420, correction="none", WMat,
+#                             IsSurv=TRUE, midPoint=TRUE),
+#     times = 10
+# )
+# beep(5)
+
+# Unit: milliseconds
+# expr
+# old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh = 50,      level = 420, correction = "none", WMat, IsSurv = TRUE, midPoint = TRUE)
+# new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh = 50,      level = 420, correction = "none", WMat, IsSurv = TRUE, midPoint = TRUE)
+# min        lq     mean    median        uq       max neval
+# 3037.1792 3084.0582 3242.552 3212.0862 3284.2053 4500.4443   100
+# 621.1358  630.6961  694.538  642.0454  767.7873  940.2343   100
 
 
 # in fun_mid_point
+rm(mk_P_GL_2)
 h <- (U - L) / m
 mesh_x <- seq(L+h/2, U-h/2, length.out=m)
 N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
 N_ini <- N_int+1
 N_int <- 100
 Level <- 100
-gr <- g_res
-sv <- s_res
+gr <- exp_sizeFun(g_res$params_m, list_covs)
+sv <- exp_sizeFun(s_res$params_m, list_covs)
+sig_gr <- g_res$sigma
+svlink<- s_res$family$linkinv
 
-microbenchmark::microbenchmark(
-    init <- fun_mid_int(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100),
-    edit <- fun_mid_int_stripe(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100),
-    times =  10
-)
-
-source("dev/dev_old_mkipm.R")
-tic()
-set.seed(42)
-init <- fun_mid_int(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100)
-toc()
-tic()
-set.seed(42)
-edit <- fun_mid_int_stripe(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100)
-toc()
-all.equal(init, edit)
-
-
-
-gt <- g[1:150]
-cat <- ca[1:150]
-
-old <- data.frame(gt = gt, cat = cat) %>%
-    group_by(cat) %>% summarise(P = sum(gt) * h / Level)
-old
-
-all.equal(
-    rep(0:n, c(l/2, rep(l, n-1), l/2)),
-    c(rep(0, l/2), rep(1:(n-1), each = l), rep(n, l/2))
-)
-
-n = 100
-l = 100
-microbenchmark::microbenchmark(
-    new = rep(0:n, c(l/2, rep(l, n-1), l/2)),
-    old = c(rep(0, l/2), rep(1:(n-1), each = l), rep(n, l/2))
-)
