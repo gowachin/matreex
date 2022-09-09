@@ -387,16 +387,17 @@ fun_mid_int_stripe <- function(m, L, U, gr, sig_gr, sv, svlink, N_ini, N_int, Le
 
     P_incr <- matrix(NA_real_, ncol=m, nrow=N_int)
 
-    tic()
+    # tic()
     for (k in seq_along(mu_mesh)){
         out <- rep0 # 0.004ms
-        out[inf] <- dnorm(ldx1, mu_mesh[k], sig_gr) / dx1i # 220ms
+        out[inf] <- dnorm(ldx1, mu_mesh[k], sig_gr) / dx1i   # 220ms
         # C code not speedable or loose precision
+        # https://stackoverflow.com/questions/27425658/speed-up-dnorm-function
         g <- out * sv_mesh[k]
         res <- unlist(lapply(ca, function(i) sum(g[i])))
         P_incr[, k] <- res[1:N_int] # 380ms
     }
-    toc()
+    # toc()
 
     return(P_incr)
 }

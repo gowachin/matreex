@@ -91,15 +91,15 @@ new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
 toc()
 all.equal(old, new)
 
-# microbenchmark::microbenchmark(
-#     old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
-#                      level=420, correction="none", WMat,
-#                      IsSurv=TRUE, midPoint=TRUE),
-#     new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
-#                             level=420, correction="none", WMat,
-#                             IsSurv=TRUE, midPoint=TRUE),
-#     times = 10
-# )
+microbenchmark::microbenchmark(
+    old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                     level=420, correction="none", WMat,
+                     IsSurv=TRUE, midPoint=TRUE),
+    new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                            level=420, correction="none", WMat,
+                            IsSurv=TRUE, midPoint=TRUE),
+    times = 10
+)
 # beep(5)
 
 # Unit: milliseconds
@@ -124,3 +124,15 @@ sv <- exp_sizeFun(s_res$params_m, list_covs)
 sig_gr <- g_res$sigma
 svlink<- s_res$family$linkinv
 
+old <- unlist(lapply(ca, function(i) sum(g[i])))
+new <- map_dbl(ca, ~ sum(g[.x]), g)
+
+
+x <- 1:1e4
+.subset(x, c(3, 2))
+
+all.equal(old, new)
+microbenchmark::microbenchmark(
+    old = x[1:100],
+    new = .subset(x, 1:100)
+)
