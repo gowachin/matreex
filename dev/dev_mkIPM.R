@@ -73,62 +73,43 @@ rm(data_plots_pred, data_plots_predBA,fit_sgr, list_m,
    out2, i, iClim, m_size, maxSize, minSize,
    mesh_x, meshpts, N_int, NbIPM, NbModel, spsel)
 rm(make_FullIPM_iClim, make_FullIPM_iClim_resample,
-   make_IPM_GL_2_i, mk_P_GL_2)
+   make_IPM_GL_2_i)
 
-
-# in fun_mid_point
-h <- (U - L) / m
-mesh_x <- seq(L+h/2, U-h/2, length.out=m)
-N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
-N_ini <- N_int+1
-N_int <- 100
-Level <- 100
-gr <- g_res
-sv <- s_res
-
-microbenchmark::microbenchmark(
-    init <- fun_mid_int(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100),
-    edit <- fun_mid_int_stripe(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100),
-    times =  10
-)
-
-
+load_all()
 source("dev/dev_old_mkipm.R")
 tic()
 set.seed(42)
-init <- fun_mid_int(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100)
+old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                 level=420, correction="none", WMat,
+                 IsSurv=TRUE, midPoint=TRUE)
 toc()
 tic()
 set.seed(42)
-edit <- fun_mid_int_stripe(m, L, U, gr, sv, N_ini, N_int, list_covs, Level=100)
+new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                 level=420, correction="none", WMat,
+                 IsSurv=TRUE, midPoint=TRUE)
 toc()
-all.equal(init, edit)
+all.equal(old, new)
 
-gt <- c(3.11367626649636e-08, 2.82295872819631e-08, 2.56129586967654e-08,
-        2.32559264224615e-08, 2.11310406647111e-08, 1.92139333796995e-08,
-        1.74829522105495e-08, 1.59188402834669e-08)
-cat <- c(0L, 0L, 1L, 1L, 1L, 1L, 2L, 2L)
-h <- 2.29771428571429
-Level <- 100
-fuu <- function(gt, cat, h, Level){
-    old <- data.frame(gt = gt, cat = cat) %>%
-        group_by(cat) %>% summarise(P = sum(gt) * h / Level)
-    old$P
-}
 
-foo <- function(gt, cat, h, Level){
-    n <- unique(cat)
-    res <- numeric(length = length(n))
-    for(i in seq_along(n)){
-        res[i] <- sum(gt[cat == n[i]]) * h /Level
-    }
-    res
-}
+microbenchmark::microbenchmark(
+    old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                     level=420, correction="none", WMat,
+                     IsSurv=TRUE, midPoint=TRUE),
+    new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+                            level=420, correction="none", WMat,
+                            IsSurv=TRUE, midPoint=TRUE),
+    times = 10
+)
+# beep(5)
 
-fii <- function(gt, cat, h, Level){
-    res <- split(gt, cat)
-    res <-  unlist(lapply(res, sum)) * h / Level
-}
+# Unit: milliseconds
+# expr
+# old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh = 50,      level = 420, correction = "none", WMat, IsSurv = TRUE, midPoint = TRUE)
+# new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh = 50,      level = 420, correction = "none", WMat, IsSurv = TRUE, midPoint = TRUE)
+# min        lq     mean    median        uq       max neval
+# 3037.1792 3084.0582 3242.552 3212.0862 3284.2053 4500.4443   100
+# 621.1358  630.6961  694.538  642.0454  767.7873  940.2343   100
 
 microbenchmark::microbenchmark(
     old = fuu(g, ca, h, Level),
@@ -137,5 +118,21 @@ microbenchmark::microbenchmark(
     times = 100
 )
 
+
+# in fun_mid_point
+rm(mk_P_GL_2)
+h <- (U - L) / m
+mesh_x <- seq(L+h/2, U-h/2, length.out=m)
+N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
+N_ini <- N_int+1
+N_int <- 100
+Level <- 100
+gr <- exp_sizeFun(g_res$params_m, list_covs)
+sv <- exp_sizeFun(s_res$params_m, list_covs)
+sig_gr <- g_res$sigma
+svlink<- s_res$family$linkinv
+
+old <- unlist(lapply(ca, function(i) sum(g[i])))
+new <- map_dbl(ca, ~ sum(g[.x]), g)
 
 
