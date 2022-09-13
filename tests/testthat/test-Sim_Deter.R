@@ -15,7 +15,7 @@ test_that("sim_deter_forest simple", {
 })
 
 
-test_that("sim_deter_forest simple", {
+test_that("sim_deter_species simple", {
 
     path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
                  "testthat", "testdata")
@@ -37,21 +37,20 @@ test_that("sim_deter_forest delay & cut", {
     path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
                  "testthat", "testdata")
 
-    model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
-                            replicat = 1)
+    model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
+                            replicat = 1, delay = 1)
 
     res<-evaluate_promise({
         set.seed(42)
         new <- sim_deter_forest(Forest = model, tlim = 500, equil_time = 1e3,
-                                correction = "cut",  verbose = TRUE, delay = 1)
+                                correction = "cut",  verbose = TRUE)
     })
 
-    expect_equal(res$messages[1], "apply a IPM delay of 1\n")
-    expect_equal(res$messages[2], "apply a IPM cut correction\n")
-    expect_equal(res$messages[3], "Starting while loop. Maximum t = 1000\n")
-    expect_equal(res$messages[4], "time 500 | BA diff : 0.00\n")
-    expect_equal(res$messages[5], "Simulation ended after time 500\n")
-    expect_equal(res$messages[6], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
+    expect_equal(res$messages[1], "apply a IPM cut correction\n")
+    expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
+    expect_equal(res$messages[3], "time 500 | BA diff : 0.00\n")
+    expect_equal(res$messages[4], "Simulation ended after time 500\n")
+    expect_equal(res$messages[5], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
 
     expect_equal(dim(new), c(65, 501))
     expect_equal(colnames(new), c(paste0("t", 1:500), "eqt500"))
@@ -63,20 +62,19 @@ test_that("sim_deter_forest delay & cut", {
     path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
                  "testthat", "testdata")
 
-    model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
-                            replicat = 1)
+    model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
+                            replicat = 1, delay = 5)
 
     res<-evaluate_promise({
         set.seed(666)
         new <- sim_deter_forest(Forest = model, tlim = 10, equil_time = 1e3,
-                                correction = "cut",  verbose = TRUE, delay = 5)
+                                correction = "cut",  verbose = TRUE)
     })
 
-    expect_equal(res$messages[1], "apply a IPM delay of 5\n")
-    expect_equal(res$messages[2], "apply a IPM cut correction\n")
-    expect_equal(res$messages[3], "Starting while loop. Maximum t = 1000\n")
-    expect_equal(res$messages[4], "Simulation ended after time 4\n")
-    expect_equal(res$messages[5], "BA stabilized at 1.07 with diff of 0.08 at time 3\n")
+    expect_equal(res$messages[1], "apply a IPM cut correction\n")
+    expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
+    expect_equal(res$messages[3], "Simulation ended after time 4\n")
+    expect_equal(res$messages[4], "BA stabilized at 1.07 with diff of 0.08 at time 3\n")
     expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
     expect_equal(dim(new), c(73, 11))
@@ -158,3 +156,4 @@ test_that("sim_deter format work", {
     expect_identical(head(tree_format(res)), exp)
 
 })
+

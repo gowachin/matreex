@@ -7,20 +7,26 @@ Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
                              harvest = def_harv)
 
 load_all()
-Yggdrasil$harvest_fun <- Uneven_harv
-Forest <- forest(list(Yggdrasil),
-                 harv_rules = c(Pmax = 0.7, dBAmin = 3,
-                                freq = 30, alpha = 1))
+# Yggdrasil$harvest_fun <- Uneven_harv
+body(Yggdrasil$init_pop)[[length(body(Yggdrasil$init_pop)) - 1]] <- expr(res <- res * 20)
+Forest <- forest(
+    list(
+        delay(Yggdrasil, delay = 5)
+    ),
+    harv_rules = c(Pmax = 0.7, dBAmin = 3,
+                   freq = 30, alpha = 1))
 # Forest$species$Yggdrasil$recruit_fun
 targetBA <- 30
 
-# profvis({
+profvis({
 set.seed(42)
 res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
                  correction = "cut", targetBA = targetBA,
                  verbose = TRUE)
-# })
+})
 
+all.equal(old_0, res)
+all.equal(old_res, res)
 
 times <- as.numeric(sub("t", "", colnames(res)))
 plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
@@ -29,29 +35,35 @@ text(700, res[grepl("BA",rownames(res)),ncol(res)],
      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
 abline(h = targetBA, lty = 3, col = "red")
 
+Forest <- forest(
+    list(
+        delay(Yggdrasil, delay = 6)
+    ),
+    harv_rules = c(Pmax = 0.7, dBAmin = 3,
+                   freq = 30, alpha = 1))
+res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
+                        correction = "cut", targetBA = targetBA,
+                        verbose = TRUE)
+
+
+times <- as.numeric(sub("t", "", colnames(res)))
+points(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
+     cex = 0.1, ylim = c(0, 100), type = "b")
+text(700, res[grepl("BA",rownames(res)),ncol(res)],
+     round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
+abline(h = targetBA, lty = 3, col = "red")
+
 # Two species
 Ents <- Yggdrasil
 Ents$info["species"] <- "Ents"
-Ents$init_pop <- function(mesh, SurfEch = 0.03) {
-    ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
-    ini <- exp(runif(1, -.005, .005) * mesh)
-    alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-    while(all(alea)){ # because god knows it's fucking possible.
-        # and it will return NaN
-        alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-    }
-    ini[alea] <- 0
-    res <- as.numeric(ini / sum(ct * ini) )
-    res <- res + 1e-10 # HACK to limit falling in floating point trap !
-    res <- res * 80 # modif pour avoir un BA d'origine de 80
-    return(res)
-}
+# body(Ents$init_pop)[[length(body(Ents$init_pop)) - 1]] <- expr(res <- res * 80)
+Ents <- delay(Ents, 10)
 load_all()
 set.seed(42)
 Forest2 <- forest(list(Yggdrasil, Ents),
                   harv_rules = c(Pmax = 0.25, dBAmin = 3,
                                  freq = 10, alpha = 1))
-res2 <- sim_deter_forest(Forest2, tlim = 600, equil_time = 600,
+res2 <- sim_deter_forest(Forest2, tlim = 1000, equil_time = 1000,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
 
@@ -61,6 +73,7 @@ tmp <- tree_format(res2)
 
 tmp %>%
     filter(! var %in%  c("m", "h")) %>%
+    filter(time < 50) %>%
     filter(value > 0) %>% # For H
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
@@ -85,6 +98,14 @@ tmp %>%
     geom_tile() +
     scale_fill_viridis_c(na.value="transparent") +
     theme_dark() +
+    NULL
+
+tmp %>%
+    filter(var == "m", equil == T) %>%
+    filter(value != 0) %>%
+    ggplot(aes(x = value)) +
+    geom_density() +
+    facet_wrap(~ species) +
     NULL
 
 

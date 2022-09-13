@@ -15,7 +15,6 @@ sim_deter_forest(
   targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
-  delay = 0,
   verbose = FALSE
 )
 
@@ -28,7 +27,6 @@ sim_deter_forest(
   targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
-  delay = 0,
   verbose = FALSE
 )
 
@@ -41,7 +39,6 @@ sim_deter_forest(
   targetBA = 20,
   correction = "none",
   SurfEch = 0.03,
-  delay = 0,
   verbose = FALSE
 )
 }
@@ -71,10 +68,6 @@ Single numeric in \eqn{m^2}.}
 IPM so that no individual can grow outside of the defines classes.}
 
 \item{SurfEch}{Value of plot size surface in ha}
-
-\item{delay}{Number of year delay between the recruitment of an individual
-and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
 
 \item{verbose}{Print message, used for debugs only. FALSE by default}
 }

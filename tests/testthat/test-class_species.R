@@ -69,6 +69,18 @@ test_that("old_ipm2species works", {
                                            list_covs = raw_IPM$list_m))
     )
 
+    expect_identical(
+        old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1, delay = 2),
+        new_species(
+                delay(old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
+                      delay = 2
+                      ),
+            def_init, def_harv,
+            recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                     list_covs = raw_IPM$list_m)
+        )
+    )
+
 })
 
 

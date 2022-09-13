@@ -29,9 +29,11 @@ test_that("delay dtCMatrix works", {
 
     expect_identical(
         delay(x, 2),
-        new("dgCMatrix", i = c(2L, 3L, 4L, 3L, 4L, 4L),
-            p = c(0L, 0L, 0L, 3L,  5L, 6L),
-            Dim = c(5L, 5L), x = c(1, 2, 3, 1, 2, 1))
+        new("dgCMatrix", i = c(1L, 2L,
+                               2L, 3L, 4L, 3L, 4L, 4L),
+            p = c(0L, 1L, 2L, 5L,  7L, 8L),
+            Dim = c(5L, 5L), x = c(1, 1,
+                                   1, 2, 3, 1, 2, 1))
     )
 
     expect_identical( delay(x, 0), x )
@@ -55,7 +57,7 @@ test_that("delay ipm works", {
                  species = "darwin", climatic = 1, compress = FALSE)
 
     exp <- new_ipm(IPM = list( delay(mat, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, compress = FALSE)
+                   species = "darwin", climatic = 1, compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -66,7 +68,7 @@ test_that("delay ipm works", {
                  species = "darwin", climatic = 1, compress = TRUE)
 
     exp <- new_ipm(IPM = list( delay(mat * 1e-7, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, compress = FALSE)
+                   species = "darwin", climatic = 1, compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -129,7 +131,7 @@ test_that("delay forest works", {
 
 
 # correction ####
-test_that("delay ipm works", {
+test_that("correction ipm works", {
 
     mat<- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
               p = c(0L, 3L,  5L, 6L),
@@ -160,7 +162,7 @@ test_that("delay ipm works", {
 })
 
 
-test_that("delay species works", {
+test_that("correction species works", {
 
     IPM <- new_ipm(IPM = list(
         new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
@@ -186,7 +188,7 @@ test_that("delay species works", {
 })
 
 
-test_that("delay forest works", {
+test_that("correction forest works", {
 
     IPM <- new_ipm(IPM = list(
         new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),

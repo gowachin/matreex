@@ -20,6 +20,9 @@ knitr::opts_chunk$set(
 
 ```{r setup}
 library(treeforce)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
 ```
 
 # Introduction
@@ -69,7 +72,7 @@ A simulation is mostly defined by the time limitation (*tlim*) and an equilibriu
 
 ```{r, single sp sim}
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 30, equil_time = 1e3,
+sim1sp <- sim_deter_forest(Forest, tlim = 60, equil_time = 1e3,
                         correction = "cut", equil_dist = 50,
                         verbose = TRUE)
 ```
@@ -85,11 +88,15 @@ They are defined below :
 
 ```{r, single_print}
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
-res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
-times <- as.numeric(sub("t", "", colnames(res)))
+sim1sp[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
+times <- as.numeric(sub(".*t", "", colnames(sim1sp)))
 
-plot(times, res[grepl("BA",rownames(res)),], 
-     type = "b", ylab = "BA", xlab = "time", cex = 0.1)
+tree_format(sim1sp) %>%
+    filter(var == "BAsp") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    NULL
 ```
 
 ## Multiple species 
@@ -106,7 +113,7 @@ Forest2 <- forest(species = list(Yggdrasil = Yggdrasil,
                                  Ents = Ents))
 
 set.seed(42)
-res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
+sim2sp <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
                         correction = "cut", equil_dist = 50,
                         verbose = TRUE)
 ```
@@ -115,18 +122,21 @@ The result is the same table with each species tables grouped one under the othe
 
 ```{r, two_print, echo = FALSE}
 m2 <- m *2 + 3
-res[c(1:2, m:(m+3), (2 *m + 2):m2, 
+sim2sp[c(1:2, m:(m+3), (2 *m + 2):m2, 
       (m2 +1):(m2 +2), (m2 + m):(m2 + m +3), (m2 + 2 *m + 2):(2*m2)),
     c(1:2,30:31)]
+```
 
-times <- as.numeric(sub("t", "", colnames(res)))
-value <- colSums(res[grepl("BA",rownames(res)),])
-plot(times, value, type = "b", ylab = "Total BA", xlab = "time", 
-     cex = 0.1, ylim = c(1, max(value) * 1.05))
-points(times, res[grepl("Ygg.*BA",rownames(res)),], 
-       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
-points(times, res[grepl("Ent.*BA",rownames(res)),], 
-       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
+
+```{r, two_plot}
+tree_format(sim2sp) %>%
+    filter(var == "BAsp") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    stat_summary(fun = sum, color = 'black', 
+                 geom ='line', linetype = "dashed", size = .3) +
+    NULL
 ```
 
 ## Changing harvesting rules.
@@ -148,7 +158,7 @@ Forest_harv <- forest(list(Yggdrasil),
                       harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 10, alpha = 1))
 targetBA <- 2
 set.seed(42)
-res <- sim_deter_forest(Forest_harv, tlim = 60, 
+sim1harv <- sim_deter_forest(Forest_harv, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
@@ -157,19 +167,25 @@ res <- sim_deter_forest(Forest_harv, tlim = 60,
 
 ```{r, harv_print, echo = FALSE}
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
-res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
-times <- as.numeric(sub("t", "", colnames(res)))
-
-plot(times, res[grepl("BA",rownames(res)),], 
-     type = "b", ylab = "BA", xlab = "time", cex = 0.1)
-abline(h = targetBA, col = "darkgreen")
-plot(times, res[grepl("H",rownames(res)),], 
-     type = "b", ylab = "H", xlab = "time", cex = 0.1)
+sim1harv[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
+times <- as.numeric(sub(".*t", "", colnames(sim1harv)))
 ```
 
-Here we observe that harvest is not enough to reach targetBA. This could be explained by a restriction in tree size target.
 
-```{r, echo = FALSE}
+```{r, harv_plot}
+tree_format(sim1harv) %>%
+    filter(var %in% c("BAsp", "H"),  !equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) +
+    facet_wrap(~ var, scales = "free_y") +
+    NULL
+```
+
+<!-- Here we observe that harvest is not enough to reach targetBA. This could be explained by a restriction in tree size target. -->
+
+```{r, echo = FALSE, eval = FALSE}
+res <- sim1harv
 m <- Forest_harv$species$Yggdrasil$IPM$mesh
 plot(m, res[grepl("m",rownames(res)),59], 
      type = "b", ylab = "X", xlab = "size", cex = 0.1, col = "darkblue",
@@ -194,21 +210,73 @@ Forest_harv2 <- forest(species = list(Yggdrasil = Yggdrasil,
                        harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 5, alpha = 1))
 
 set.seed(42)
-res <- sim_deter_forest(Forest_harv2, tlim = 60, 
+sim2harv <- sim_deter_forest(Forest_harv2, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
 ```
 
 
-```{r, harv_two_print, echo = FALSE}
-times <- as.numeric(sub("t", "", colnames(res)))
-value <- colSums(res[grepl("BA",rownames(res)),])
-plot(times, value, type = "b", ylab = "Total BA", xlab = "time", 
-     cex = 0.1, ylim = c(1, max(value) * 1.05))
-points(times, res[grepl("Ygg.*BA",rownames(res)),], 
-       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkblue")
-points(times, res[grepl("Ent.*BA",rownames(res)),], 
-       type = "b", ylab = "Total BA", xlab = "time", cex = 0.1, col = "darkgreen")
-abline(h = targetBA, lty = 2, col = "gray")
+```{r, harv_two_plot}
+tree_format(sim2harv) %>%
+    filter(var == "BAsp", !equil) %>% 
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    stat_summary(fun = sum, color = 'black', na.rm = TRUE,
+                 geom ='line', linetype = "dashed", size = .3) +
+    geom_hline(yintercept = targetBA, linetype = "dotted")+
+    NULL
+```
+
+
+## Recruitment delay
+
+We can modify a species to add more delay for recruitment of new individuals.
+
+```{r, Forest_delay}
+n_delay <- 5
+
+Yggdrasil$harvest_fun <- def_harv
+Yggdrasil_d5 <- delay(Yggdrasil, n_delay)
+Yggdrasil_d5$info["species"] <- "Yggdrasil_d5"
+Forest_delay <- forest(list(Yggdrasil_d5))
+```
+
+Simulation doesn't change anything, the delay is only defined at the IPM level.
+
+```{r, delay sim}
+set.seed(42)
+sim5d <- sim_deter_forest(Forest_delay, tlim = 60, equil_time = 1e3,
+                        correction = "cut", equil_dist = 50,
+                        verbose = TRUE)
+```
+
+When plotting the evolution of BA in comparison with no delay, we observe a larger BA and an equilibrium reached later in time.
+
+```{r, delay_plot}
+tree_format(sim5d) %>%
+    rbind(tree_format(sim1sp)) %>%
+    filter(var == "BAsp") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    NULL
+```
+
+This difference in BA is linked with a different distribution at equilibrium.
+
+*Note : Values below the redline does not count in BA computation.*
+
+```{r, delay_dist_plot}
+tree_format(sim5d) %>%
+    mutate(mesh = mesh - n_delay) %>%
+    rbind(tree_format(sim1sp)) %>%
+    filter(var == "m", equil) %>%
+    ggplot(aes(x = mesh, y = value, fill = species, group = desc(species))) +
+    geom_area(color = "black", alpha = .3, size = .4, position = "identity") +
+    geom_vline(xintercept = 1, color = "red") +
+    annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
+             color = "red", angle = 90) +
+    NULL
 ```

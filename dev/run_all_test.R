@@ -7,7 +7,7 @@ devtools::check()
 
 # library(covr, testthat)
 # get a shiny to find which line is not yet tested. Very helpfull
-report(x = package_coverage(line_exclusions = list("R/Sim_NonDem.R")))
+# report(x = package_coverage(line_exclusions = list("R/Sim_NonDem.R")))
 x <- package_coverage()
 report(x)
 # covr::package_coverage()
@@ -18,7 +18,6 @@ report(x)
 # df_cov <- as.data.frame(cov)
 
 # df_cov[df_cov$functions=='tank',]
-
 
 x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
 x <- file_coverage('R/class_ipm.R', 'tests/testthat/test-class_ipm.R')

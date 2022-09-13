@@ -26,6 +26,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 
     ct <- pi*(mesh/2*1e-3)^2 # in m^2
     ct <- ct/SurfEch
+
     return(ct)
 }
 
@@ -60,9 +61,6 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' (default) and \code{"cut"}. The second option set the last column to 0 in the
 #' IPM so that no individual can grow outside of the defines classes.
 #' @param SurfEch Value of plot size surface in ha
-#' @param delay Number of year delay between the recruitment of an individual
-#' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-#' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
 #'
 #' @param verbose Print message, used for debugs only. FALSE by default
 #'
@@ -91,7 +89,6 @@ sim_deter_forest  <- function(Forest,
                              targetBA = 20,
                              correction = "none",
                              SurfEch = 0.03,
-                             delay = 0,
                              verbose = FALSE) {
     UseMethod("sim_deter_forest")
 }
@@ -106,7 +103,6 @@ sim_deter_forest.species  <- function(Forest,
                               targetBA = 20,
                               correction = "none",
                               SurfEch = 0.03,
-                              delay = 0,
                               verbose = FALSE) {
     sim_deter_forest(
         Forest = forest(species = list(Forest)),
@@ -119,7 +115,6 @@ sim_deter_forest.species  <- function(Forest,
         targetBA = targetBA,
         correction = correction,
         SurfEch = SurfEch,
-        delay = delay,
         verbose = verbose
     )
 }
@@ -134,7 +129,6 @@ sim_deter_forest.forest  <- function(Forest,
                                      targetBA = 20,
                                      correction = "none",
                                      SurfEch = 0.03,
-                                     delay = 0,
                                      verbose = FALSE) {
 
 
@@ -151,8 +145,9 @@ sim_deter_forest.forest  <- function(Forest,
     assertNumber(targetBA, lower = 0)
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
-    assertCount(delay)
     assertLogical(verbose, any.missing = FALSE, len = 1)
+
+    start <- Sys.time()
 
     # Initialisation ####
     get_ipm <- function(x, n){
@@ -177,13 +172,6 @@ sim_deter_forest.forest  <- function(Forest,
     nsp <- length(Forest$species)
 
     ## Modify IPM ####
-    if (delay > 0) { ### Apply Delay ####
-        if (verbose) {
-            message("apply a IPM delay of ", delay)
-        }
-        Forest <- delay(Forest, delay = delay)
-    }
-    ### Apply correction ####
     if (correction == "cut") {
         if (verbose) {
             message("apply a IPM cut correction")
@@ -192,6 +180,7 @@ sim_deter_forest.forest  <- function(Forest,
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
+    delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
@@ -208,6 +197,7 @@ sim_deter_forest.forest  <- function(Forest,
               exec, SurfEch = SurfEch)
     Harv <- map(lengths(meshs), ~ rep(0, .x))
     ct <- map(meshs, Buildct, SurfEch = SurfEch)
+
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
@@ -240,14 +230,6 @@ sim_deter_forest.forest  <- function(Forest,
                 high_ba[[i]] * ( floor(ba)  - nipm[i] )
         }, low_ba, high_ba, sim_BA[1], lower_ba
     )
-    if(delay > 0){
-        # add sub diag
-        sim_ipm <- map( sim_ipm, function(x) {
-            for (i in 1:delay) {
-                x[i + 1, i] <- 1
-            }
-            x} )
-    }
 
     if (verbose) {
         message("Starting while loop. Maximum t = ", equil_time)
@@ -325,7 +307,7 @@ sim_deter_forest.forest  <- function(Forest,
 
         ## Get sim IPM ####
         # IDEA make a function for this
-        # input : BAsp, sim_BA, delay, Forest, ( t ? )
+        # input : BAsp, sim_BA, delay, Forest, t
         # output : sim_ipm
         lower_ba <- map_dbl(BAsp, ~ .x[which(.x == max(.x[.x <= sim_BA[t]]))] )
         higher_ba <- map_dbl(BAsp, ~ .x[which(.x == min(.x[.x > sim_BA[t]]))] )
@@ -340,14 +322,6 @@ sim_deter_forest.forest  <- function(Forest,
                     high_ba[[i]] * ( floor(ba)  - nipm[i] )
             }, low_ba, high_ba, sim_BA[t], lower_ba
         )
-        if(delay > 0){
-            # add sub diag
-            sim_ipm <- map( sim_ipm, function(x) {
-                for (i in 1:delay) {
-                    x[i + 1, i] <- 1
-                }
-                x} )
-        }
         # eof idea
 
         ## Loop Verbose ####
@@ -378,6 +352,9 @@ sim_deter_forest.forest  <- function(Forest,
             diff(range(sim_BA[max(1, t - equil_dist - 1):(t - 1)])),
             t -1
         ))
+        tmp <- Sys.time() - start
+        message("Time difference of ", format(unclass(tmp), digits = 3),
+                " ", attr(tmp, "units"))
     }
 
     sim_X <- new_deter_sim(sim_X)

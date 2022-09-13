@@ -118,18 +118,22 @@ species <- function(IPM, init_pop, harvest_fun,
 #' Arguments must be \code{mesh} and \code{SurfEch}.
 #' Using the arguments is not mandatory, it's most usefull when creating random
 #' population.
+#' @param delay Number of year delay between the recruitment of an individual
+#' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
+#' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
 #'
 #' @import checkmate
 #' @import here
 #'
 #' @export
 old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
-                            harvest = def_harv, init_pop = def_init){
+                            harvest = def_harv, init_pop = def_init, delay = 0){
 
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
     assertCount(climatic)
     assertCount(replicat)
+    assertCount(delay)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
     raw_IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
@@ -138,8 +142,12 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
     res_ipm <- new_ipm(
         IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
-        species = species, climatic = climatic, compress = TRUE
+        species = species, climatic = climatic, compress = TRUE, delay = 0
     )
+
+    if(delay > 0){
+        res_ipm <- delay(res_ipm, delay)
+    }
 
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,

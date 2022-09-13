@@ -11,12 +11,14 @@ test_that("new_ipm works", {
     species <- "Yggdrasil"
     climatic <- 1
     compress <- TRUE
+    delay <- 0
 
-    expect_identical(new_ipm(IPM, BA, mesh, species, climatic, compress),
+    expect_identical(new_ipm(IPM, BA, mesh, species, climatic, compress, delay),
                      structure(list(
                          IPM = IPM, BA = BA, mesh = mesh,
                          info = c(species = "Yggdrasil", climatic = "1",
-                                  compress = "TRUE")), class = "ipm"))
+                                  compress = "TRUE", delay = "0")),
+                         class = "ipm"))
 })
 
 
@@ -47,7 +49,7 @@ test_that("validate_ipm works", {
     names(tmp$info) <- c("species", "climatic", "compressed")
     expect_error(
         validate_ipm(tmp),
-        "IPM class must have info of elements species, climatic and compress"
+        "IPM class must have info of elements species, climatic, compress and delay"
     )
 })
 
@@ -65,10 +67,16 @@ test_that("old_ipm2ipm works", {
     species <- "Yggdrasil"
     climatic <- 1
     compress <- TRUE
+    delay <- 0
 
     expect_identical(
         old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
-        new_ipm(IPM, BA, mesh, species, climatic, compress)
+        new_ipm(IPM, BA, mesh, species, climatic, compress, delay)
+    )
+
+    expect_identical(
+        old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1, delay = 2),
+        delay(new_ipm(IPM, BA, mesh, species, climatic, compress, delay), delay = 2)
     )
 
 })

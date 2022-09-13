@@ -4,7 +4,7 @@
 \alias{new_ipm}
 \title{Constructor for IPM class}
 \usage{
-new_ipm(IPM, BA, mesh, species, climatic, compress = FALSE)
+new_ipm(IPM, BA, mesh, species, climatic, compress = FALSE, delay = 0)
 }
 \arguments{
 \item{IPM}{list of the IPM for different basal area for the species of
@@ -23,6 +23,10 @@ each one or else this climatic value will be skipped. int.}
 
 \item{compress}{Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 Help to limit  size when saved on disc. FALSE by default. lgl.}
+
+\item{delay}{Number of year delay between the recruitment of an individual
+and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
+values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
 }
 \description{
 Constructor for IPM class

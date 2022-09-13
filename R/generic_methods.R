@@ -119,6 +119,9 @@ delay.ipm <- function(x, delay = 0){
     x$IPM <- lapply(x$IPM, delay.dtCMatrix, delay)
     x$mesh <- delay(x$mesh, delay)
 
+    prev_d <- as.numeric(x$info["delay"])
+    x$info["delay"] <- as.character(delay + prev_d)
+
     return(validate_ipm(x))
 }
 
@@ -170,6 +173,10 @@ delay.dtCMatrix <- function(x, delay = 0){
     P <- cbind(matrix(0, nrow = size+delay, ncol = delay),
                rbind(matrix(0, ncol=size, nrow=delay), x))
     # NOTE this move from dtCMatrix to dgCMatrix, is it an issue ?
+
+    for (i in 1:delay) {
+        P[i + 1, i] <- 1
+    }
 
     return(P)
 }

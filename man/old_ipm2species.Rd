@@ -10,7 +10,8 @@ old_ipm2species(
   path = here(),
   replicat = 42,
   harvest = def_harv,
-  init_pop = def_init
+  init_pop = def_init,
+  delay = 0
 )
 }
 \arguments{
@@ -32,6 +33,10 @@ population than before. Unless you want zombie trees.}
 Arguments must be \code{mesh} and \code{SurfEch}.
 Using the arguments is not mandatory, it's most usefull when creating random
 population.}
+
+\item{delay}{Number of year delay between the recruitment of an individual
+and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
+values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
 }
 \description{
 Read old ipm and put them in the new class format.

@@ -11,13 +11,17 @@
 #' each one or else this climatic value will be skipped. int.
 #' @param compress Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 #' Help to limit  size when saved on disc. FALSE by default. lgl.
+#' @param delay Number of year delay between the recruitment of an individual
+#' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
+#' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
 #'
 #' @export
-new_ipm <- function(IPM, BA, mesh, species, climatic, compress = FALSE){
+new_ipm <- function(IPM, BA, mesh, species, climatic,
+                    compress = FALSE, delay = 0){
 
     IPM <- list(IPM = IPM, BA = BA, mesh = mesh,
                 info = c(species = species, climatic = climatic,
-                         compress = compress))
+                         compress = compress, delay = delay))
     class(IPM) <- "ipm"
 
     return(IPM)
@@ -51,9 +55,9 @@ validate_ipm <- function(x){
                   len = dim(values$IPM[[1]])[1])
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "climatic", "compress"))){
+    if(any(names(values$info) != c("species", "climatic", "compress", "delay"))){
         stop(paste0("IPM class must have info of elements species,",
-                    " climatic and compress"))
+                    " climatic, compress and delay"))
     }
     x
 }
@@ -67,16 +71,21 @@ validate_ipm <- function(x){
 #' each one or else this climatic value will be skipped. int.
 #' @param path Place to save the resulting file. Single Char.
 #' @param replicat Numeric for the simulation to select. By default, the 42th.
+#' @param delay Number of year delay between the recruitment of an individual
+#' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
+#' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
 #'
 #' @import checkmate
 #' @import here
 #'
 #' @noRd
-old_ipm2ipm <- function(species, climatic = 1, path = here(), replicat = 42){
+old_ipm2ipm <- function(species, climatic = 1, delay = 0, path = here(),
+                        replicat = 42){
 
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
     assertCount(climatic)
+    assertCount(delay)
     assertCount(replicat)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
@@ -86,13 +95,12 @@ old_ipm2ipm <- function(species, climatic = 1, path = here(), replicat = 42){
 
     res <- validate_ipm(new_ipm(
         IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
-        species = species, climatic = climatic, compress = TRUE
+        species = species, climatic = climatic, delay = 0, compress = TRUE
     ))
 
-    x <- new_ipm(
-        IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
-        species = species, climatic = climatic, compress = TRUE
-    )
+    if(delay > 0){
+        res <- delay(res, delay)
+    }
 
     return(res)
 }
