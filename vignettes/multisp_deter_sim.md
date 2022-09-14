@@ -3,6 +3,9 @@ Running multi species deterministic simulations
 
 ``` r
 library(treeforce)
+library(ggplot2)
+library(dplyr)
+library(magrittr)
 ```
 
 # Introduction
@@ -57,6 +60,7 @@ def_init
 #> 
 #>     return(res)
 #> }
+#> <bytecode: 0x563fb96cf408>
 #> <environment: namespace:treeforce>
 ```
 
@@ -81,13 +85,14 @@ equilibrium time (*equil_time*).
 
 ``` r
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 30, equil_time = 1e3,
+sim1sp <- sim_deter_forest(Forest, tlim = 60, equil_time = 1e3,
                         correction = "cut", equil_dist = 50,
                         verbose = TRUE)
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 63
 #> BA stabilized at 2.37 with diff of 0.97 at time 63
+#> Time difference of 0.18 secs
 ```
 
 The output is a single table with time in column and different variables
@@ -100,22 +105,28 @@ state. They are defined below :
 -   Distribution of harvest
 -   Sum of harvest
 
+*Only few rows and columns are displayed below*
+
 ``` r
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
-res[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
-#>                          t1           t2           t3          t30          t63
-#> Yggdrasil.m1   0.0000000001 2.324830e-01 0.2652896686 0.2172349914 0.2202405425
-#> Yggdrasil.m2   0.0000000001 2.324830e-01 0.3882716584 0.3561306655 0.3615941307
+sim1sp[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
+#>                          t1           t2           t3          t30          t31
+#> Yggdrasil.m1   0.0000000001 2.324830e-01 0.2652896686 0.2172349914 0.2179111877
+#> Yggdrasil.m2   0.0000000001 2.324830e-01 0.3882716584 0.3561306655 0.3572528088
 #> Yggdrasil.m30  0.0000000001 0.000000e+00 0.0000000000 0.0000000000 0.0000000000
-#> Yggdrasil.BAsp 1.0000000012 1.129719e+00 1.1857246574 2.4503084449 2.3717907899
-#> Yggdrasil.N    2.1973234556 2.603026e+00 2.8739984221 6.2944046900 6.1833693946
-#> Yggdrasil.h1   0.0000000000 1.056226e-13 0.0002455546 0.0002351896 0.0002391983
+#> Yggdrasil.BAsp 1.0000000012 1.129719e+00 1.1857246574 2.4503084449 2.4276446165
+#> Yggdrasil.N    2.1973234556 2.603026e+00 2.8739984221 6.2944046900 6.2512793204
+#> Yggdrasil.h1   0.0000000000 1.056226e-13 0.0002455546 0.0002351896 0.0002359474
 #> Yggdrasil.h30  0.0000000000 0.000000e+00 0.0000000000 0.0000000000 0.0000000000
-#> Yggdrasil.H    0.0000000000 1.290580e-02 0.0146364960 0.0358422185 0.0351437183
-times <- as.numeric(sub("t", "", colnames(res)))
+#> Yggdrasil.H    0.0000000000 1.290580e-02 0.0146364960 0.0358422185 0.0355752567
+times <- as.numeric(sub(".*t", "", colnames(sim1sp)))
 
-plot(times, res[grepl("BA",rownames(res)),], 
-     type = "b", ylab = "BA", xlab = "time", cex = 0.1)
+tree_format(sim1sp) %>%
+    filter(var == "BAsp") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    NULL
 ```
 
 ![](multisp_deter_sim_files/figure-gfm/single_print-1.png)<!-- -->
@@ -136,20 +147,23 @@ Forest2 <- forest(species = list(Yggdrasil = Yggdrasil,
                                  Ents = Ents))
 
 set.seed(42)
-res <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
+sim2sp <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
                         correction = "cut", equil_dist = 50,
                         verbose = TRUE)
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 66
 #> BA stabilized at 4.62 with diff of 0.84 at time 66
+#> Time difference of 0.313 secs
 ```
 
 The result is the same table with each species tables grouped one under
 the other. Since the species names is pasted with the variable name in
 row names, one can extract variables of interest.
 
-    #>                          t1           t2          t30         t66
+*Only few rows and columns are displayed below*
+
+    #>                          t1           t2          t30       eqt66
     #> Yggdrasil.m1   0.0000000001 2.265361e-01 0.2080203418 0.211777876
     #> Yggdrasil.m2   0.0000000001 2.265361e-01 0.3437018044 0.350519204
     #> Yggdrasil.m30  0.0000000001 0.000000e+00 0.0000000000 0.000000000
@@ -167,7 +181,18 @@ row names, one can extract variables of interest.
     #> Ents.h30       0.0000000000 0.000000e+00 0.0000000000 0.000000000
     #> Ents.H         0.0000000000 1.521604e-02 0.0345537161 0.034270182
 
-![](multisp_deter_sim_files/figure-gfm/two_print-1.png)<!-- -->
+``` r
+tree_format(sim2sp) %>%
+    filter(var == "BAsp") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    stat_summary(fun = sum, color = 'black', 
+                 geom ='line', linetype = "dashed", size = .3) +
+    NULL
+```
+
+![](multisp_deter_sim_files/figure-gfm/two_plot-1.png)<!-- -->
 
 ## Changing harvesting rules.
 
@@ -178,8 +203,10 @@ harvesting rate of 0.6 percent per year.
 ``` r
 Yggdrasil$harvest_fun
 #> function(x, species, targetBAcut, ct){
-#>     return(x * 0.006)
+#>     rate <- 0.006 * (ct > 0)
+#>     return(x * rate)
 #> }
+#> <bytecode: 0x563fb992fd50>
 #> <environment: namespace:treeforce>
 ```
 
@@ -196,7 +223,7 @@ Forest_harv <- forest(list(Yggdrasil),
                       harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 10, alpha = 1))
 targetBA <- 2
 set.seed(42)
-res <- sim_deter_forest(Forest_harv, tlim = 60, 
+sim1harv <- sim_deter_forest(Forest_harv, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
@@ -204,6 +231,7 @@ res <- sim_deter_forest(Forest_harv, tlim = 60,
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
 #> BA stabilized at 2.18 with diff of 0.32 at time 60
+#> Time difference of 0.218 secs
 ```
 
     #>                          t1       t2        t3       t30       t31
@@ -214,14 +242,21 @@ res <- sim_deter_forest(Forest_harv, tlim = 60,
     #> Yggdrasil.N    2.1973234556 2.615932 2.8998717 6.0079951 6.3133095
     #> Yggdrasil.h1   0.0000000000 0.000000 0.0000000 0.0000000 0.0000000
     #> Yggdrasil.h30  0.0000000000 0.000000 0.0000000 0.0000000 0.0000000
-    #> Yggdrasil.H    0.0000000000 0.000000 0.0000000 0.5874806 0.5874806
+    #> Yggdrasil.H    0.0000000000 0.000000 0.0000000 0.5874806 0.0000000
 
-![](multisp_deter_sim_files/figure-gfm/harv_print-1.png)<!-- -->![](multisp_deter_sim_files/figure-gfm/harv_print-2.png)<!-- -->
+``` r
+tree_format(sim1harv) %>%
+    filter(var %in% c("BAsp", "H"),  !equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) +
+    facet_wrap(~ var, scales = "free_y") +
+    NULL
+```
 
-Here we observe that harvest is not enough to reach targetBA. This could
-be explained by a restriction in tree size target.
+![](multisp_deter_sim_files/figure-gfm/harv_plot-1.png)<!-- -->
 
-![](multisp_deter_sim_files/figure-gfm/unnamed-chunk-4-1.png)<!-- -->
+<!-- Here we observe that harvest is not enough to reach targetBA. This could be explained by a restriction in tree size target. -->
 
 The uneven harvest is possible with multiple species. Multiple
 parameters will scale the effect of harvest :
@@ -244,7 +279,7 @@ Forest_harv2 <- forest(species = list(Yggdrasil = Yggdrasil,
                        harv_rules = c(Pmax = 1, dBAmin = 0.2, freq = 5, alpha = 1))
 
 set.seed(42)
-res <- sim_deter_forest(Forest_harv2, tlim = 60, 
+sim2harv <- sim_deter_forest(Forest_harv2, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
                         correction = "cut", targetBA = targetBA,
                         verbose = TRUE)
@@ -252,6 +287,85 @@ res <- sim_deter_forest(Forest_harv2, tlim = 60,
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
 #> BA stabilized at 2.35 with diff of 1.36 at time 60
+#> Time difference of 0.274 secs
 ```
 
-![](multisp_deter_sim_files/figure-gfm/harv_two_print-1.png)<!-- -->
+``` r
+tree_format(sim2harv) %>%
+    filter(var == "BAsp", !equil) %>% 
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    stat_summary(fun = sum, color = 'black', na.rm = TRUE,
+                 geom ='line', linetype = "dashed", size = .3) +
+    geom_hline(yintercept = targetBA, linetype = "dotted")+
+    NULL
+```
+
+![](multisp_deter_sim_files/figure-gfm/harv_two_plot-1.png)<!-- -->
+
+## Recruitment delay
+
+We can modify a species to add more delay for recruitment of new
+individuals.
+
+``` r
+n_delay <- 5
+
+Yggdrasil$harvest_fun <- def_harv
+Yggdrasil_d5 <- delay(Yggdrasil, n_delay)
+Yggdrasil_d5$info["species"] <- "Yggdrasil_d5"
+Forest_delay <- forest(list(Yggdrasil_d5))
+```
+
+Simulation doesn’t change anything, the delay is only defined at the IPM
+level.
+
+``` r
+set.seed(42)
+sim5d <- sim_deter_forest(Forest_delay, tlim = 60, equil_time = 1e3,
+                        correction = "cut", equil_dist = 50,
+                        verbose = TRUE)
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 1000
+#> Simulation ended after time 69
+#> BA stabilized at 2.39 with diff of 0.91 at time 69
+#> Time difference of 0.242 secs
+```
+
+Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected
+to increase with delay since delayed mesh cell with seeds are counted
+in.
+
+``` r
+tree_format(sim5d) %>%
+    rbind(tree_format(sim1sp)) %>%
+    filter(var %in% c("BAsp", "N")) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    facet_wrap(~ var, scales = "free_y") +
+    NULL
+```
+
+![](multisp_deter_sim_files/figure-gfm/delay_plot-1.png)<!-- -->
+
+Despite a really close BA, the size distribution is different at
+equilibrium.
+
+*Note : Values below the redline does not count in BA computation.*
+
+``` r
+tree_format(sim5d) %>%
+    mutate(mesh = mesh - n_delay) %>%
+    rbind(tree_format(sim1sp)) %>%
+    filter(var == "m", equil) %>%
+    ggplot(aes(x = mesh, y = value, fill = species, group = desc(species))) +
+    geom_area(color = "black", alpha = .3, size = .4, position = "identity") +
+    geom_vline(xintercept = 1, color = "red") +
+    annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
+             color = "red", angle = 90) +
+    NULL
+```
+
+![](multisp_deter_sim_files/figure-gfm/delay_dist_plot-1.png)<!-- -->

@@ -195,6 +195,7 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #'
 #' @export
 def_harv <- function(x, species, targetBAcut, ct){
-    return(x * 0.006)
+    rate <- 0.006 * (ct > 0)
+    return(x * rate)
 }
 

@@ -7,51 +7,103 @@ Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
                              harvest = def_harv)
 
 load_all()
-# Yggdrasil$harvest_fun <- Uneven_harv
+Yggdrasil$harvest_fun <- Uneven_harv
 body(Yggdrasil$init_pop)[[length(body(Yggdrasil$init_pop)) - 1]] <- expr(res <- res * 20)
+body(Yggdrasil$recruit_fun)[[length(body(Yggdrasil$recruit_fun)) - 2]] <- expr(distrib <- c(1, numeric(mesh - 1)))
 Forest <- forest(
     list(
-        delay(Yggdrasil, delay = 5)
+        delay(Yggdrasil, delay = 0)
     ),
     harv_rules = c(Pmax = 0.7, dBAmin = 3,
                    freq = 30, alpha = 1))
 # Forest$species$Yggdrasil$recruit_fun
 targetBA <- 30
 
-profvis({
+# profvis({
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
+res <- sim_deter_forest(Forest, tlim = 1000, equil_time = 1000,
                  correction = "cut", targetBA = targetBA,
                  verbose = TRUE)
-})
+# })
 
-all.equal(old_0, res)
-all.equal(old_res, res)
-
-times <- as.numeric(sub("t", "", colnames(res)))
-plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-     cex = 0.1, ylim = c(0, 100), type = "b")
-text(700, res[grepl("BA",rownames(res)),ncol(res)],
-     round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
-abline(h = targetBA, lty = 3, col = "red")
-
-Forest <- forest(
-    list(
-        delay(Yggdrasil, delay = 6)
-    ),
-    harv_rules = c(Pmax = 0.7, dBAmin = 3,
-                   freq = 30, alpha = 1))
-res <- sim_deter_forest(Forest, tlim = 600, equil_time = 600,
-                        correction = "cut", targetBA = targetBA,
-                        verbose = TRUE)
+# times <- as.numeric(sub("t", "", colnames(res)))
+# plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
+#      cex = 0.1, ylim = c(0, 100), type = "b")
+# text(600, res[grepl("BA",rownames(res)),ncol(res)],
+#      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
+# abline(h = targetBA, lty = 3, col = "red")
 
 
-times <- as.numeric(sub("t", "", colnames(res)))
-points(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-     cex = 0.1, ylim = c(0, 100), type = "b")
-text(700, res[grepl("BA",rownames(res)),ncol(res)],
-     round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
-abline(h = targetBA, lty = 3, col = "red")
+n <- 15
+memor <- vector("list", n+1)
+memor[[1]] <- tree_format(res)
+
+# library(doParallel)
+# registerDoParallel(cl <- makeCluster(detectCores() - 1))
+
+library(tictoc)
+tic()
+for(d in 1:n){
+# memor_tmp <- foreach(d = 1:n) %dopar% {
+    if(d %% 10 == 0){
+        cat("\n========", d, "========\n")
+    }
+    # load_all()
+    set.seed(42)
+    Forest <- forest(
+        list(
+            delay(Yggdrasil, delay = d)
+        ),
+        harv_rules = c(Pmax = 0.7, dBAmin = 3,
+                       freq = 30, alpha = 1))
+    res <- sim_deter_forest(Forest, tlim = 1000, equil_time = 1000,
+                            correction = "cut", targetBA = targetBA,
+                            verbose = TRUE)
+    memor[[d+1]] <- tree_format(res)
+    # tree_format(res)
+}
+toc()
+
+# memor <- c(list(tree_format(res)), memor_tmp)
+memor <- map2(memor, 1:(n+1), ~ mutate(.x, delay = .y))
+memor <- do.call("rbind", memor)
+
+
+memor %>%
+    filter(var == "m", equil, delay %in% c(1, 5, 10, 15)) %>%
+    mutate(mesh = mesh - delay + 1) %>%
+    ggplot(aes(x = mesh, y = value, color = factor(delay))) +
+    geom_line(size = .4) +
+    geom_vline(xintercept = 1, color = "red") +
+    annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
+             color = "red", angle = 90) +
+    NULL
+
+memor %>%
+    filter(var == "BAsp", ! equil, value != 0) %>%
+    # dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = value, color = factor(delay))) +
+    geom_line(size = .4) +
+    NULL
+
+memor %>%
+    filter(var == "N", equil) %>%
+    ggplot(aes(x = delay, y = value, color = factor(delay))) +
+    geom_point(size = .4) +
+    # geom_vline(xintercept = 1, color = "red") +
+    # annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
+    # color = "red", angle = 90) +
+    NULL
+
+memor %>%
+    filter(var == "m", delay %in% c(1, 5, 15)) %>%
+    dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = mesh, fill = value)) +
+    facet_wrap(~ delay) +
+    geom_tile() +
+    scale_fill_viridis_c(na.value="transparent") +
+    theme_dark() +
+    NULL
 
 # Two species
 Ents <- Yggdrasil
