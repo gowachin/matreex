@@ -187,7 +187,7 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #' @param x population state at time t
 #' @param species ignored
 #' @param targetBAcut ignored
-#' @param ct ignored
+#' @param ct define this # TODO
 #'
 #' @return
 #' Distribution of population to harvest.

@@ -26,29 +26,16 @@ res <- sim_deter_forest(Forest, tlim = 1000, equil_time = 1000,
                  verbose = TRUE)
 # })
 
-# times <- as.numeric(sub("t", "", colnames(res)))
-# plot(times, res[grepl("BA",rownames(res)),], ylab = "Total BA", xlab = "time",
-#      cex = 0.1, ylim = c(0, 100), type = "b")
-# text(600, res[grepl("BA",rownames(res)),ncol(res)],
-#      round(res[grepl("BA",rownames(res)),ncol(res)], 2), cex = .7, pos = 3)
-# abline(h = targetBA, lty = 3, col = "red")
-
 
 n <- 15
 memor <- vector("list", n+1)
 memor[[1]] <- tree_format(res)
 
-# library(doParallel)
-# registerDoParallel(cl <- makeCluster(detectCores() - 1))
 
-library(tictoc)
-tic()
 for(d in 1:n){
-# memor_tmp <- foreach(d = 1:n) %dopar% {
     if(d %% 10 == 0){
         cat("\n========", d, "========\n")
     }
-    # load_all()
     set.seed(42)
     Forest <- forest(
         list(
@@ -60,11 +47,8 @@ for(d in 1:n){
                             correction = "cut", targetBA = targetBA,
                             verbose = TRUE)
     memor[[d+1]] <- tree_format(res)
-    # tree_format(res)
 }
-toc()
 
-# memor <- c(list(tree_format(res)), memor_tmp)
 memor <- map2(memor, 1:(n+1), ~ mutate(.x, delay = .y))
 memor <- do.call("rbind", memor)
 

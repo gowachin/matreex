@@ -13,7 +13,7 @@ def_harv(x, species, targetBAcut, ct)
 
 \item{targetBAcut}{ignored}
 
-\item{ct}{ignored}
+\item{ct}{define this # TODO}
 }
 \value{
 Distribution of population to harvest.

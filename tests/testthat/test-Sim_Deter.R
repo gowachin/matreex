@@ -148,11 +148,24 @@ test_that("sim_deter format work", {
     exp <- structure(list(
         species = c("Ygg", "Ygg", "Ygg", "Ygg", "Ygg", "Ygg"),
         var = c("m", "m", "m", "m", "m", "m"),
-        time = c(1, 2, 3, 4, 5, 1), mesh = c(1, 1, 1, 1, 1, 2),
+        time = c(1, 2, 3, 4, 5, 1),
+        mesh = c(1, 1, 1, 1, 1, 2),
+        size = rep(NA, 6),
         equil = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
         value = c(0.26, 0.28, 0.28, 0.28, 0.27, 0)),
         row.names = c(NA, -6L), class = c("tbl_df", "tbl", "data.frame"))
 
+
+    done <-evaluate_promise({
+        new <- head(tree_format(res))
+    })
+
+    expect_equal(done$warnings[1], "mesh attribute missing, size column will be composed of NA")
+    expect_identical(new, exp)
+
+
+    attributes(res)$mesh <- list(Ygg = 1:5/10)
+    exp$size <- c(.1, .1, .1, .1, .1, .2)
     expect_identical(head(tree_format(res)), exp)
 
 })

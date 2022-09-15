@@ -356,8 +356,7 @@ sim_deter_forest.forest  <- function(Forest,
         message("Time difference of ", format(unclass(tmp), digits = 3),
                 " ", attr(tmp, "units"))
     }
-
-    sim_X <- new_deter_sim(sim_X)
+    sim_X <- new_deter_sim(sim_X, mesh = meshs)
 
     # Return ####
     return(sim_X)
@@ -367,13 +366,16 @@ sim_deter_forest.forest  <- function(Forest,
 #' Class of deterministic simulation
 #'
 #' @param x a matrix.
+#' @param mesh mesh size values to be set as attributes.
 #'
 #' @details Format is specified in \code{\link{treeforce}{sim_deter_forest}}
 #'
 #' @noRd
-new_deter_sim <- function(x = matrix()){
+new_deter_sim <- function(x = matrix(), mesh = NULL){
     assertMatrix(x)
-    structure(x, class = c("deter_sim", "matrix"))
+    structure(x, class = c("deter_sim", "matrix"),
+              mesh = mesh)
+
 }
 
 #' tree_format generic
@@ -392,13 +394,23 @@ tree_format <- function(x){
 #' @importFrom tidyr pivot_longer separate
 #' @importFrom rlang .data
 #' @importFrom tibble rownames_to_column
+#' @importFrom purrr map
 #' @export
 tree_format.deter_sim <- function(x){
+
+    mesh <- attributes(x)$mesh %>%
+        map( ~ c(.x, NA, NA, .x, NA)) %>%
+        do.call("c", args = .) %>% unname()
+
+    if(is.null(mesh)){
+        warning("mesh attribute missing, size column will be composed of NA")
+    }
 
     res <- x %>%
         as.data.frame() %>%
         tibble::rownames_to_column(var = "var") %>%
-        tidyr::pivot_longer( -.data$var, names_to = "time") %>%
+        {if(is.null(mesh)) mutate(., size = NA) else cbind(., size = mesh)} %>%
+        tidyr::pivot_longer( -c(.data$var, .data$size), names_to = "time") %>%
         mutate( species = sub( "\\..*$", "", .data$var, perl = TRUE)) %>%
         mutate( var = sub("^.*\\.", "", .data$var, perl = TRUE)) %>%
         dplyr::mutate(
@@ -413,6 +425,6 @@ tree_format.deter_sim <- function(x){
         dplyr::mutate( var = sub("([[:alpha:]]+)([[:digit:]]*)",
                                  "\\1", .data$var, perl = TRUE)) %>%
         dplyr::relocate(.data$species, .data$var, .data$time, .data$mesh,
-                        .data$equil, .data$value)
+                        .data$size, .data$equil, .data$value)
     return(res)
 }

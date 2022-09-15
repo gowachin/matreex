@@ -103,10 +103,18 @@ test_that("def_init works", {
 test_that("def_harv works", {
 
     x <- 1:10
+    ct <- rep(1, 10)
 
     expect_identical(
-        def_harv(x),
+        def_harv(x, ct = ct),
         x * 0.006
+    )
+
+    ct <- c(0, 0, rep(1, 8))
+
+    expect_identical(
+        def_harv(x, ct = ct),
+        x *( 0.006 * (ct > 0))
     )
 
 })
