@@ -2,6 +2,7 @@ rm(list = ls())
 library(profvis)
 library(tictoc)
 source("dev/dev_old_mkipm.R")
+devtools::load_all()
 #
 # profvis({
 #     res <- make_FullIPM_iClim_resample("Yggdrasil",
@@ -21,6 +22,39 @@ m_size <- 700
 data_plots_pred <- readRDS(file.path('output', spsel, 'plots_pred.Rds'))
 fit_sgr <- readRDS(file.path('output', spsel, 'fit_sgr_all.Rds'))[[1]]
 
+species <- "Yggdrasil"
+fit <- fit_sgr
+climate <- data_plots_pred[1, ]
+mesh = c(m = 700, L = 90, U = 1500)
+BA = 0:10
+correction = "constant"
+level = 420
+diag_tresh = 50
+midbin_tresh = 100
+IsSurv = TRUE
+verbose = TRUE
+
+
+ba <- 2
+
+library(plot.matrix)
+
+plot(P)
+
+library(cli)
+tmp <- make_IPM(
+    species = "Yggdrasil",
+    fit = fit_sgr,
+    climate = data_plots_pred[1, ],
+    mesh = c(m = 700, L = 90, U = 1500),
+    BA = 0:10,
+    correction = "constant",
+    level = 420,
+    diag_tresh = 50,
+    midbin_tresh = 100,
+    IsSurv = TRUE,
+    verbose = TRUE
+)
 
 level = 420
 correction = "constant"
@@ -75,6 +109,8 @@ rm(data_plots_pred, data_plots_predBA,fit_sgr, list_m,
 rm(make_FullIPM_iClim, make_FullIPM_iClim_resample,
    make_IPM_GL_2_i)
 
+
+
 load_all()
 source("dev/dev_old_mkipm.R")
 tic()
@@ -92,15 +128,15 @@ toc()
 all.equal(old, new)
 
 
-microbenchmark::microbenchmark(
-    old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
-                     level=420, correction="none", WMat,
-                     IsSurv=TRUE, midPoint=TRUE),
-    new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
-                            level=420, correction="none", WMat,
-                            IsSurv=TRUE, midPoint=TRUE),
-    times = 10
-)
+# microbenchmark::microbenchmark(
+#     old <- mk_P_GL_2(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+#                      level=420, correction="none", WMat,
+#                      IsSurv=TRUE, midPoint=TRUE),
+#     new <- mk_P_GL_2_stripe(m, L, U, g_res, s_res, list_covs, diag_tresh= 50,
+#                             level=420, correction="none", WMat,
+#                             IsSurv=TRUE, midPoint=TRUE),
+#     times = 10
+# )
 # beep(5)
 
 # Unit: milliseconds
@@ -110,13 +146,6 @@ microbenchmark::microbenchmark(
 # min        lq     mean    median        uq       max neval
 # 3037.1792 3084.0582 3242.552 3212.0862 3284.2053 4500.4443   100
 # 621.1358  630.6961  694.538  642.0454  767.7873  940.2343   100
-
-microbenchmark::microbenchmark(
-    old = fuu(g, ca, h, Level),
-    new = foo(g, ca, h, Level),
-    best = fii(g, ca, h, Level),
-    times = 100
-)
 
 
 # in fun_mid_point
@@ -132,7 +161,5 @@ sv <- exp_sizeFun(s_res$params_m, list_covs)
 sig_gr <- g_res$sigma
 svlink<- s_res$family$linkinv
 
-old <- unlist(lapply(ca, function(i) sum(g[i])))
-new <- map_dbl(ca, ~ sum(g[.x]), g)
 
 
