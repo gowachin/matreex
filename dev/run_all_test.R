@@ -27,6 +27,7 @@ x <- file_coverage('R/class_forest.R', 'tests/testthat/test-class_forest.R')
 x <- file_coverage('R/generic_methods.R', 'tests/testthat/test-gen_meth.R')
 x <- file_coverage('R/load_oldIPM_rec.R', 'tests/testthat/test-oldIPM_rec.R')
 x <- file_coverage('R/harvest.R', 'tests/testthat/test-harvest.R')
+x <- file_coverage('R/make_ipm.R', 'tests/testthat/test-make_ipm.R')
 report(x)
 # zero_coverage() shows only uncovered lines.
 # If run within RStudio, `zero_coverage()` will open a marker pane with the

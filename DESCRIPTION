@@ -51,7 +51,8 @@ Imports: checkmate,
     purrr,
     tibble,
     stats,
-    cli
+    cli,
+    statmod
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

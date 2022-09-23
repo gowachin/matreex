@@ -29,12 +29,11 @@ new_species <- function(IPM, init_pop,
                         harvest_fun,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                         recruit_fun){
-
     species <- list(
         IPM = IPM, init_pop = init_pop,
         harvest_fun = harvest_fun, harv_lim = harv_lim,
         recruit_fun = recruit_fun,
-        info = c(species = sp_name(IPM), climatic = climatic(IPM))
+        info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
     )
 
     class(species) <- "species"
@@ -75,8 +74,8 @@ validate_species <- function(x){
                                                 "mesh", "SurfEch"))
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "climatic"))){
-        stop("IPM class must have info of elements species and climatic")
+    if(any(names(values$info) != c("species", "clim_lab"))){
+        stop("IPM class must have info of elements species and clim_lab")
     }
 
     x
@@ -138,7 +137,8 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
     res_ipm <- new_ipm(
         IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
-        species = species, climatic = climatic, compress = TRUE
+        species = species, climatic = drop(as.matrix(raw_IPM$list_m)),
+        clim_lab = climatic, compress = TRUE
     )
 
     res <- species(

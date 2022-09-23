@@ -21,7 +21,7 @@ new_forest <- function(species = list(),
     forest <- list(
         species = species, harv_rules = harv_rules,
         info = list(species = sp,
-                 climatic = map_dbl(species, climatic))
+                 clim_lab = map_chr(species, climatic))
     )
 
     class(forest) <- "forest"
@@ -42,7 +42,7 @@ validate_forest <- function(x){
     names <- attr(x, "names")
 
     map(values$species, validate_species)
-    if(length(unique(values$info$climatic)) > 1){
+    if(length(unique(values$info$clim_lab)) > 1){
         stop("All species are not defined for the same climatic.")
     }
     # TODO check forest harv rules

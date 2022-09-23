@@ -28,6 +28,7 @@
 multi <- function(x, df){
 
     assertCharacter(x, any.missing = FALSE, len = 1)
+    assertDataFrame(df, min.rows = 1, ncols = 6)
 
     new_name <- paste0(x, "_in")
 
@@ -41,6 +42,9 @@ multi <- function(x, df){
     } else {
         selec <- NULL
         y <- NA_character_
+        if(! x %in% df$var1){
+            stop("Can't write expression if param is not present in formula !")
+        }
     }
 
     if(grepl("log", x)){
@@ -61,11 +65,12 @@ multi <- function(x, df){
         foo <- "^"
     } else {
         foo <- ""
+        yvar <- y
     }
     if(!is.na(y) && df$value.y[selec] != 1){
         yvar <- df$value.y[selec]
     } else {
-        yvar <- ensym(y)
+        yvar <- ensym(yvar)
     }
     yvar <- switch(foo,
                    log = call2("log", yvar),
@@ -199,14 +204,14 @@ exp_recFun <- function(params, list_covs){
 #' I can't remove it and it may be usefull later after all.
 #'
 #' @return
-#' Function with 4 parameters : BATOTSP, BATOTNonSP, mesh and SurfEch
+#' Function with 1 parameter : size
 #'
 #' @examples
-#' params <- c(intercept = -0.864, BATOTSP = -0.018, sgddb = 286.813,
+#' params <- c(intercept = -0.864, size = -0.018, sgddb = 286.813,
 #' wai = -0.057, wai2 = 0.288 )
 #' list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
 #'
-#' foo <- exp_recFun(params, list_covs)
+#' foo <- exp_sizeFun(params, list_covs)
 #' foo
 #' foo(1, 2, 1:5, 0.03)
 #'
@@ -223,7 +228,6 @@ exp_sizeFun <- function(params, list_covs){
     add_invar <- map(c(list(expr(intercept <- 1)),exp_invar),
                      ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
 
-    SurfEch <- NULL # HACK rm the note in devtools::check() about unbinded
     final_res <- list( expr(return(res)) )
     calls <- c(exp_invar, add_invar, final_res)
     empty <- function(size){}
@@ -232,9 +236,9 @@ exp_sizeFun <- function(params, list_covs){
     body(empty)[[3]] <- expr(res <- 0)
     body(empty)[seq_along(calls)+3] <- calls
     # this is messy and is to remove binded env.
-    env_unbind(env = environment(empty), c("i", "calls", "final_res",
+    env_unbind(env = environment(empty), c("calls", "final_res",
                                            "add_invar", "exp_invar",
-                                           "inter", "invar", "df2", "SurfEch"),
+                                           "inter", "invar", "df2"),
                inherit = FALSE)
     # empty
     return(empty)

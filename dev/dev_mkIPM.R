@@ -22,6 +22,13 @@ m_size <- 700
 data_plots_pred <- readRDS(file.path('output', spsel, 'plots_pred.Rds'))
 fit_sgr <- readRDS(file.path('output', spsel, 'fit_sgr_all.Rds'))[[1]]
 
+
+sv <- map(fit_sgr, ~ names(.x$sv$params_m))
+gr <- map(fit_sgr, ~ names(.x$gr$params_m))
+
+nms <- unique(unlist(sv))
+nms <- unique(unlist(gr))
+
 species <- "Yggdrasil"
 fit <- fit_sgr
 climate <- data_plots_pred[1, ]
@@ -35,26 +42,30 @@ IsSurv = TRUE
 verbose = TRUE
 
 
-ba <- 2
-
 library(plot.matrix)
-
-plot(P)
-
 library(cli)
+load_all()
+source("dev/dev_old_mkipm.R")
 tmp <- make_IPM(
     species = "Yggdrasil",
     fit = fit_sgr,
     climate = data_plots_pred[1, ],
     mesh = c(m = 700, L = 90, U = 1500),
-    BA = 0:10,
-    correction = "constant",
+    BA = seq(0, 200, by = 20),
+    correction = "none",
     level = 420,
     diag_tresh = 50,
     midbin_tresh = 100,
-    IsSurv = TRUE,
+    IsSurv = FALSE,
     verbose = TRUE
 )
+
+plot(1, type = "n", xlim = c(600, 700), ylim = c(0, 1))
+for(i in seq_along(tmp$IPM)){
+    lines(colSums(tmp$IPM[[i]]), col = "red")
+}
+
+plot()
 
 level = 420
 correction = "constant"

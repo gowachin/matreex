@@ -6,6 +6,7 @@ spe <- "Yggdrasil"
 Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
                              harvest = def_harv)
 
+
 load_all()
 Yggdrasil$harvest_fun <- Uneven_harv
 Forest <- forest(list(Yggdrasil),

@@ -15,7 +15,7 @@ test_that("new_species works", {
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
                          harv_lim = c(dth = 175, dha = 575, hmax = 1),
                          recruit_fun = raw_IPM$RecFun,
-                         info = c(species = "Yggdrasil", climatic = "1")),
+                         info = c(species = "Yggdrasil", clim_lab = "1")),
                          class = "species"))
 })
 
@@ -43,10 +43,10 @@ test_that("validate_species works", {
         "IPM class must be composed of elements IPM, init_pop, harvest_fun, recruit_fun and info"
     )
     tmp <- x
-    names(tmp$info) <- c("sp", "climatic")
+    names(tmp$info) <- c("sp", "clim_lab")
     expect_error(
         validate_species(tmp),
-        "IPM class must have info of elements species and climatic"
+        "IPM class must have info of elements species and clim_lab"
     )
 })
 

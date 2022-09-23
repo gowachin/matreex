@@ -6,6 +6,8 @@
 #' @param species The species names to be registered in the object
 #' @param climate Named vector of the environmental variables used in the fitted
 #' model. Was data_plot_pred before.
+#' @param clim_lab Label for climatic used. This values will be matched when
+#' simulating multiple species together.
 #' @param fit Fitted model for growth and survival of the species and climate
 #' given. Functions will depend on size and basal area.
 #' @param mesh vector of mesh variables. m is the number of bins, L is the
@@ -21,42 +23,59 @@
 #' integrate with the mid bin method.
 #' @param IsSurv Adding survival to the IPM. Set to FALSE is usefull to test for
 #' eviction of the model. TRUE by default.
+#' @param verbose
+#'
+#' @details
+#' The check between climate variables and fitted variable will assert if all
+#' variables in the model are provided expect variables derived from "size"
+#' (size, size2, logsize), "intercept" and "BATOTcomp". An error will be
+#' triggered if the climate variable is missing.
 #'
 #' @import cli
 #' @import checkmate
 #'
 #'- @export
-make_IPM <- function(
-        species,
-        climate,
-        fit,
-        mesh = c(m = 700, L = 90, U = 1500),
-        BA = 0:100,
-        correction = "constant",
-        level = 420,
-        diag_tresh = 50,
-        midbin_tresh = 100,
-        IsSurv = TRUE,
-        verbose = FALSE){
+make_IPM <- function(species,
+                     climate,
+                     clim_lab,
+                     fit,
+                     mesh = c(m = 700, L = 90, U = 1500),
+                     BA = 0:100,
+                     correction = c("constant", "none", "ceiling", "sizeExtremes"),
+                     level = 420,
+                     diag_tresh = 50,
+                     midbin_tresh = 100,
+                     IsSurv = TRUE,
+                     verbose = FALSE) {
 
     # Idiot Proof ####
     assertCharacter(species, len = 1)
-    # TODO assert climate
-    # TODO assert fit and all required climate in fit
-    invar <- c(names(fit$sv$params_m),  names(fit$gr$params_m))
+    assertNumeric(climate, any.missing = FALSE)
+    assertCharacter(clim_lab, len = 1)
+    # assert fit and all required climate in fit
+    nms <- unique(names(fit$sv$params_m), names(fit$gr$params_m))
+    nms <- unique(unlist(strsplit(nms, ":", )))
+    nms <- nms[!nms %in%
+                   c("", "size", "logsize", "size2", "intercept", "BATOTcomp")]
+    if (!all(nms %in% names(climate))) {
+        stop(paste0(
+            "Missing climate variables used in fit model.\n",
+            "Missing : ", paste(nms[!nms %in% names(climate)], collapse = " ")
+        ))
+    }
 
     assertNumeric(mesh, len = 3, lower = 1, upper = 3000)
     names <- names(mesh)
     assertCharacter(names)
-    if(any(! names %in% c("m", "L", "U"))){
+    if (any(!names %in% c("m", "L", "U"))) {
         stop("mesh must be consitued of m, L and U")
     }
     assertNumeric(BA, lower = 0, upper = 200)
-    correction <- match.arg(correction,
-                            c("none", "constant", "ceiling", "sizeExtremes"))
+    correction <- match.arg(correction)
     assertCount(level)
     assertCount(diag_tresh)
     assertLogical(IsSurv, len = 1)
+    # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
 
@@ -65,58 +84,69 @@ make_IPM <- function(
 
     # Precomput constant ####
     #  we integrate on 2 dimension along the size at t and level/3 along size at t+1
-    inlevel <- floor(level/3)
+    inlevel <- floor(level / 3)
     U <- mesh["U"]
     L <- mesh["L"]
     m <- mesh["m"]
-    h <- (U -L)/m
+    h <- (U - L) / m
 
     # build weight for GL integration on the two dim
-    out1 <- gaussQuadInt(-h/2, h/2, 3) # For x integration
-    weights1 <- out1$weights / sum(out1$weights) #equivalent to devided by h
-    out2 <- gaussQuadInt(-h/2, h/2, inlevel) # For x1 integration
-    mesh_x <- seq(L+h/2, U-h/2, length.out=m)
+    out1 <- gaussQuadInt(-h / 2, h / 2, 3) # For x integration
+    weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
+    out2 <- gaussQuadInt(-h / 2, h / 2, inlevel) # For x1 integration
+    mesh_x <- seq(L + h / 2, U - h / 2, length.out = m)
     N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
 
-    WMat <- t(build_weight_matrix(out2$weights,N_int))
+    WMat <- t(build_weight_matrix(out2$weights, N_int))
     # vector for integration on dim 2
-    mesh_x <- as.vector(outer(mesh_x, out1$nodes, '+'))
+    mesh_x <- as.vector(outer(mesh_x, out1$nodes, "+"))
     # empty matrix
     e_P <- matrix(0, ncol = m, nrow = m)
 
-    ## Functions
+    ## Functions ####
+    ### Growth
     svlink <- fit$sv$family$linkinv
     sig_gr <- fit$gr$sigma
-    if (! IsSurv){
-        P_sv <- rep(1,length(mesh_x)/3)
+    ### Survival
+    if (IsSurv) {
+        P_sv <- svlink(svFun(mesh_x))
+        m3 <- length(mesh_x) / 3
+        P_sv <- P_sv[1:m3] * weights1[1] +
+            P_sv[(m3 + 1):(2 * m3)] * weights1[2] +
+            P_sv[(2 * m3 + 1):(3 * m3)] * weights1[3]
+        P_sv <- 1 - P_sv
+    } else {
+        P_sv <- rep(1, length(mesh_x) / 3)
     }
 
-    #Create matrix for GL integration on dimension level
-    mesh_x1B <- as.vector(outer(out2$nodes,
-                                seq(0,(N_int-1)*h,length.out=N_int),'+'))
+    # Create matrix for GL integration on dimension level
+    mesh_x1B <- as.vector(outer(
+        out2$nodes,
+        seq(0, (N_int - 1) * h, length.out = N_int),
+        "+"
+    ))
     mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
     mesh_x1B <- mesh_x1B - out1$nodes[2]
     mesh_x1C <- mesh_x1B - out1$nodes[3]
 
-    temp <- function(d_x1_x, mu, sig){
+    # function used in gauss legendre integration
+    temp <- function(d_x1_x, mu, sig) {
         out <- numeric(length(d_x1_x))
-        sel <- d_x1_x>0
+        sel <- d_x1_x > 0
         tmp <- d_x1_x[sel]
         out[sel] <- dnorm(log(tmp), mu[sel], sig) / tmp
         return(out)
     }
 
-    if(verbose){
+    if (verbose) {
         message("Launching integration loop")
-        # cli_progress_bar("Integration", total = length(BA))
+        cli_progress_bar("Integration", total = length(BA))
     }
 
     # Loop ####
-    # for(ba in seq_along(BA)){
-        ba <- 2
-
-        if(verbose){
-        #     cli_progress_update()
+    for (ba in seq_along(BA)) {
+        if (verbose) {
+            cli_progress_update()
         }
 
         # Update BA and matrix
@@ -127,86 +157,71 @@ make_IPM <- function(
         svFun <- exp_sizeFun(fit$sv$params_m, list_covs)
         mu_gr <- grFun(mesh_x)
 
+        # Integration ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Gauss-Legendre Int ####
-        P_incr <- outer(mesh_x1A,mu_gr[1:m],'temp', sig_gr) * weights1[1] +
-            outer(mesh_x1B,mu_gr[(m+1):(2*m)],'temp', sig_gr) * weights1[2] +
-            outer(mesh_x1C,mu_gr[(2*m+1):(3*m)],'temp', sig_gr) * weights1[3]
+        P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr) * weights1[1] +
+            outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr) * weights1[2] +
+            outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr) * weights1[3]
 
-        P_incr <- WMat %*% P_incr
-
-        P <- sub_diag(P, P_incr, dist = 0)
+        P_LG <- WMat %*% P_LG
+        P <- sub_diag(P, P_LG, dist = 0)
 
         ## Midbin Int ####
-        ## ADD mid point integration for the rest of the
-        # triangular matrix (+100 points)
-        P2 <- fun_mid_int_stripe(seq(L, U, length.out=m), h, grFun, sig_gr,
-                                 N_ini = N_int+1, N_int = midbin_tresh, Level = 100)
-        P <- sub_diag(P, P_incr, dist = N_int)
-        # for (k in ((N_int+1):m)){
-        #     ind_k <- k:min(k+midbin_tresh-1,m)
-        #     P[ind_k,k] <- P2[1:min(m-k+1,midbin_tresh),k]
-        # }
-        # P[(N_int+1):(N_int+100), ] <- P[(N_int+1):(N_int+100), ] + P2
+        ## ADD mid point integration for the rest of the triangular matrix
+        P_midint <- fun_mid_int(
+            seq(L, U, length.out = m), h, grFun, sig_gr,
+            N_ini = N_int + 1, N_int = midbin_tresh, Level = 100
+        )
+        P <- sub_diag(P, P_midint, dist = N_int)
 
-        ## Survival ####
-        if (IsSurv){
-            P_sv <- svlink(svFun(mesh_x))
-            m <- length(mesh_x)/3
-            P_sv <- P_sv[1:m] * weights1[1] +
-                P_sv[(m+1):(2*m)] * weights1[2] +
-                P_sv[(2*m+1):(3*m)] * weights1[3]
-            P_sv <- 1 - P_sv
-        }
-
+        # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Correction ####
-        if (correction ==  "none"){# Based on IPMpack
-            P <- t(t(P) *P_sv)
-        }
-
-        if(correction == "constant"){# Based on IPMpack
+        if (correction == "none") { # Based on IPMpack
+            P <- t(t(P) * P_sv)
+        } else if (correction == "constant") { # Based on IPMpack
             nvals <- colSums(P)
-            P <- t((t(P)/nvals))
-            P <- P * (matrix(rep(t(P_sv),m),ncol=m,nrow=m))
-        }
-
-        if (correction ==  "sizeExtremes"){# Based on IPMpack
-            selectsize_t <- (N_int + 0:(m-1)) > m
-            DiffNvals <- pmax(1- colSums(P), 0)
-            P[m,selectsize_t] <- P[m, selectsize_t] + DiffNvals[selectsize_t]
-            P <- t(t(P) *P_sv)
-        }
-
-        if (correction == "ceiling"){
+            P <- t((t(P) / nvals))
+            P <- P * (matrix(rep(t(P_sv), m), ncol = m, nrow = m))
+        } else if (correction == "sizeExtremes") { # Based on IPMpack
+            selectsize_t <- (N_int + 0:(m - 1)) > m
+            DiffNvals <- pmax(1 - colSums(P), 0)
+            P[m, selectsize_t] <- P[m, selectsize_t] + DiffNvals[selectsize_t]
+            P <- t(t(P) * P_sv)
+        } else if (correction == "ceiling") {
             # Based on Williams et al. 2012 Ecology integral towards
             # infinity is not explicitely calculated
-            P_sv_U <- svlink(svFun(U +out1$nodes))
+            P_sv_U <- svlink(svFun(U + out1$nodes))
             P_sv_U <- 1 - sum(P_sv_U * weights1)
             nvals <- colSums(P)
-            P <- rbind(P,pmax((1-nvals),0))
-            P <- cbind(P,c(rep(0,m),1))
+            P <- rbind(P, pmax((1 - nvals), 0))
+            P <- cbind(P, c(rep(0, m), 1))
             P <- t(t(P) * c(P_sv, P_sv_U))
         }
+        # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
         ## Matrix and exp ####
-        P <- Matrix(P,sparse=TRUE)
+        P <- Matrix(P, sparse = TRUE)
         IPM[[ba]] <- P
-    # }
+    }
 
-
-    if(verbose){
+    if (verbose) {
         message("Loop done.")
         tmp <- Sys.time() - start
-        message("Time difference of ", format(unclass(tmp), digits = 3),
-                " ", attr(tmp, "units"))
+        message(
+            "Time difference of ", format(unclass(tmp), digits = 3),
+            " ", attr(tmp, "units")
+        )
     }
 
     # Format ####
     names(IPM) <- BA
     res <- validate_ipm(
-        new_ipm(IPM = IPM, BA = BA, mesh = seq(L, U, length.out=m), species = species,
-                   climatic = "custom", compress = FALSE)
+        new_ipm(
+            IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
+            climatic = climatic, clim_lab = clim_lab,
+            species = species, compress = FALSE
+        )
     )
-    # })
     return(res)
 }
 

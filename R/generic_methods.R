@@ -47,9 +47,7 @@ climatic <- function(x){
 #' @export
 climatic.ipm <- function(x){
 
-    res <- as.numeric(
-        unname(x$info["climatic"])
-    )
+    res <- unname(x$info["clim_lab"])
     return(res)
 }
 
@@ -57,9 +55,7 @@ climatic.ipm <- function(x){
 #' @export
 climatic.species <- function(x){
 
-    res <- as.numeric(
-        unname(x$info["climatic"])
-    )
+    res <- unname(x$info["clim_lab"])
     return(res)
 }
 
