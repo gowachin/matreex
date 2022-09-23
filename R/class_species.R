@@ -177,7 +177,7 @@ def_init <- function(mesh, SurfEch = 0.03) {
     }
     ini[alea] <- 0
     res <- as.numeric(ini / sum(ct * ini) )
-    res <- res + 1e-10 # HACK to limit falling in floating point trap !
+    res <- res + 1e-4 # HACK to limit falling in floating point trap !
 
     return(res)
 }

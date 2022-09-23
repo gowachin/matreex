@@ -91,8 +91,8 @@ test_that("def_init works", {
     set.seed(666)
     expect_identical(
         def_init(x),
-        c(10.34157240534874, 1e-10, 1e-10, 10.513225511464572, 10.571074040683468,
-          1e-10)
+        c(10.34167240524874, 1e-04, 1e-04, 10.513325511364572, 10.571174040583468,
+          1e-04)
     )
 
     # NOTE Case with all(alea) require specific seed that I don't know.
