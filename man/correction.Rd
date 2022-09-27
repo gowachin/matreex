@@ -2,18 +2,9 @@
 % Please edit documentation in R/generic_methods.R
 \name{correction}
 \alias{correction}
-\alias{correction.ipm}
-\alias{correction.species}
-\alias{correction.forest}
 \title{Add correction states to a system}
 \usage{
 correction(x, correction = "none")
-
-\method{correction}{ipm}(x, correction = "none")
-
-\method{correction}{species}(x, correction = "none")
-
-\method{correction}{forest}(x, correction = "none")
 }
 \arguments{
 \item{x}{an object that require a correction addition}

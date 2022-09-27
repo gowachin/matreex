@@ -16,9 +16,7 @@
 #'
 #' @import checkmate
 #'
-#' @keywords internal
-#'
-#' @export
+#' @noRd
 Buildct <- function(mesh, SurfEch= 0.03){
     # Idiot proof
     assertNumeric(mesh, lower = 0)
@@ -64,7 +62,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 #' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
 #'
-#' @param verbose Print message, used for debugs only. FALSE by default
+#' @param verbose Print message. FALSE by default
 #'
 #'
 #' @return
@@ -96,7 +94,7 @@ sim_deter_forest  <- function(Forest,
     UseMethod("sim_deter_forest")
 }
 
-#' @rdname sim_deter_forest
+#' @method sim_deter_forest species
 #' @export
 sim_deter_forest.species  <- function(Forest,
                               tlim = 3e3,
@@ -124,7 +122,7 @@ sim_deter_forest.species  <- function(Forest,
     )
 }
 
-#' @rdname sim_deter_forest
+#' @method sim_deter_forest forest
 #' @export
 sim_deter_forest.forest  <- function(Forest,
                                      tlim = 3e3,
@@ -401,6 +399,9 @@ new_deter_sim <- function(x = matrix()){
 
 #' tree_format generic
 #'
+#' Format simulation output from sim_deter_forest function to a more tidyverse
+#' format (long format) for ggplot2 and filtering.
+#'
 #' @param x Simulations created with sim_deter_forest
 #'
 #' @name tree_format
@@ -415,6 +416,7 @@ tree_format <- function(x){
 #' @importFrom tidyr pivot_longer separate
 #' @importFrom rlang .data
 #' @importFrom tibble rownames_to_column
+#' @keywords internal
 #' @export
 tree_format.deter_sim <- function(x){
 

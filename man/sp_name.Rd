@@ -2,18 +2,9 @@
 % Please edit documentation in R/generic_methods.R
 \name{sp_name}
 \alias{sp_name}
-\alias{sp_name.ipm}
-\alias{sp_name.species}
-\alias{sp_name.deter_sim}
 \title{List the species in treeforce class object}
 \usage{
 sp_name(x)
-
-\method{sp_name}{ipm}(x)
-
-\method{sp_name}{species}(x)
-
-\method{sp_name}{deter_sim}(x)
 }
 \arguments{
 \item{x}{treeforce class object. Used on ipm and species at this time.}

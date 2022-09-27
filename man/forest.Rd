@@ -20,5 +20,6 @@ forest(
 }}
 }
 \description{
-Only used in the treeforce package
+A forest is a group of one of multiple species to silumate along time using
+the IPM defined for each species and harvest rules.
 }

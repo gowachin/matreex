@@ -83,7 +83,11 @@ validate_species <- function(x){
 
 #' Create a new species for simulation
 #'
-#' Only used in the treeforce package
+#' Species are defined by an IPM which is a transition matrix from size between
+#' t and t+1, recruitment and harvest functions. Each species has these items
+#' defined for a given climate.
+#' An additionnal vector of harvest parameers is required with minimal size to
+#' harvest (dth), size above wich harvest is constant (dha).
 #'
 #' @inheritParams new_species
 #'
@@ -153,18 +157,23 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
 #' Default population initiation
 #'
+#' The population will initiate with a random distribution to match a basal area
+#' of 1.
+#'
 #' @param mesh all possible states of a population, based on an IPM.
 #' Minimal and maximal values are respectively U and L, for a total number of
 #' m states.
 #' @param SurfEch Value of plot size surface in \eqn{m^2}
+#'
+#' @importFrom stats runif rbinom
 #'
 #' @export
 def_init <- function(mesh, SurfEch = 0.03) {
     ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
     ini <- exp(runif(1, -.005, .005) * mesh)
     alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-    while(all(alea)){ # because god knows it's fucking possible.
-                      # and it will return NaN
+    while(all(alea)){ # because god knows it's fucking possible that alea is
+                      # all FALSE and it will return NaN
         alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
     }
     ini[alea] <- 0
@@ -175,6 +184,9 @@ def_init <- function(mesh, SurfEch = 0.03) {
 }
 
 #' Default population harvest
+#'
+#' Constant rate harvest of 0.06 percent per year
+#' (check if harvest frequence is 1 in forest object).
 #'
 #' @param x population state at time t
 #' @param species ignored

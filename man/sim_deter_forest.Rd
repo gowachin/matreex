@@ -2,37 +2,9 @@
 % Please edit documentation in R/Sim_Deter.R
 \name{sim_deter_forest}
 \alias{sim_deter_forest}
-\alias{sim_deter_forest.species}
-\alias{sim_deter_forest.forest}
 \title{Deterministic Tree population simulation}
 \usage{
 sim_deter_forest(
-  Forest,
-  tlim = 3000,
-  equil_dist = 250,
-  equil_diff = 1,
-  equil_time = 10000,
-  targetBA = 20,
-  correction = "none",
-  SurfEch = 0.03,
-  delay = 0,
-  verbose = FALSE
-)
-
-\method{sim_deter_forest}{species}(
-  Forest,
-  tlim = 3000,
-  equil_dist = 250,
-  equil_diff = 1,
-  equil_time = 10000,
-  targetBA = 20,
-  correction = "none",
-  SurfEch = 0.03,
-  delay = 0,
-  verbose = FALSE
-)
-
-\method{sim_deter_forest}{forest}(
   Forest,
   tlim = 3000,
   equil_dist = 250,
@@ -76,7 +48,7 @@ IPM so that no individual can grow outside of the defines classes.}
 and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
 
-\item{verbose}{Print message, used for debugs only. FALSE by default}
+\item{verbose}{Print message. FALSE by default}
 }
 \value{
 Matrix of the population states for time in \eqn{[1, t_{lim}]},

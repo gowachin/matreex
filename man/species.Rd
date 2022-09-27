@@ -39,5 +39,9 @@ Argument must be \code{BATOTSP}. # TODO rename argument !
 Should return a single numeric value.}
 }
 \description{
-Only used in the treeforce package
+Species are defined by an IPM which is a transition matrix from size between
+t and t+1, recruitment and harvest functions. Each species has these items
+defined for a given climate.
+An additionnal vector of harvest parameers is required with minimal size to
+harvest (dth), size above wich harvest is constant (dha).
 }

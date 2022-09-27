@@ -13,5 +13,7 @@ tree_format(x)
 \item{x}{Simulations created with sim_deter_forest}
 }
 \description{
-tree_format generic
+Format simulation output from sim_deter_forest function to a more tidyverse
+format (long format) for ggplot2 and filtering.
 }
+\keyword{internal}

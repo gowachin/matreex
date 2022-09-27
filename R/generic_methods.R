@@ -10,19 +10,19 @@ sp_name <- function(x){
     UseMethod("sp_name")
 }
 
-#' @rdname sp_name
+#' @method sp_name ipm
 #' @export
 sp_name.ipm <- function(x){
     return(unname(x$info["species"]))
 }
 
-#' @rdname sp_name
+#' @method sp_name species
 #' @export
 sp_name.species <- function(x){
     return(unname(x$info["species"]))
 }
 
-#' @rdname sp_name
+#' @method sp_name deter_sim
 #' @export
 sp_name.deter_sim <- function(x){
     nms <- rownames(x)
@@ -43,7 +43,7 @@ climatic <- function(x){
     UseMethod("climatic")
 }
 
-#' @rdname climatic
+#' @method climatic ipm
 #' @export
 climatic.ipm <- function(x){
 
@@ -51,7 +51,7 @@ climatic.ipm <- function(x){
     return(res)
 }
 
-#' @rdname climatic
+#' @method climatic species
 #' @export
 climatic.species <- function(x){
 
@@ -76,9 +76,8 @@ delay <- function(x, delay = 0){
     UseMethod("delay")
 }
 
-#' @rdname delay
-#'
-#'@export
+#' @method delay numeric
+#' @export
 delay.numeric <- function(x, delay = 0){
     assertCount(delay)
 
@@ -86,21 +85,7 @@ delay.numeric <- function(x, delay = 0){
     return(x)
 }
 
-#' @rdname delay
-#'
-#' @examples
-#' mesh <- seq(1, 10, by = 1)
-#' s <- state_init(mesh)
-#' y <- delay(s, 5)
-#'
-#' @export
-delay.pop_state <- function(x, delay = 0){
-    NextMethod(x)
-}
-
-
-#' @rdname delay
-#'
+#' @method delay ipm
 #' @export
 delay.ipm <- function(x, delay = 0){
 
@@ -118,8 +103,7 @@ delay.ipm <- function(x, delay = 0){
     return(validate_ipm(x))
 }
 
-#' @rdname delay
-#'
+#' @method delay species
 #' @export
 delay.species <- function(x, delay = 0){
 
@@ -131,8 +115,7 @@ delay.species <- function(x, delay = 0){
     return(x)
 }
 
-#' @rdname delay
-#'
+#' @method delay forest
 #' @export
 delay.forest <- function(x, delay = 0){
 
@@ -148,8 +131,11 @@ delay.forest <- function(x, delay = 0){
     )
 }
 
-#' @rdname delay
+#' Delay dtCMatrix
 #'
+#' Adding a topleft corner to a matrix filled with 0.
+#'
+#' @method delay dtCMatrix
 #' @examples
 #' x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
 #'          Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
@@ -186,8 +172,7 @@ correction <- function(x, correction = "none"){
     UseMethod("correction")
 }
 
-#' @rdname correction
-#'
+#' @method correction ipm
 #' @export
 correction.ipm <- function(x, correction = "none"){
 
@@ -205,8 +190,7 @@ correction.ipm <- function(x, correction = "none"){
     return(validate_ipm(x))
 }
 
-#' @rdname correction
-#'
+#' @method correction species
 #' @export
 correction.species <- function(x, correction = "none"){
 
@@ -214,8 +198,7 @@ correction.species <- function(x, correction = "none"){
     return(x)
 }
 
-#' @rdname correction
-#'
+#' @method correction forest
 #' @export
 correction.forest <- function(x, correction = "none"){
 

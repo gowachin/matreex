@@ -9,3 +9,4 @@ sim_jacobian()
 \description{
 WIP compute jacobian on equilibrium situation
 }
+\keyword{internal}

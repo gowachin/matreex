@@ -52,7 +52,8 @@ validate_forest <- function(x){
 
 #' Create a new forest for simulation
 #'
-#' Only used in the treeforce package
+#' A forest is a group of one of multiple species to silumate along time using
+#' the IPM defined for each species and harvest rules.
 #'
 #' @inheritParams new_forest
 #'

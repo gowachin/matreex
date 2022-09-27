@@ -17,7 +17,7 @@
 #'
 #' @import checkmate
 #'
-#' @keywords Internal
+#' @noRd
 sub_diag <- function(matrix, fill, dist = 0) {
 
     assertMatrix(matrix)
@@ -39,16 +39,3 @@ sub_diag <- function(matrix, fill, dist = 0) {
 
     return(matrix)
 }
-
-
-# clim <- c(sgdd = 2688, wai = -0.2)
-# expand_clim <- function(clim){
-#
-#     nms <- names(clim)
-#     sq <- clim ^ 2 ; names(sq) <- paste0(nms, 2)
-#     b <- 1 / clim ; names(b) <- paste0(nms, "b")
-#
-#     res <- c(clim, sq, b)
-# }
-
-

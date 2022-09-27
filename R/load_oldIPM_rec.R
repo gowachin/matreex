@@ -98,6 +98,8 @@ multi <- function(x, df){
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
 #'
+#' @importFrom stats setNames
+#'
 #' @noRd
 format_fit <- function(params, list_covs){
 
@@ -113,6 +115,7 @@ format_fit <- function(params, list_covs){
     res <- data.frame(var1 = x, var2 = y, params = params,
                       value.x = lc[x], value.y = lc[y],
                       row.names = NULL)
+    value.x <- NULL # HACK rm the note in devtools::check() about unbinded
     res <- within(res, {
         value.y[is.na(value.y)] <- 1
         K <- params * value.x * value.y
