@@ -51,7 +51,7 @@ integrate with the mid bin method.}
 \item{IsSurv}{Adding survival to the IPM. Set to FALSE is usefull to test for
 eviction of the model. TRUE by default.}
 
-\item{verbose}{}
+\item{verbose}{Print message. FALSE by default}
 }
 \description{
 Integrate IPM for growth and survival function at a specific climate for a

@@ -1,5 +1,7 @@
 #' Build IPM for a given species and climate
 #'
+#' `r lifecycle::badge("experimental")`
+#'
 #' Integrate IPM for growth and survival function at a specific climate for a
 #' species on a basal area variation.
 #'
@@ -23,7 +25,7 @@
 #' integrate with the mid bin method.
 #' @param IsSurv Adding survival to the IPM. Set to FALSE is usefull to test for
 #' eviction of the model. TRUE by default.
-#' @param verbose
+#' @param verbose Print message. FALSE by default
 #'
 #' @details
 #' The check between climate variables and fitted variable will assert if all
@@ -33,8 +35,15 @@
 #'
 #' @import cli
 #' @import checkmate
+#' @importFrom stats dnorm
 #'
-#'- @export
+#' @details
+#' One can desactivate each kind of integration with some treshold values.
+#' A negative value in diag_tresh (ex: -1) will cancel the Gauss-Legendre
+#' integration and a midbin_tresh null value (ex: 0) will cancel the midbin
+#' integration.
+#'
+#' @export
 make_IPM <- function(species,
                      climate,
                      clim_lab,
@@ -73,13 +82,13 @@ make_IPM <- function(species,
     assertNumeric(BA, lower = 0, upper = 200)
     correction <- match.arg(correction)
     assertCount(level)
-    assertCount(diag_tresh)
+    assertNumeric(diag_tresh,any.missing = FALSE, len = 1)
     assertLogical(IsSurv, len = 1)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
 
-    list_covs <- cbind(climate, BATOTcomp = 0)
+    list_covs <- c(climate, BATOTcomp = 0)
     IPM <- vector("list", length(BA))
 
     # Precomput constant ####
@@ -96,8 +105,13 @@ make_IPM <- function(species,
     out2 <- gaussQuadInt(-h / 2, h / 2, inlevel) # For x1 integration
     mesh_x <- seq(L + h / 2, U - h / 2, length.out = m)
     N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
-
-    WMat <- t(build_weight_matrix(out2$weights, N_int))
+    # minor midbin_tresh is mesh is shorter.
+    if(midbin_tresh + N_int > m){
+        midbin_tresh <- m - N_int
+    }
+    if(N_int > 0){
+        WMat <- t(build_weight_matrix(out2$weights, N_int))
+    }
     # vector for integration on dim 2
     mesh_x <- as.vector(outer(mesh_x, out1$nodes, "+"))
     # empty matrix
@@ -108,14 +122,7 @@ make_IPM <- function(species,
     svlink <- fit$sv$family$linkinv
     sig_gr <- fit$gr$sigma
     ### Survival
-    if (IsSurv) {
-        P_sv <- svlink(svFun(mesh_x))
-        m3 <- length(mesh_x) / 3
-        P_sv <- P_sv[1:m3] * weights1[1] +
-            P_sv[(m3 + 1):(2 * m3)] * weights1[2] +
-            P_sv[(2 * m3 + 1):(3 * m3)] * weights1[3]
-        P_sv <- 1 - P_sv
-    } else {
+    if(!IsSurv) {
         P_sv <- rep(1, length(mesh_x) / 3)
     }
 
@@ -140,6 +147,16 @@ make_IPM <- function(species,
 
     if (verbose) {
         message("Launching integration loop")
+        if(N_int == 0){
+            message("GL integration won't occur because of negative treshold")
+        } else {
+            message("GL integration occur on ", N_int, " cells")
+        }
+        if(midbin_tresh == 0){
+            message("midbin integration won't occur because of treshold at 0")
+        } else {
+            message("midbin integration occur on ", midbin_tresh, " cells")
+        }
         cli_progress_bar("Integration", total = length(BA))
     }
 
@@ -156,24 +173,34 @@ make_IPM <- function(species,
         grFun <- exp_sizeFun(fit$gr$params_m, list_covs)
         svFun <- exp_sizeFun(fit$sv$params_m, list_covs)
         mu_gr <- grFun(mesh_x)
+        if (IsSurv) {
+            P_sv <- svlink(svFun(mesh_x))
+            m3 <- length(mesh_x) / 3
+            P_sv <- P_sv[1:m3] * weights1[1] +
+                P_sv[(m3 + 1):(2 * m3)] * weights1[2] +
+                P_sv[(2 * m3 + 1):(3 * m3)] * weights1[3]
+            P_sv <- 1 - P_sv
+        }
 
         # Integration ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Gauss-Legendre Int ####
-        P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr) * weights1[1] +
-            outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr) * weights1[2] +
-            outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr) * weights1[3]
+        if(N_int > 0){
+            P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr) * weights1[1] +
+                outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr) * weights1[2] +
+                outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr) * weights1[3]
 
-        P_LG <- WMat %*% P_LG
-        P <- sub_diag(P, P_LG, dist = 0)
-
+            P_LG <- WMat %*% P_LG
+            P <- sub_diag(P, P_LG, dist = 0)
+        }
         ## Midbin Int ####
         ## ADD mid point integration for the rest of the triangular matrix
-        P_midint <- fun_mid_int(
-            seq(L, U, length.out = m), h, grFun, sig_gr,
-            N_ini = N_int + 1, N_int = midbin_tresh, Level = 100
-        )
-        P <- sub_diag(P, P_midint, dist = N_int)
-
+        if(midbin_tresh > 0){
+            P_midint <- fun_mid_int(
+                seq(L, U, length.out = m), h, grFun, sig_gr,
+                N_ini = N_int + 1, N_int = midbin_tresh, Level = 100
+            )
+            P <- sub_diag(P, P_midint, dist = N_int)
+        }
         # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Correction ####
         if (correction == "none") { # Based on IPMpack
@@ -212,13 +239,12 @@ make_IPM <- function(species,
             " ", attr(tmp, "units")
         )
     }
-
     # Format ####
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
             IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
-            climatic = climatic, clim_lab = clim_lab,
+            climatic = climate, clim_lab = clim_lab,
             species = species, compress = FALSE
         )
     )
@@ -235,6 +261,8 @@ make_IPM <- function(species,
 #' @param N_ini Distance to diagonal to start the integration. single dbl.
 #' @param N_int Number of cells to integrate on. single dbl.
 #' @param Level TODO
+#'
+#' @importFrom stats dnorm
 #'
 #' @noRd
 fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=100){
