@@ -6,6 +6,11 @@
 \usage{
 \method{delay}{dtCMatrix}(x, delay = 0)
 }
+\arguments{
+\item{x}{an object that require a delay addition}
+
+\item{delay}{the number of time delay to add. single positive int.}
+}
 \description{
 Adding a topleft corner to a matrix filled with 0.
 }

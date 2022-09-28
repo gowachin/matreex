@@ -134,7 +134,7 @@ delay.forest <- function(x, delay = 0){
 #' Delay dtCMatrix
 #'
 #' Adding a topleft corner to a matrix filled with 0.
-#'
+#' @inheritParams delay
 #' @method delay dtCMatrix
 #' @examples
 #' x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),

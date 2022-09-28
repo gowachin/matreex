@@ -20,7 +20,7 @@
 #' @param correction Correction to apply to the IPM matrix for eviction. Choices
 #' constant (default), ceiling, sizeExtremes and none.
 #' @param level TODO
-#' @param diag_tresh TODO
+#' @param diag_tresh Treshold
 #' @param midbin_tresh Number of cells external to the GL integration to
 #' integrate with the mid bin method.
 #' @param IsSurv Adding survival to the IPM. Set to FALSE is usefull to test for

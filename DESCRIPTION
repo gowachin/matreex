@@ -1,5 +1,5 @@
 Package: treeforce
-Title: What the Package Does (One Line, Title Case)
+Title: LESSEM internal package for simulation of forest dynamic depending on climatic variables.
 Version: 0.0.0.9000
 Authors@R: c(person(given = "Georges",
                     family = "Kunstler",
@@ -52,8 +52,7 @@ Imports: checkmate,
     tibble,
     stats,
     cli,
-    statmod,
-    lifecycle
+    statmod
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.1

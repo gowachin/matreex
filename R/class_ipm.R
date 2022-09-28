@@ -79,7 +79,6 @@ old_ipm2ipm <- function(species, climatic = 1, path = here(), replicat = 42){
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
     assertCount(climatic)
-    assertCount(replicat)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
     IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...

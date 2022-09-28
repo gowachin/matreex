@@ -43,7 +43,7 @@ constant (default), ceiling, sizeExtremes and none.}
 
 \item{level}{TODO}
 
-\item{diag_tresh}{TODO}
+\item{diag_tresh}{Treshold}
 
 \item{midbin_tresh}{Number of cells external to the GL integration to
 integrate with the mid bin method.}
@@ -54,12 +54,19 @@ eviction of the model. TRUE by default.}
 \item{verbose}{Print message. FALSE by default}
 }
 \description{
-Integrate IPM for growth and survival function at a specific climate for a
-species on a basal area variation.
+\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
 }
 \details{
+Integrate IPM for growth and survival function at a specific climate for a
+species on a basal area variation.
+
 The check between climate variables and fitted variable will assert if all
 variables in the model are provided expect variables derived from "size"
 (size, size2, logsize), "intercept" and "BATOTcomp". An error will be
 triggered if the climate variable is missing.
+
+One can desactivate each kind of integration with some treshold values.
+A negative value in diag_tresh (ex: -1) will cancel the Gauss-Legendre
+integration and a midbin_tresh null value (ex: 0) will cancel the midbin
+integration.
 }
