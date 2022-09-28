@@ -16,9 +16,7 @@
 #'
 #' @import checkmate
 #'
-#' @keywords internal
-#'
-#' @export
+#' @noRd
 Buildct <- function(mesh, SurfEch= 0.03){
     # Idiot proof
     assertNumeric(mesh, lower = 0)
@@ -62,7 +60,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' IPM so that no individual can grow outside of the defines classes.
 #' @param SurfEch Value of plot size surface in ha
 #'
-#' @param verbose Print message, used for debugs only. FALSE by default
+#' @param verbose Print message. FALSE by default
 #'
 #'
 #' @return
@@ -93,7 +91,7 @@ sim_deter_forest  <- function(Forest,
     UseMethod("sim_deter_forest")
 }
 
-#' @rdname sim_deter_forest
+#' @method sim_deter_forest species
 #' @export
 sim_deter_forest.species  <- function(Forest,
                               tlim = 3e3,
@@ -119,7 +117,7 @@ sim_deter_forest.species  <- function(Forest,
     )
 }
 
-#' @rdname sim_deter_forest
+#' @method sim_deter_forest forest
 #' @export
 sim_deter_forest.forest  <- function(Forest,
                                      tlim = 3e3,
@@ -380,6 +378,9 @@ new_deter_sim <- function(x = matrix(), mesh = NULL){
 
 #' tree_format generic
 #'
+#' Format simulation output from sim_deter_forest function to a more tidyverse
+#' format (long format) for ggplot2 and filtering.
+#'
 #' @param x Simulations created with sim_deter_forest
 #'
 #' @name tree_format
@@ -395,21 +396,23 @@ tree_format <- function(x){
 #' @importFrom rlang .data
 #' @importFrom tibble rownames_to_column
 #' @importFrom purrr map
+#' @keywords internal
 #' @export
 tree_format.deter_sim <- function(x){
 
     mesh <- attributes(x)$mesh %>%
         map( ~ c(.x, NA, NA, .x, NA)) %>%
-        do.call("c", args = .) %>% unname()
+        purrr::flatten_dbl()
 
-    if(is.null(mesh)){
+    if(length(mesh) == 0){
         warning("mesh attribute missing, size column will be composed of NA")
+        mesh <- rep(NA_real_, nrow(x))
     }
 
     res <- x %>%
         as.data.frame() %>%
         tibble::rownames_to_column(var = "var") %>%
-        {if(is.null(mesh)) mutate(., size = NA) else cbind(., size = mesh)} %>%
+        mutate(size = mesh) %>%
         tidyr::pivot_longer( -c(.data$var, .data$size), names_to = "time") %>%
         mutate( species = sub( "\\..*$", "", .data$var, perl = TRUE)) %>%
         mutate( var = sub("^.*\\.", "", .data$var, perl = TRUE)) %>%

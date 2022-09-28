@@ -15,9 +15,9 @@ test_that("climatic works", {
                  "testthat", "testdata")
 
     x <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
-    expect_identical(climatic(x), 1)
+    expect_identical(climatic(x), "1")
     x <- old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1)
-    expect_identical(climatic(x), 1)
+    expect_identical(climatic(x), "1")
 })
 
 
@@ -54,10 +54,10 @@ test_that("delay ipm works", {
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, compress = FALSE)
+                 species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
 
     exp <- new_ipm(IPM = list( delay(mat, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, compress = FALSE, delay = 2)
+                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -65,10 +65,10 @@ test_that("delay ipm works", {
     expect_identical( delay(x, 0), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, compress = TRUE)
+                 species = "darwin", climatic = 1, clim_lab = "1", compress = TRUE)
 
     exp <- new_ipm(IPM = list( delay(mat * 1e-7, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, compress = FALSE, delay = 2)
+                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -83,7 +83,7 @@ test_that("delay species works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
     validate_ipm(IPM)
 
     harv <- function(BATOTSP){NULL}
@@ -109,7 +109,7 @@ test_that("delay forest works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, compress = FALSE)
+    species = "darwin", climatic = c(sgdd = 1), clim_lab = "1", compress = FALSE)
     validate_ipm(IPM)
 
     rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
@@ -140,10 +140,10 @@ test_that("correction ipm works", {
               p = c(0L, 2L,  3L, 3L),
               Dim = c(3L, 3L), x = c(1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, compress = FALSE)
+                 species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
 
     exp <- new_ipm(IPM = list( new_mat  ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -151,10 +151,10 @@ test_that("correction ipm works", {
     expect_identical( correction(x), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, compress = TRUE)
+                 species = "darwin", climatic = 1, clim_lab = "1", compress = TRUE)
 
     exp <- new_ipm(IPM = list( new_mat * 1e-7 ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -169,7 +169,7 @@ test_that("correction species works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
     validate_ipm(IPM)
 
     rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
@@ -195,7 +195,7 @@ test_that("correction forest works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
     validate_ipm(IPM)
 
     rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}

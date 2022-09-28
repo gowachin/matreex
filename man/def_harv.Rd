@@ -20,5 +20,6 @@ Distribution of population to harvest.
 Values are between 0 (null harvest) and Xi.
 }
 \description{
-Default population harvest
+Constant rate harvest of 0.06 percent per year
+(check if harvest frequence is 1 in forest object).
 }

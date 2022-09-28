@@ -4,7 +4,16 @@
 \alias{new_ipm}
 \title{Constructor for IPM class}
 \usage{
-new_ipm(IPM, BA, mesh, species, climatic, compress = FALSE, delay = 0)
+new_ipm(
+  IPM,
+  BA,
+  mesh,
+  species,
+  climatic,
+  clim_lab,
+  compress = FALSE,
+  delay = 0
+)
 }
 \arguments{
 \item{IPM}{list of the IPM for different basal area for the species of
@@ -18,8 +27,10 @@ the number of size class in the IPM. num.}
 
 \item{species}{Name of the species to run simulation on. Single char.}
 
-\item{climatic}{Vector of climatic situations to run on. IPM must exist for
-each one or else this climatic value will be skipped. int.}
+\item{climatic}{Vector of named climatic values used to fit the ipm on. dbl.}
+
+\item{clim_lab}{Label for climatic used. This values will be matched when
+simulating multiple species together.}
 
 \item{compress}{Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 Help to limit  size when saved on disc. FALSE by default. lgl.}

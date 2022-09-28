@@ -12,7 +12,7 @@ test_that("new_forest works", {
                          harv_rules = c(Pmax = 0.25, dBAmin = 3,
                                         freq = 1, alpha = 1),
                          info = list(species = c("Yggdrasil"),
-                                     climatic = c(Yggdrasil = 1))),
+                                     clim_lab = c(Yggdrasil = "1"))),
                          class = "forest"))
 
     expect_identical(
@@ -23,7 +23,7 @@ test_that("new_forest works", {
             harv_rules = c(Pmax = 0.25, dBAmin = 3,
                            freq = 1, alpha = 1),
             info = list(species = c("Yggdrasil", "Yggdrasil"),
-                        climatic = c(Yggdrasil = 1, Yggdrasil = 1))),
+                        clim_lab = c(Yggdrasil = "1", Yggdrasil = "1"))),
             class = "forest")
     )
 })
@@ -43,7 +43,7 @@ test_that("validate_forest works", {
 
     expect_identical(x, validate_forest(x))
     tmp <- x
-    tmp$info$climatic <- c(Yggdrasil = 1, Yggdrasil = 2)
+    tmp$info$clim_lab <- c(Yggdrasil = 1, Yggdrasil = 2)
     expect_error(
         validate_forest(tmp),
         "All species are not defined for the same climatic."

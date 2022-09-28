@@ -6,6 +6,7 @@ spe <- "Yggdrasil"
 Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
                              harvest = def_harv)
 
+
 load_all()
 Yggdrasil$harvest_fun <- Uneven_harv
 body(Yggdrasil$init_pop)[[length(body(Yggdrasil$init_pop)) - 1]] <- expr(res <- res * 20)
@@ -195,4 +196,3 @@ microbenchmark::microbenchmark(
 
 
 ## Test zone ####
-

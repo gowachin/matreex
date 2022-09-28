@@ -14,5 +14,6 @@ m states.}
 \item{SurfEch}{Value of plot size surface in \eqn{m^2}}
 }
 \description{
-Default population initiation
+The population will initiate with a random distribution to match a basal area
+of 1.
 }

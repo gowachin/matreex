@@ -168,5 +168,6 @@ test_that("sim_deter format work", {
     exp$size <- c(.1, .1, .1, .1, .1, .2)
     expect_identical(head(tree_format(res)), exp)
 
+
 })
 

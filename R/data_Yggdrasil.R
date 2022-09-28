@@ -1,4 +1,4 @@
-#' Yggdrasil
+#' Yggdrasil species dataset.
 #'
 #' A dataset with all neccessary elements for an old way to simulate
 #' a species IPM along time. This will be modified as I set new classes !
@@ -13,7 +13,7 @@
 #' data(IPM_Yggdrasil_Clim_2)
 #' data(IPM_Yggdrasil_Clim_3)
 #'
-#' @rdname Yggdrasil
+#' @name Yggdrasil
 #'
 "plots_pred_Yggdrasil"
 

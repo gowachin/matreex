@@ -2,27 +2,9 @@
 % Please edit documentation in R/generic_methods.R
 \name{delay}
 \alias{delay}
-\alias{delay.numeric}
-\alias{delay.pop_state}
-\alias{delay.ipm}
-\alias{delay.species}
-\alias{delay.forest}
-\alias{delay.dtCMatrix}
 \title{Add delay states to a system}
 \usage{
 delay(x, delay = 0)
-
-\method{delay}{numeric}(x, delay = 0)
-
-\method{delay}{pop_state}(x, delay = 0)
-
-\method{delay}{ipm}(x, delay = 0)
-
-\method{delay}{species}(x, delay = 0)
-
-\method{delay}{forest}(x, delay = 0)
-
-\method{delay}{dtCMatrix}(x, delay = 0)
 }
 \arguments{
 \item{x}{an object that require a delay addition}
@@ -32,13 +14,4 @@ delay(x, delay = 0)
 \description{
 Add delay states to an existing pop_state class object or an ipm class
 object.
-}
-\examples{
-mesh <- seq(1, 10, by = 1)
-s <- state_init(mesh)
-y <- delay(s, 5)
-
-x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
-         Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
-delay(x, 2)
 }

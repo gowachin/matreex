@@ -28,20 +28,64 @@
 multi <- function(x, df){
 
     assertCharacter(x, any.missing = FALSE, len = 1)
+    assertDataFrame(df, min.rows = 1, ncols = 6)
 
-    if(grepl("log", x)){
-        evar <- sub("^log", "", x)
-        evar <- call2("log", ensym(evar))
-    } else if(grepl("2$", x)){
-        evar <- sub("2$", "", x)
-        evar <- call2("^", ensym(evar), 2)
+    new_name <- paste0(x, "_in")
+
+    if(grepl(":", x)){
+        y <- sub("^.*:", "", x)
+        x <- sub(":.*$", "", x)
+        selec <- df$var1 == x & df$var2 == y & !is.na(df$var2)
+        if(all(!selec)){
+            stop("Can't write expression if param is not present in formula !")
+        }
     } else {
-        evar <- ensym(x)
+        selec <- NULL
+        y <- NA_character_
+        if(! x %in% df$var1){
+            stop("Can't write expression if param is not present in formula !")
+        }
     }
 
-    tmp <- call2("*", df[df$var1 == x, "K"], evar)
-    new_name <- paste0(x, "_in")
+    if(grepl("log", x)){
+        xvar <- sub("^log", "", x)
+        xvar <- call2("log", ensym(xvar))
+    } else if(grepl("2$", x)){
+        xvar <- sub("2$", "", x)
+        xvar <- call2("^", ensym(xvar), 2)
+    } else {
+        xvar <- ensym(x)
+    }
+
+    if(grepl("log", y)){
+        yvar <- sub("^log", "", y)
+        foo <- "log"
+    } else if(grepl("2$", y)){
+        yvar <- sub("2$", "", y)
+        foo <- "^"
+    } else {
+        foo <- ""
+        yvar <- y
+    }
+    if(!is.na(y) && df$value.y[selec] != 1){
+        yvar <- df$value.y[selec]
+    } else {
+        yvar <- ensym(yvar)
+    }
+    yvar <- switch(foo,
+                   log = call2("log", yvar),
+                   '^' = call2("^", yvar, 2),
+                   yvar )
+
+
+    if(!is.na(y)){
+        evar <- call2("*", xvar, yvar)
+        tmp <- call2("*", df$params[selec], evar)
+    } else {
+        tmp <- call2("*", df$params[df$var1 == x & is.na(df$var2)], xvar)
+    }
     res <- call2("<-", ensym(new_name), tmp)
+    res
 
     return(res)
 }
@@ -54,28 +98,31 @@ multi <- function(x, df){
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
 #'
-#' @importFrom dplyr left_join mutate
-#' @importFrom tidyr pivot_longer everything separate
-#' @importFrom tibble rownames_to_column
-#' @importFrom rlang .data
+#' @importFrom stats setNames
 #'
 #' @noRd
 format_fit <- function(params, list_covs){
 
-    invar <- names(params)[!names(params) %in% names(list_covs)]
+    nms <- names(params)
+    invar <- nms[!nms %in% names(list_covs)]
 
-    lc <- pivot_longer(list_covs, cols = everything())
-    lc <- rbind(lc, data.frame(name= c(invar, NA),  value=1))
-    p <- as.data.frame(params) %>% rownames_to_column(var = "var") %>%
-        separate(.data$var, c("var1", "var2"), sep = "\\:", fill = "right")
-    res <- left_join(p, lc, by=c('var1'='name')) %>%
-        left_join(lc, by=c('var2'='name')) %>%
-        mutate(K = params * .data$value.x * .data$value.y)
+    lc <- c(drop(as.matrix(list_covs)),
+            setNames(rep(1, length(invar)), invar))
+
+    x <- sub(":.*$", "", nms)
+    y <- sub("^[[:alnum:]]*:?", "", nms)
+    y[nchar(y) == 0] <- NA_character_
+    res <- data.frame(var1 = x, var2 = y, params = params,
+                      value.x = lc[x], value.y = lc[y],
+                      row.names = NULL)
+    value.x <- NULL # HACK rm the note in devtools::check() about unbinded
+    res <- within(res, {
+        value.y[is.na(value.y)] <- 1
+        K <- params * value.x * value.y
+    })
 
     return(res)
 }
-
-
 
 #' Export recruitment function from estimated parameters.
 #'
@@ -144,4 +191,59 @@ exp_recFun <- function(params, list_covs){
     return(empty)
 }
 
+
+#' Export recruitment function from estimated parameters.
+#'
+#' Rebuild the function to use BASp and BAnonSp for a species.
+#'
+#' @param params Estimated parameters for the fit of the model.
+#' @param list_covs Climatic covariates values.
+#'
+#' @importFrom purrr map
+#' @importFrom rlang expr call2 env_unbind
+#'
+#' @details
+#' Each function has an environment binded with params and list_covs.
+#' I can't remove it and it may be usefull later after all.
+#'
+#' @return
+#' Function with 1 parameter : size
+#'
+#' @examples
+#' params <- c(intercept = -0.864, size = -0.018, sgddb = 286.813,
+#' wai = -0.057, wai2 = 0.288 )
+#' list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
+#'
+#' foo <- exp_sizeFun(params, list_covs)
+#' foo
+#' foo(1, 2, 1:5, 0.03)
+#'
+#' @noRd
+exp_sizeFun <- function(params, list_covs){
+
+    df2 <- format_fit(params, list_covs)
+
+    invar <- names(params)[!names(params) %in% names(list_covs)]
+    invar <- invar[! grepl("ntercept", invar)]
+    inter <- sum(with(df2, K[! var1 %in% invar | var2 %in% invar]))
+
+    exp_invar <- map(invar, multi, df2)
+    add_invar <- map(c(list(expr(intercept <- 1)),exp_invar),
+                     ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
+
+    final_res <- list( expr(return(res)) )
+    calls <- c(exp_invar, add_invar, final_res)
+    empty <- function(size){}
+
+    body(empty)[[2]] <- call2("<-", expr(intercept), inter)
+    body(empty)[[3]] <- expr(res <- 0)
+    body(empty)[seq_along(calls)+3] <- calls
+    # this is messy and is to remove binded env.
+    env_unbind(env = environment(empty), c("calls", "final_res",
+                                           "add_invar", "exp_invar",
+                                           "inter", "invar", "df2"),
+               inherit = FALSE)
+    # empty
+    return(empty)
+}
 
