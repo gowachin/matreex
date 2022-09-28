@@ -96,8 +96,25 @@ test_that("def_init works", {
     )
 
     # NOTE Case with all(alea) require specific seed that I don't know.
+    foo <- def_initBA(20)
+    set.seed(666)
+    expect_identical(
+        foo(x),
+        c(206.8314481049748, 0, 0, 210.26451022729145, 211.42148081166937,
+          0)
+    )
 
-})
+    foo <- def_init_k(c(12, 2, 0, 40, 0, 5))
+    expect_identical(foo(1:6),c(12, 2, 0, 40, 0, 5))
+    # FIXME can't test this !
+    expect_error(
+        foo(1:5),
+        paste0("A species initiate with a define distribution with ",
+               "different length that it's mesh. Check sp$init_pop ",
+               "functions using def_init_k !"),
+        fixed = TRUE
+    )
+ })
 
 
 test_that("def_harv works", {

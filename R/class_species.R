@@ -190,6 +190,66 @@ def_init <- function(mesh, SurfEch = 0.03) {
     return(res)
 }
 
+
+#' Init population at BA
+#'
+#' This function modify the def_init function to start at a given BA with
+#' the same process of random distribution.
+#'
+#' @param BA Basal area targeted. This single value must be above 0 but can be
+#' very close (minimal accepted value is 1e-10)
+#'
+#' @return
+#' Function similar to def_init
+#'
+#' @import checkmate
+#'
+#' @export
+def_initBA <- function(BA = 1){
+
+    assertNumber(BA, lower = 1e-10)
+    fun <- def_init
+    force(BA)
+    res <- NULL # HACK because res must be binded
+    body(fun)[[8]] <- call2("<-", expr(res), call2("*", expr(res), BA))
+
+    return(fun)
+}
+
+
+#' Init population with precise distribution
+#'
+#' @param x Distribution to draw systematically. This distribution should
+#' be composed of values in \code{[0, Inf]} values with a sum superior to 0.
+#'
+#' @details
+#' The resulting function will check if the provided vector is the same length
+#' as mesh.
+#'
+#' @return
+#' Function similar def_init but with no random effect anymore.
+#'
+#' @import checkmate
+#' @export
+def_init_k <- function(x){
+
+    assertNumeric(x, lower = 0, any.missing = FALSE)
+    assertTRUE(sum(x) > 0)
+
+    force(x)
+    fun <- function(mesh, SurfEch = 0.03) {
+        if(length(x) != length(mesh)){
+            stop(paste0("A species initiate with a define distribution with ",
+                        "different length that it's mesh. Check sp$init_pop ",
+                        "functions using def_init_k !"))
+        }
+        return(x)
+    }
+
+    return(fun)
+}
+
+
 #' Default population harvest
 #'
 #' Constant rate harvest of 0.06 percent per year

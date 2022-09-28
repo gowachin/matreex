@@ -150,7 +150,7 @@ test_that("sim_deter format work", {
         var = c("m", "m", "m", "m", "m", "m"),
         time = c(1, 2, 3, 4, 5, 1),
         mesh = c(1, 1, 1, 1, 1, 2),
-        size = rep(NA, 6),
+        size = rep(NA_real_, 6),
         equil = c(FALSE, FALSE, FALSE, FALSE, FALSE, FALSE),
         value = c(0.26, 0.28, 0.28, 0.28, 0.27, 0)),
         row.names = c(NA, -6L), class = c("tbl_df", "tbl", "data.frame"))
