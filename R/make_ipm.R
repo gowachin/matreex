@@ -19,11 +19,20 @@
 #' so use it. Integrating above 200 is absurd.
 #' @param correction Correction to apply to the IPM matrix for eviction. Choices
 #' constant (default), ceiling, sizeExtremes and none.
-#' @param level TODO
-#' @param diag_tresh Treshold
+#' @param level Number of point to use for integration in a cell during
+#' Gauss-Legendre integration. This value will be divided by 3 since size t is
+#' integrated at level = 3 and size t+1 at level = level/3. ingle int
+#' (default 420).
+#' @param diag_tresh Threshold for Gauss-Legendre integration, which a distance
+#' to the diagonal. Number of cell integrated is the number of cell for which
+#' size t+1 - size t is inferior to this threshold. single dbl (default 50).
 #' @param midbin_tresh Number of cells external to the GL integration to
 #' integrate with the mid bin method.
-#' @param IsSurv Adding survival to the IPM. Set to FALSE is usefull to test for
+#' @param mid_level Number of point to use for integration in a cell during
+#' mid bin integration.
+#' @param year_delta Number of year between 2 obersavtion when using this model.
+#' default 1, single int. NOTE : value for dev usage only !
+#' @param IsSurv Adding survival to the IPM. Set to FALSE is useful to test for
 #' eviction of the model. TRUE by default.
 #' @param verbose Print message. FALSE by default
 #'
@@ -54,6 +63,8 @@ make_IPM <- function(species,
                      level = 420,
                      diag_tresh = 50,
                      midbin_tresh = 100,
+                     mid_level = 100,
+                     year_delta = 1, # NOTE reu 3/10 pour le cas ou n est superieur a 1
                      IsSurv = TRUE,
                      verbose = FALSE) {
 
@@ -84,6 +95,7 @@ make_IPM <- function(species,
     assertCount(level)
     assertNumeric(diag_tresh,any.missing = FALSE, len = 1)
     assertLogical(IsSurv, len = 1)
+    assertCount(year_delta)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
@@ -105,7 +117,7 @@ make_IPM <- function(species,
     out2 <- gaussQuadInt(-h / 2, h / 2, inlevel) # For x1 integration
     mesh_x <- seq(L + h / 2, U - h / 2, length.out = m)
     N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
-    # minor midbin_tresh is mesh is shorter.
+    # minor midbin_tresh if mesh is shorter.
     if(midbin_tresh + N_int > m){
         midbin_tresh <- m - N_int
     }
@@ -123,17 +135,15 @@ make_IPM <- function(species,
     sig_gr <- fit$gr$sigma
     ### Survival
     if(!IsSurv) {
-        P_sv <- rep(1, length(mesh_x) / 3)
+        P_sv <- rep(1, m)
     }
 
     # Create matrix for GL integration on dimension level
     mesh_x1B <- as.vector(outer(
-        out2$nodes,
-        seq(0, (N_int - 1) * h, length.out = N_int),
-        "+"
+        out2$nodes, seq(0, (N_int - 1) * h, length.out = N_int), "+"
     ))
     mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
-    mesh_x1B <- mesh_x1B - out1$nodes[2]
+    mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
     mesh_x1C <- mesh_x1B - out1$nodes[3]
 
     # function used in gauss legendre integration
@@ -141,7 +151,8 @@ make_IPM <- function(species,
         out <- numeric(length(d_x1_x))
         sel <- d_x1_x > 0
         tmp <- d_x1_x[sel]
-        out[sel] <- dnorm(log(tmp), mu[sel], sig) / tmp
+        # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+        out[sel] <- dnorm(log(tmp/ year_delta), mu[sel], sig) / tmp * year_delta
         return(out)
     }
 
@@ -179,7 +190,9 @@ make_IPM <- function(species,
             P_sv <- P_sv[1:m3] * weights1[1] +
                 P_sv[(m3 + 1):(2 * m3)] * weights1[2] +
                 P_sv[(2 * m3 + 1):(3 * m3)] * weights1[3]
+            # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
             P_sv <- 1 - P_sv
+            P_sv <- P_sv ^ year_delta
         }
 
         # Integration ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -197,7 +210,10 @@ make_IPM <- function(species,
         if(midbin_tresh > 0){
             P_midint <- fun_mid_int(
                 seq(L, U, length.out = m), h, grFun, sig_gr,
-                N_ini = N_int + 1, N_int = midbin_tresh, Level = 100
+                       # if no GL, N_int mesh cell is not integrated
+                N_ini = N_int + (N_int > 0), N_int = midbin_tresh,
+                # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+                Level = mid_level, year_delta = year_delta
             )
             P <- sub_diag(P, P_midint, dist = N_int)
         }
@@ -260,29 +276,35 @@ make_IPM <- function(species,
 #' @param sig_gr Sigma of the fitted growth function.
 #' @param N_ini Distance to diagonal to start the integration. single dbl.
 #' @param N_int Number of cells to integrate on. single dbl.
-#' @param Level TODO
+#' @param Level Number of point to use for integration in a cell during
+#' mid bin integration.
+#' @param year_delta Number of year between 2 obersavtion when using this model.
+#' default 1, single int. NOTE : value for dev usage only !
 #'
 #' @importFrom stats dnorm
 #'
 #' @noRd
-fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=100){
+fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=100,
+                        year_delta = 1){
 
     mu_mesh <- gr(mesh)
-    dx1 <- seq(N_ini*h, (N_ini+N_int)*h, by=h/Level)[-1]
+    dx1 <- seq(N_ini*h- h/2, (N_ini+N_int-1)*h + h/2, by=h/Level)[-1]
     inf <- dx1 > 0
     dx1i <- dx1[inf]
-    ldx1 <- log(dx1i)
+    # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+    ldx1 <- log(dx1i / year_delta)
 
     rep0 <- numeric(length = length(dx1))
 
-    ca <- factor(rep(0:N_int, c(Level/2, rep(Level, N_int-1), Level/2)))
+    # ca <- factor(rep(0:N_int, c(Level/2, rep(Level, N_int-1), Level/2)))
+    ca <- factor(rep(1:N_int, each = Level))
     ca <- .Internal(split(1:length(dx1), ca))
 
     P_incr <- matrix(NA_real_, ncol= length(mesh), nrow=N_int)
 
     for (k in seq_along(mu_mesh)){
         out <- rep0 # 0.004ms
-        out[inf] <- dnorm(ldx1, mu_mesh[k], sig_gr) / dx1i   # 220ms
+        out[inf] <- dnorm(ldx1, mu_mesh[k], sig_gr) / dx1i * year_delta  # 220ms
         # C code not speedable or loose precision
         # https://stackoverflow.com/questions/27425658/speed-up-dnorm-function
         g <- out * h / Level

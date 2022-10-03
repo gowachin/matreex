@@ -40,13 +40,13 @@ test_that("validate_species works", {
     names(tmp) <- c("IPM", "init_pop", "harvest_func", "recruit_fun", "info")
     expect_error(
         validate_species(tmp),
-        "IPM class must be composed of elements IPM, init_pop, harvest_fun, recruit_fun and info"
+        "species class must be composed of elements IPM, init_pop, harvest_fun, recruit_fun and info"
     )
     tmp <- x
     names(tmp$info) <- c("sp", "clim_lab")
     expect_error(
         validate_species(tmp),
-        "IPM class must have info of elements species and clim_lab"
+        "species class must have info of elements species and clim_lab"
     )
 })
 

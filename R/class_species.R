@@ -41,9 +41,9 @@ new_species <- function(IPM, init_pop,
     return(species)
 }
 
-#' validator for IPM class.
+#' validator for species class.
 #'
-#' @param x IPM class object
+#' @param x species class object
 #'
 #' @import checkmate
 #'
@@ -58,7 +58,7 @@ validate_species <- function(x){
     assertCharacter(names)
     if(any(names != c("IPM", "init_pop", "harvest_fun", "harv_lim",
                       "recruit_fun", "info"))){
-        stop(paste0("IPM class must be composed of elements IPM, init_pop,",
+        stop(paste0("species class must be composed of elements IPM, init_pop,",
                     " harvest_fun, recruit_fun and info"))
     }
 
@@ -75,7 +75,7 @@ validate_species <- function(x){
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "clim_lab"))){
-        stop("IPM class must have info of elements species and clim_lab")
+        stop("species class must have info of elements species and clim_lab")
     }
 
     x
@@ -106,13 +106,12 @@ species <- function(IPM, init_pop, harvest_fun,
 
 #' Dev function to read old ipm
 #'
-#' Read old ipm and put them in the new class format.
+#' Read old ipm and put them in the new species class format.
 #'
-#' @param species Name of the species to run simulation on. Single char.
-#' @param climatic Vector of climatic situations to run on. IPM must exist for
-#' each one or else this climatic value will be skipped. int.
-#' @param path Place to save the resulting file. Single Char.
-#' @param replicat Numeric for the simulation to select. By default, the 42th.
+#' @param species Name of the species to load. Single char.
+#' @param climatic Numeric that coded old climatic state. int.
+#' @param path Place to load the previous IPM file. Single Char.
+#' @param replicat Numeric for the model to select. By default, the 42th.
 #' @param harvest Function to impact the population with harvest rule.
 #' Argument must be \code{pop}.
 #' Should return a population state as it's take it in input, with less

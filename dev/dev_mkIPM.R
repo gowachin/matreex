@@ -20,11 +20,24 @@ NbIPM <- 2
 NbModel <- 1
 m_size <- 700
 data_plots_pred <- readRDS(file.path('output', spsel, 'plots_pred.Rds'))
-fit_sgr <- readRDS(file.path('output', spsel, 'fit_sgr_all.Rds'))[[1]]
+fit_sgr <- readRDS(file.path('output', spsel, 'fit_sgr_all.Rds'))
 
 
-sv <- map(fit_sgr, ~ names(.x$sv$params_m))
-gr <- map(fit_sgr, ~ names(.x$gr$params_m))
+map_dbl(fit_sgr, ~ .x$maxDBH) %>% plot(cex = .1)
+
+fit_sgr <- fit_sgr[c(94:96)]
+
+sv <- map(fit_sgr, ~ data.frame(var = names(.x$sv$params_m),
+                                value = .x$sv$params_m)) %>%
+    reduce(full_join, by = "var") %>%  # purrr & dplyr
+    replace(is.na(.), 0) %>% # base
+    tidyr::gather(name, value, -var) %>% # tidyr
+    group_by(var) %>% summarize(mean = mean(value)) %>% # dplyr
+    pull(mean, var) # dplyr
+
+fit_sgr[[1]]$maxDBH
+
+gr <- map(fit_sgr, ~ .x$gr$params_m)
 
 nms <- unique(unlist(sv))
 nms <- unique(unlist(gr))

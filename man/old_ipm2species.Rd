@@ -15,14 +15,13 @@ old_ipm2species(
 )
 }
 \arguments{
-\item{species}{Name of the species to run simulation on. Single char.}
+\item{species}{Name of the species to load. Single char.}
 
-\item{climatic}{Vector of climatic situations to run on. IPM must exist for
-each one or else this climatic value will be skipped. int.}
+\item{climatic}{Numeric that coded old climatic state. int.}
 
-\item{path}{Place to save the resulting file. Single Char.}
+\item{path}{Place to load the previous IPM file. Single Char.}
 
-\item{replicat}{Numeric for the simulation to select. By default, the 42th.}
+\item{replicat}{Numeric for the model to select. By default, the 42th.}
 
 \item{harvest}{Function to impact the population with harvest rule.
 Argument must be \code{pop}.
@@ -39,5 +38,5 @@ and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
 }
 \description{
-Read old ipm and put them in the new class format.
+Read old ipm and put them in the new species class format.
 }

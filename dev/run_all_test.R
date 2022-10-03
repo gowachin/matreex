@@ -23,6 +23,7 @@ report(x)
 # df_cov[df_cov$functions=='tank',]
 
 x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
+x <- file_coverage('R/class_fit_sgr.R', 'tests/testthat/test-class_fit_sgr.R')
 x <- file_coverage('R/class_ipm.R', 'tests/testthat/test-class_ipm.R')
 x <- file_coverage('R/class_species.R', 'tests/testthat/test-class_species.R')
 x <- file_coverage('R/class_forest.R', 'tests/testthat/test-class_forest.R')

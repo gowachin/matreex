@@ -15,6 +15,8 @@ make_IPM(
   level = 420,
   diag_tresh = 50,
   midbin_tresh = 100,
+  mid_level = 100,
+  year_delta = 1,
   IsSurv = TRUE,
   verbose = FALSE
 )
@@ -41,14 +43,25 @@ so use it. Integrating above 200 is absurd.}
 \item{correction}{Correction to apply to the IPM matrix for eviction. Choices
 constant (default), ceiling, sizeExtremes and none.}
 
-\item{level}{TODO}
+\item{level}{Number of point to use for integration in a cell during
+Gauss-Legendre integration. This value will be divided by 3 since size t is
+integrated at level = 3 and size t+1 at level = level/3. ingle int
+(default 420).}
 
-\item{diag_tresh}{Treshold}
+\item{diag_tresh}{Threshold for Gauss-Legendre integration, which a distance
+to the diagonal. Number of cell integrated is the number of cell for which
+size t+1 - size t is inferior to this threshold. single dbl (default 50).}
 
 \item{midbin_tresh}{Number of cells external to the GL integration to
 integrate with the mid bin method.}
 
-\item{IsSurv}{Adding survival to the IPM. Set to FALSE is usefull to test for
+\item{mid_level}{Number of point to use for integration in a cell during
+mid bin integration.}
+
+\item{year_delta}{Number of year between 2 obersavtion when using this model.
+default 1, single int. NOTE : value for dev usage only !}
+
+\item{IsSurv}{Adding survival to the IPM. Set to FALSE is useful to test for
 eviction of the model. TRUE by default.}
 
 \item{verbose}{Print message. FALSE by default}
