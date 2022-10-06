@@ -8,8 +8,7 @@ new_species(
   IPM,
   init_pop,
   harvest_fun,
-  harv_lim = c(dth = 175, dha = 575, hmax = 1),
-  recruit_fun
+  harv_lim = c(dth = 175, dha = 575, hmax = 1)
 )
 }
 \arguments{
@@ -33,10 +32,6 @@ distribution of the population to harvest}
 \item{dha}{harvest diameter}
 \item{hmax}{maximum harvest rate for a size class}
 }}
-
-\item{recruit_fun}{Function to recruit new individual into the population.
-Argument must be \code{BATOTSP}. # TODO rename argument !
-Should return a single numeric value.}
 }
 \description{
 Only used in the treeforce package

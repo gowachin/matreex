@@ -260,7 +260,8 @@ make_IPM <- function(species,
     res <- validate_ipm(
         new_ipm(
             IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
-            climatic = climate, clim_lab = clim_lab,
+            #
+            climatic = climate, clim_lab = clim_lab, rec = fit$rec$params_m,
             species = species, compress = FALSE
         )
     )

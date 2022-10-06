@@ -148,9 +148,6 @@ sim_deter_forest.forest  <- function(Forest,
     start <- Sys.time()
 
     # Initialisation ####
-    get_ipm <- function(x, n){
-        return(x$IPM$IPM[[n]])
-    }
     init_sim <- function(nsp, tlim, mesh){ # TODO : set function outside of here
         res <- vector("list", nsp)
         res <- map2(lengths(mesh), names(mesh), function(x, y) {
@@ -217,10 +214,14 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
-    lower_ba <- map_dbl(BAsp, ~ .x[which(.x == max(.x[.x <= sim_BA[1]]))] )
-    higher_ba <- map_dbl(BAsp, ~ .x[which(.x == min(.x[.x > sim_BA[1]]))] )
-    low_ba <- map2(Forest$species, lower_ba, get_ipm)
-    high_ba <- map2(Forest$species, higher_ba, get_ipm)
+
+    low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[1]])) )
+    high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[1]])) )
+    lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
+    higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
+
+    low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
+    high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
 
     sim_ipm <- lapply(
         seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
@@ -307,10 +308,13 @@ sim_deter_forest.forest  <- function(Forest,
         # IDEA make a function for this
         # input : BAsp, sim_BA, delay, Forest, t
         # output : sim_ipm
-        lower_ba <- map_dbl(BAsp, ~ .x[which(.x == max(.x[.x <= sim_BA[t]]))] )
-        higher_ba <- map_dbl(BAsp, ~ .x[which(.x == min(.x[.x > sim_BA[t]]))] )
-        low_ba <- map2(Forest$species, lower_ba, get_ipm)
-        high_ba <- map2(Forest$species, higher_ba, get_ipm)
+        low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[t]])) )
+        high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[t]])) )
+        lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
+        higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
+
+        low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
+        high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
 
         sim_ipm <- lapply(
             # NOTE : bottleneck of the function because of sum of sparse matrix !

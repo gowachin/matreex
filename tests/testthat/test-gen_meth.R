@@ -50,14 +50,17 @@ test_that("delay numeric works", {
 
 test_that("delay ipm works", {
 
+    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
     mat<- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+                 species = "darwin", climatic = 1, clim_lab = "1", rec = rec,
+                 compress = FALSE)
 
     exp <- new_ipm(IPM = list( delay(mat, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE, delay = 2)
+                   species = "darwin", climatic = 1, clim_lab = "1", rec = rec,
+                   compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -65,10 +68,12 @@ test_that("delay ipm works", {
     expect_identical( delay(x, 0), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", compress = TRUE)
+                 species = "darwin", climatic = 1, clim_lab = "1", rec = rec,
+                 compress = TRUE)
 
     exp <- new_ipm(IPM = list( delay(mat * 1e-7, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE, delay = 2)
+                   species = "darwin", climatic = 1, clim_lab = "1", rec = rec,
+                   compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -83,16 +88,16 @@ test_that("delay species works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1",
+    rec = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1),
+    compress = FALSE)
     validate_ipm(IPM)
 
-    harv <- function(BATOTSP){NULL}
-
     x <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv, recruit_fun = harv)
+                     harvest_fun = def_harv)
 
     exp <- new_species(delay(IPM, 2), init_pop = def_init,
-                       harvest_fun = def_harv, recruit_fun = harv)
+                       harvest_fun = def_harv)
     # validate_species(x)
     # validate_species(exp)
 
@@ -109,13 +114,13 @@ test_that("delay forest works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = c(sgdd = 1), clim_lab = "1", compress = FALSE)
+    species = "darwin", climatic = c(sgdd = 1), clim_lab = "1",
+    rec = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1),
+    compress = FALSE)
     validate_ipm(IPM)
 
-    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
-
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv, recruit_fun = rec)
+                     harvest_fun = def_harv)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = delay(sp, 2)))
@@ -133,6 +138,7 @@ test_that("delay forest works", {
 # correction ####
 test_that("correction ipm works", {
 
+    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
     mat<- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
@@ -140,10 +146,10 @@ test_that("correction ipm works", {
               p = c(0L, 2L,  3L, 3L),
               Dim = c(3L, 3L), x = c(1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+                 species = "darwin", climatic = 1, clim_lab = "1", rec = rec, compress = FALSE)
 
     exp <- new_ipm(IPM = list( new_mat  ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", rec = rec, compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -151,10 +157,10 @@ test_that("correction ipm works", {
     expect_identical( correction(x), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", compress = TRUE)
+                 species = "darwin", climatic = 1, clim_lab = "1", rec = rec, compress = TRUE)
 
     exp <- new_ipm(IPM = list( new_mat * 1e-7 ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", rec = rec, compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -164,21 +170,21 @@ test_that("correction ipm works", {
 
 test_that("correction species works", {
 
+    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
     IPM <- new_ipm(IPM = list(
         new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1", rec = rec, compress = FALSE)
     validate_ipm(IPM)
 
-    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv, recruit_fun = rec)
+                      harvest_fun = def_harv)
 
     exp <- new_species(correction(IPM, "cut"), init_pop = def_init,
-                       harvest_fun = def_harv, recruit_fun = rec)
+                       harvest_fun = def_harv)
     # validate_species(sp)
     # validate_species(exp)
 
@@ -195,13 +201,12 @@ test_that("correction forest works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, clim_lab = "1", compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1",
+    rec = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1), compress = FALSE)
     validate_ipm(IPM)
 
-    rec <- function(BATOTSP, BATOTNonSP, mesh, SurfEch){NULL}
-
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv, recruit_fun = rec)
+                      harvest_fun = def_harv)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = correction(sp, "cut")))

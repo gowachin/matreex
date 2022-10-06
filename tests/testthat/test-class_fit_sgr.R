@@ -1,6 +1,7 @@
 test_that("new_fit_sgr works", {
 
     sv_params <- gr_params <- c(intercept = 2, size = .5)
+    rec_params <- c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
     sv_family <- list(linkinv = function(eta){
         pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
     })
@@ -9,20 +10,23 @@ test_that("new_fit_sgr works", {
     max_dbh <- 42
 
     expect_identical(new_fit_sgr(sv_params, sv_family,
-                                 gr_params, gr_sigma,
+                                 gr_params, gr_sigma, rec_params,
                                  "shadok", 42),
                      structure(list(
                          sv = list(params_m = sv_params, family = sv_family),
                          gr = list(params_m = gr_params, sigma = gr_sigma),
+                         rec = list(params_m = rec_params),
                          info = c(species = "shadok", max_dbh = "42")
                      ),
                      class = "fit_sgr"))
 
     expect_identical(fit_sgr(sv_params, sv_family,
                                  gr_params, gr_sigma,
+                             rec_params,
                                  "shadok", 42),
                      new_fit_sgr(sv_params, sv_family,
                              gr_params, gr_sigma,
+                             rec_params,
                              "shadok", 42))
 })
 
@@ -30,12 +34,13 @@ test_that("new_fit_sgr works", {
 test_that("validate_fit_sgr works", {
 
     sv_params <- gr_params <- c(intercept = 2, size = .5)
+    rec_params <- c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
     sv_family <- list(linkinv = function(eta){
         pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
     })
     gr_sigma = .6
 
-    x <- new_fit_sgr(sv_params, sv_family, gr_params, gr_sigma, "shadok", 42)
+    x <- new_fit_sgr(sv_params, sv_family, gr_params, gr_sigma, rec_params, "shadok", 42)
 
 
     expect_identical(x, validate_fit_sgr(x))
@@ -43,7 +48,7 @@ test_that("validate_fit_sgr works", {
     names(tmp) <- c("survival", "gr", "info")
     expect_error(
         validate_fit_sgr(tmp),
-        "fit_sgr class must be composed of elements sv, gr and info"
+        "fit_sgr class must be composed of elements sv, gr, rec and info"
     )
     tmp <- x
     tmp$sv$params_m <- c(Intercept = 2, size = .5)
@@ -57,6 +62,14 @@ test_that("validate_fit_sgr works", {
         validate_fit_sgr(tmp),
         "Growth model should at least depend on an intercept and the size variable."
     )
+
+    tmp <- x
+    tmp$rec$params_m <- c(intercept = 2, BATOTSP = 0, BATOTnonSP = 1)
+    expect_error(
+        validate_fit_sgr(tmp),
+        "Recruitment model should at least depend on an intercept, BATOTSP and BATOTNonSP variable."
+    )
+
     tmp <- x
     names(tmp$info) <- c("sp", "max_dbh")
     expect_error(
@@ -96,6 +109,10 @@ test_that("mean_oldfit works", {
             sgdd2 = -1.2621957152595e-07, size = -0.00146753201555766, `size:sgdd` = -3.43810044991891e-07,
             `size:wai` = 6.95635485702585e-05, wai = -0.3283117658971, wai2 = -0.184076301010191
         ), sigma = 0.6229243935538504),
+        rec = list(params_m = c(BATOTNonSP = -0.0248842776930938, BATOTSP = -0.0190822994852905,
+                                intercept = -0.908737368267839, logBATOTSP = -0.252604353458172,
+                                sgddb = 321.429377000321, wai = -0.0614645745262896, wai2 = 0.290906922523664
+        )),
         info = c(species = "Yggdrasil", max_dbh = "1600")), class = "fit_sgr")
 
 
@@ -105,8 +122,8 @@ test_that("mean_oldfit works", {
         linkinv = function (eta) {
             pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
         }), class = "family")
-    expect_equal(res, exp)
 
+    expect_equal(res, exp)
 })
 
 
@@ -125,8 +142,9 @@ test_that("old_fit2fit works", {
     res_fit <- fit[[replicat]]
 
     exp <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
-                       res_fit$gr$params_m, res_fit$gr$sigma,
-                       species = species, max_dbh = max_dbh)
+                   res_fit$gr$params_m, res_fit$gr$sigma,
+                   res_fit$rec$params_m,
+                   species = species, max_dbh = max_dbh)
 
     expect_equal(old_fit2fit(species, path, replicat = 42, mean = FALSE), exp)
 

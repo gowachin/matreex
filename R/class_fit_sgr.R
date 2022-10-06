@@ -11,6 +11,8 @@
 #' climatic condition. Minimal parameters are intercept and size.
 #' @param gr_sigma Standard deviation of the residuals for the growth fitted
 #' model.
+#' @param rec_params Named vector of growth parameters fitted for this species and
+#' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
 #' @param species Name of the species to run simulation on. Single char.
 #' @param max_dbh Maximum diameter of the fitted dataset. Single dbh.
 #'
@@ -18,10 +20,12 @@
 #' @export
 new_fit_sgr <- function(sv_params, sv_family,
                         gr_params, gr_sigma,
+                        rec_params,
                         species, max_dbh){
     fit <- list(
         sv = list(params_m = sv_params, family = sv_family),
         gr = list(params_m = gr_params, sigma = gr_sigma),
+        rec = list(params_m = rec_params),
         info = c(species = species, max_dbh = max_dbh)
     )
 
@@ -45,8 +49,8 @@ validate_fit_sgr <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("sv", "gr", "info"))){
-        stop(paste0("fit_sgr class must be composed of elements sv, gr and info"))
+    if(any(names != c("sv", "gr", "rec", "info"))){
+        stop(paste0("fit_sgr class must be composed of elements sv, gr, rec and info"))
     }
 
     # check all values ####
@@ -64,13 +68,19 @@ validate_fit_sgr <- function(x){
     if(! all(c("intercept", "size") %in% tmp) ){
         stop("Growth model should at least depend on an intercept and the size variable.")
     }
+
+    tmp <- names(values$rec$params_m)
+    assertCharacter(tmp, any.missing = FALSE)
+    if(! all(c("intercept", "BATOTSP", "BATOTNonSP") %in% tmp) ){
+        stop("Recruitment model should at least depend on an intercept, BATOTSP and BATOTNonSP variable.")
+    }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "max_dbh"))){
         stop("fit_sgr class must have info of elements species and max_dbh")
     }
 
-    x
+    invisible(x)
 }
 
 #' Create a new fitted models from
@@ -85,12 +95,14 @@ validate_fit_sgr <- function(x){
 #'
 #' @export
 fit_sgr <- function(sv_params, sv_family,
-                        gr_params, gr_sigma,
-                        species, max_dbh){
+                    gr_params, gr_sigma,
+                    rec_params,
+                    species, max_dbh){
 
     res <- validate_fit_sgr(new_fit_sgr(
         sv_params = sv_params, sv_family = sv_family,
         gr_params= gr_params, gr_sigma = gr_sigma,
+        rec_params = rec_params,
         species = species, max_dbh = max_dbh
     ))
 
@@ -118,16 +130,17 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 
     f_fit <- here(path, "output", species, "fit_sgr_all.Rds")
     fit <- readRDS(assertFileExists(f_fit)) # 0.16 sec
-    assertNumber(replicat, lower = 1, upper = length(fit))
 
     max_dbh <- max(map_dbl(fit, ~ .x$maxDBH))
 
     if(mean){
         res_fit <- mean_oldfit(fit, species, max_dbh)
     } else {
+        assertNumber(replicat, lower = 1, upper = length(fit))
         res_fit <- fit[[replicat]]
         res_fit <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                            res_fit$gr$params_m, res_fit$gr$sigma,
+                           res_fit$rec$params_m,
                            species = species, max_dbh = max_dbh)
     }
 
@@ -182,7 +195,16 @@ mean_oldfit <- function(fit, species, max_dbh){
 
     gr_sigma <- mean(map_dbl(fit, ~ .x$gr$sigma))
 
-    res_fit <- fit_sgr(sv_params, sv_family, gr_params, gr_sigma,
+    rec_params <- map(fit, ~ data.frame(var = names(.x$rec$params_m),
+                                       value = .x$rec$params_m)) %>%
+        reduce(full_join, by = "var") %>%
+        # replace(is.na(.data), 0) %>%
+        pivot_longer(-.data$var) %>%
+        replace_na(list(value = 0)) %>%
+        group_by(.data$var) %>% summarize(mean = mean(.data$value)) %>%
+        pull(.data$mean, .data$var)
+
+    res_fit <- fit_sgr(sv_params, sv_family, gr_params, gr_sigma, rec_params,
                        species = species, max_dbh = max_dbh)
 
     return(res_fit)

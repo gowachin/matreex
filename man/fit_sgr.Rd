@@ -4,7 +4,15 @@
 \alias{fit_sgr}
 \title{Create a new fitted models from}
 \usage{
-fit_sgr(sv_params, sv_family, gr_params, gr_sigma, species, max_dbh)
+fit_sgr(
+  sv_params,
+  sv_family,
+  gr_params,
+  gr_sigma,
+  rec_params,
+  species,
+  max_dbh
+)
 }
 \arguments{
 \item{sv_params}{Named vector of survival parameters fitted for this species
@@ -19,6 +27,9 @@ climatic condition. Minimal parameters are intercept and size.}
 
 \item{gr_sigma}{Standard deviation of the residuals for the growth fitted
 model.}
+
+\item{rec_params}{Named vector of growth parameters fitted for this species and
+climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
 
 \item{species}{Name of the species to run simulation on. Single char.}
 

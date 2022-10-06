@@ -10,6 +10,8 @@
 #' @param climatic Vector of named climatic values used to fit the ipm on. dbl.
 #' @param clim_lab Label for climatic used. This values will be matched when
 #' simulating multiple species together.
+#' @param rec_params Named vector of growth parameters fitted for this species and
+#' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
 #' @param compress Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 #' Help to limit  size when saved on disc. FALSE by default. lgl.
 #' @param delay Number of year delay between the recruitment of an individual
@@ -18,9 +20,11 @@
 #'
 #' @export
 new_ipm <- function(IPM, BA, mesh, species, climatic, clim_lab,
+                    rec_params,
                     compress = FALSE, delay = 0){
 
     IPM <- list(IPM = IPM, BA = BA, mesh = mesh, climatic = climatic,
+                rec = list(params_m = rec_params),
                 info = c(species = species, clim_lab = clim_lab,
                          compress = compress, delay = delay))
     class(IPM) <- "ipm"
@@ -43,8 +47,8 @@ validate_ipm <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("IPM", "BA", "mesh", "climatic", "info"))){
-        stop("IPM class must be composed of elements IPM, BA, mesh, climatic and info")
+    if(any(names != c("IPM", "BA", "mesh", "climatic", "rec", "info"))){
+        stop("IPM class must be composed of elements IPM, BA, mesh, climatic, rec and info")
     }
 
     # check the IPM part ####
@@ -55,13 +59,19 @@ validate_ipm <- function(x){
     assertNumeric(values$mesh, lower = 0, any.missing = FALSE,
                   len = dim(values$IPM[[1]])[1])
     assertNumeric(values$climatic)
+    tmp <- names(values$rec$params_m)
+    assertCharacter(tmp, any.missing = FALSE)
+    if(! all(c("intercept", "BATOTSP", "BATOTNonSP") %in% tmp) ){
+        stop("Recruitment model should at least depend on an intercept, BATOTSP and BATOTNonSP variable.")
+    }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "clim_lab", "compress", "delay"))){
         stop(paste0("IPM class must have info of elements species,",
                     " climatic, compress and delay"))
     }
-    x
+
+    invisible(x)
 }
 
 #' Dev function to read old ipm
@@ -97,6 +107,7 @@ old_ipm2ipm <- function(species, climatic = 1, delay = 0, path = here(),
     res <- validate_ipm(new_ipm(
         IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
         species = species, climatic = drop(as.matrix(IPM$list_m)),
+        rec_params = IPM$rec$params_m,
         clim_lab = climatic, delay = 0, compress = TRUE
     ))
 

@@ -47,7 +47,7 @@ validate_forest <- function(x){
     }
     # TODO check forest harv rules
 
-    x
+    invisible(x)
 }
 
 #' Create a new forest for simulation

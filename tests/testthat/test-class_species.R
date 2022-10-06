@@ -10,11 +10,13 @@ test_that("new_species works", {
 
     expect_identical(new_species(IPM = IPM, init_pop = def_init,
                                  harvest_fun = def_harv,
-                                 recruit_fun = raw_IPM$RecFun),
+                                 # recruit_fun = raw_IPM$RecFun
+                                 ),
                      structure(list(
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
                          harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                         recruit_fun = raw_IPM$RecFun,
+                         recruit_fun = exp_recFun(params = IPM$rec$params_m,
+                                                  list_covs = IPM$climatic),
                          info = c(species = "Yggdrasil", clim_lab = "1")),
                          class = "species"))
 })
@@ -31,8 +33,9 @@ test_that("validate_species works", {
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
     x <- new_species(IPM, def_init, def_harv,
-                     recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                list_covs = raw_IPM$list_m))
+                     # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                # list_covs = raw_IPM$list_m)
+    )
 
 
     expect_identical(x, validate_species(x))
@@ -65,8 +68,9 @@ test_that("old_ipm2species works", {
         new_species(
             old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
             def_init, def_harv,
-            recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                           list_covs = raw_IPM$list_m))
+            # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                           # list_covs = raw_IPM$list_m)
+            )
     )
 
     expect_identical(
@@ -76,8 +80,8 @@ test_that("old_ipm2species works", {
                       delay = 2
                       ),
             def_init, def_harv,
-            recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                     list_covs = raw_IPM$list_m)
+            # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                     # list_covs = raw_IPM$list_m)
         )
     )
 
@@ -135,3 +139,4 @@ test_that("def_harv works", {
     )
 
 })
+

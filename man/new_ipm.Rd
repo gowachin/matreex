@@ -11,6 +11,7 @@ new_ipm(
   species,
   climatic,
   clim_lab,
+  rec_params,
   compress = FALSE,
   delay = 0
 )
@@ -31,6 +32,9 @@ the number of size class in the IPM. num.}
 
 \item{clim_lab}{Label for climatic used. This values will be matched when
 simulating multiple species together.}
+
+\item{rec_params}{Named vector of growth parameters fitted for this species and
+climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
 
 \item{compress}{Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 Help to limit  size when saved on disc. FALSE by default. lgl.}

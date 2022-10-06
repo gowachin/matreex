@@ -19,20 +19,17 @@
 #'   \item{dha}{harvest diameter}
 #'   \item{hmax}{maximum harvest rate for a size class}
 #' }
-#' @param recruit_fun Function to recruit new individual into the population.
-#' Argument must be \code{BATOTSP}. # TODO rename argument !
-#' Should return a single numeric value.
 #'
 #' @keywords internal
 #' @export
 new_species <- function(IPM, init_pop,
                         harvest_fun,
-                        harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                        recruit_fun){
+                        harv_lim = c(dth = 175, dha = 575, hmax = 1)){
     species <- list(
         IPM = IPM, init_pop = init_pop,
         harvest_fun = harvest_fun, harv_lim = harv_lim,
-        recruit_fun = recruit_fun,
+        recruit_fun = exp_recFun(params = IPM$rec$params_m,
+                                 list_covs = IPM$climatic),
         info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
     )
 
@@ -78,7 +75,7 @@ validate_species <- function(x){
         stop("species class must have info of elements species and clim_lab")
     }
 
-    x
+    invisible(x)
 }
 
 #' Create a new species for simulation
@@ -93,12 +90,10 @@ validate_species <- function(x){
 #'
 #' @export
 species <- function(IPM, init_pop, harvest_fun,
-                    harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                    recruit_fun){
+                    harv_lim = c(dth = 175, dha = 575, hmax = 1)){
 
     res <- validate_species(new_species(
-        IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun,
-        recruit_fun = recruit_fun
+        IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun
     ))
 
     return(res)
@@ -144,6 +139,7 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
     res_ipm <- new_ipm(
         IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
         species = species, climatic = drop(as.matrix(raw_IPM$list_m)),
+        rec_params = raw_IPM$rec$params_m,
         clim_lab = climatic, compress = TRUE, delay = 0
     )
 
@@ -153,8 +149,8 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                 list_covs = raw_IPM$list_m)
+        # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
+                                 # list_covs = raw_IPM$list_m)
     )
 
     return(res)
