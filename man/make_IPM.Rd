@@ -14,8 +14,8 @@ make_IPM(
   correction = c("constant", "none", "ceiling", "sizeExtremes"),
   level = 420,
   diag_tresh = 50,
-  midbin_tresh = 100,
-  mid_level = 100,
+  midbin_tresh = 25,
+  mid_level = 5,
   year_delta = 1,
   IsSurv = TRUE,
   verbose = FALSE

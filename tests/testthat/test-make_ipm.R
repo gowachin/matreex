@@ -72,8 +72,9 @@ fit <- list(
                            `logsize:sgdd` = 9.08e-05),
               sigma = 0.622),
     rec = list(params_m = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2)))
-
-
+int_log <- c(year_delta = 1, MaxError = 1,
+             GL_Nint = 0, GL_level = 420, GL_min = 0,
+             MB_Nint = 0, MB_level = 5, MB_max = 0)
 
 test_that("make_IPM works : fonctions communes", {
 
@@ -86,8 +87,8 @@ test_that("make_IPM works : fonctions communes", {
         validate_ipm(new_ipm(
                 IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
                 climatic = climate, clim_lab = "test",
-                rec = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
-                species = species, compress = FALSE
+                rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
+                species = species, compress = FALSE, int_log = int_log
             ))
     )
 
@@ -99,8 +100,8 @@ test_that("make_IPM works : fonctions communes", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
             climatic = climate, clim_lab = "test",
-            rec = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
-            species = species, compress = FALSE
+            rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
+            species = species, compress = FALSE, int_log = int_log
         ))
     )
 })
@@ -114,37 +115,45 @@ test_that("make_IPM works : mid_bin", {
                     9L, 2L, 3L, 4L, 5L, 6L, 7L, 8L, 9L, 3L, 4L, 5L, 6L, 7L, 8L, 9L,
                     4L, 5L, 6L, 7L, 8L, 9L, 5L, 6L, 7L, 8L, 9L, 6L, 7L, 8L, 9L, 7L,
                     8L, 9L, 8L, 9L, 9L),
-              p = c(0L, 10L, 19L, 27L, 34L, 40L, 45L, 49L, 52L, 54L, 55L),
+              p = c(0L, 10L, 19L, 27L, 34L, 40L, 45L,
+                    49L, 52L, 54L, 55L),
               Dim = c(10L, 10L), Dimnames = list(NULL, NULL),
-              x = c(1.01333114220533, 1.61045146216677e-08, 1.61320196334519e-13,
-                    2.64333452316302e-16, 2.65234143094034e-18, 6.980403200971e-20,
-                    3.37267989949e-21, 2.48371086225448e-22, 2.49690542628745e-23,
-                    3.19176831738741e-24, 1.00210128362939, 1.61160301667125e-05,
-                    1.67627200513434e-09, 8.21181222733903e-12, 1.69306363131613e-13,
-                    7.62453850172581e-15, 5.65627501055709e-16, 5.95319771207903e-17,
-                    8.12869240486978e-18, 1.00022515448486, 7.48758019845865e-05,
-                    1.44430673305361e-08, 9.45222829274529e-11, 2.35811721904441e-12,
-                    1.22444702546171e-13, 1.01781440097791e-14, 1.17781037605766e-15,
-                    1.00010722924696, 9.03813351108587e-05, 1.88698207220419e-08,
-                    1.28166158976529e-10, 3.27663167124276e-12, 1.7327618116984e-13,
-                    1.46154286405327e-14, 1.00042131597956, 5.7567712496093e-05,
-                    9.95581924782902e-09, 6.19016825678057e-11, 1.49308009368092e-12,
-                    7.55985272647216e-14, 1.00141196795186, 2.41785907927703e-05,
-                    2.94691265419789e-09, 1.55500331121483e-11, 3.36668075217783e-13,
-                    1.00393820357338, 7.31035708195537e-06, 5.63018923561546e-10,
-                    2.39594441241346e-12, 1.00914606999184, 1.65299717183477e-06,
-                    7.43244156964355e-11, 1.01640114121826, 2.84286807834341e-07,
-                    1.01804165011446), uplo = "L", diag = "N")
+              x = c(0.0177923861010391, 2.15897414025614e-09, 7.01713402329326e-14,
+                    1.53910645070346e-16, 1.76631330180612e-18, 5.02602662431653e-20,
+                    2.55656515818775e-21, 1.95296951797064e-22, 2.01815614912049e-23,
+                    2.6358842010398e-24, 0.385658620814465, 3.59489520443886e-06,
+                    8.57403445923304e-10, 5.24752349068835e-12, 1.20278467647037e-13,
+                    5.76784829653512e-15, 4.46231924651537e-16, 4.84064118259471e-17,
+                    6.7626138992482e-18, 0.639261189470722, 1.90190906415751e-05,
+                    7.70412906772501e-09, 6.18849303706583e-11, 1.70386650365037e-12,
+                    9.38382294686819e-14, 8.1146437521555e-15, 9.66207448149019e-16,
+                    0.67573893109161, 2.33395471607757e-05, 1.01194487834026e-08,
+                    8.41726166950068e-11, 2.37268045758997e-12, 1.33015148795711e-13,
+                    1.16680504470854e-14, 0.590105265258337, 1.42927941101703e-05,
+                    5.27144561392864e-09, 4.03546846602714e-11, 1.07560806686453e-12,
+                    5.78038011370428e-14, 0.444479914720633, 5.57730476889259e-06,
+                    1.52369885296707e-09, 9.99897245411065e-12, 2.40218348645655e-13,
+                    0.287922687051759, 1.52969813125378e-06, 2.8212775910506e-10,
+                    1.51303497763449e-12, 0.158131275591236, 3.0812990531071e-07,
+                    3.58919090657476e-11, 0.0724572291183668, 4.65251304814939e-08,
+                    0.0272823103923344), uplo = "L", diag = "N")
+    int_log["MaxError"] <- 0.98220761
+    int_log["MB_max"] <- 0.67573893
+    int_log["MB_Nint"] <- 10
 
-    expect_equal(
+    res<-evaluate_promise({
         make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
                  correction = "none", level = 420, diag_tresh = -1,
-                 midbin_tresh = 12),
+                 midbin_tresh = 12)
+    })
+
+    expect_equal(
+        res$result,
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
             climatic = climate, clim_lab = "test",
-            rec = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
-            species = species, compress = FALSE
+            rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
+            species = species, compress = FALSE, int_log = int_log
         ))
     )
 
@@ -158,6 +167,7 @@ test_that("make_IPM works : mid_bin", {
     expect_equal(res$messages[2], "GL integration won't occur because of negative treshold\n")
     expect_equal(res$messages[3], "midbin integration occur on 10 cells\n")
     expect_equal(res$messages[4], "Loop done.\n")
+    expect_equal(res$warnings[1], "At least one mid_bin integration has values above 1e-2. This is linked with insufficient Gauss-Legendre integration treshold. value : -1 mm.")
 
 })
 
@@ -191,6 +201,11 @@ test_that("make_IPM works : gauss-legendre", {
                     4.80576731717906e-12, 0.992316908839443, 0.00320329048782211,
                     4.28583052972224e-10, 0.993374287906479, 0.00133498605576727,
                     0.998860122517894), uplo = "L", diag = "N")
+    int_log["MaxError"] <- 4.019428970623240005011211906e-03
+    int_log["GL_min"] <- 8.7694376e-23
+    int_log["GL_Nint"] <- 10
+    int_log["MB_max"] <- 0
+    int_log["MB_Nint"] <- 0
 
     expect_equal(
         make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
@@ -199,8 +214,8 @@ test_that("make_IPM works : gauss-legendre", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
             climatic = climate, clim_lab = "test",
-            rec = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
-            species = species, compress = FALSE
+            rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
+            species = species, compress = FALSE, int_log = int_log
         ))
     )
 
@@ -222,6 +237,9 @@ test_that("make_IPM works : gauss-legendre", {
 test_that("make_IPM works : corrections", {
 
     ex <- Matrix(matrix(0, ncol = 10, nrow = 10), sparse = TRUE)
+    int_log["MaxError"] <- 1
+    int_log["GL_min"] <- 0
+    int_log["GL_Nint"] <- 0
 
     # expect_equal(
     #     make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
@@ -241,8 +259,8 @@ test_that("make_IPM works : corrections", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
             climatic = climate, clim_lab = "test",
-            rec = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
-            species = species, compress = FALSE
+            rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
+            species = species, compress = FALSE, int_log = int_log
         ))
     )
 

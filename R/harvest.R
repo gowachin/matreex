@@ -1,4 +1,4 @@
-
+# UNEVEN ####
 #' BAstand
 #'
 #' Compute BA standing for a species
@@ -142,3 +142,4 @@ Uneven_harv <- function(x,
     )
     return(x * Pcut)
 }
+# EVEN ####

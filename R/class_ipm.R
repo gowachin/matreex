@@ -17,16 +17,24 @@
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 #' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
+#' @param int_log Internal vector used to store logs about integratio process
+#' that register year delta, maximum integration error on the first half of
+#' the mesh, minimal gauss-legendre value and maximal midbin error.
 #'
 #' @export
 new_ipm <- function(IPM, BA, mesh, species, climatic, clim_lab,
-                    rec_params,
-                    compress = FALSE, delay = 0){
+                    rec_params, compress = FALSE, delay = 0, int_log){
 
+    if(missing(int_log)){
+        int_log <- c(year_delta = 0, MaxError = 0,
+                                GL_Nint = 0, GL_level = 0, GL_min = 0,
+                                MB_Nint = 0, MB_level = 0, MB_max = 0)
+    }
     IPM <- list(IPM = IPM, BA = BA, mesh = mesh, climatic = climatic,
                 rec = list(params_m = rec_params),
                 info = c(species = species, clim_lab = clim_lab,
-                         compress = compress, delay = delay))
+                         compress = compress, delay = delay),
+                int_log = int_log)
     class(IPM) <- "ipm"
 
     return(IPM)
@@ -47,8 +55,8 @@ validate_ipm <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("IPM", "BA", "mesh", "climatic", "rec", "info"))){
-        stop("IPM class must be composed of elements IPM, BA, mesh, climatic, rec and info")
+    if(any(names != c("IPM", "BA", "mesh", "climatic", "rec", "info", "int_log"))){
+        stop("IPM class must be composed of elements IPM, BA, mesh, climatic, rec, info and int_log")
     }
 
     # check the IPM part ####

@@ -20,7 +20,11 @@ test_that("new_ipm works", {
                          IPM = IPM, BA = BA, mesh = mesh, climatic = climatic,
                          rec = list(params_m = rec),
                          info = c(species = "Yggdrasil", clim_lab = "paradis",
-                                  compress = "TRUE", delay = "0")), class = "ipm"))
+                                  compress = "TRUE", delay = "0"),
+                         int_log = c(year_delta = 0, MaxError = 0,
+                                   GL_Nint = 0, GL_level = 0, GL_min = 0,
+                                   MB_Nint = 0, MB_level = 0, MB_max = 0)),
+                         class = "ipm"))
 })
 
 
@@ -45,10 +49,10 @@ test_that("validate_ipm works", {
 
     expect_identical(x, validate_ipm(x))
     tmp <- x
-    names(tmp) <- c("IPM", "BA", "meshpts", "climatic", "info")
+    names(tmp) <- c("IPM", "BA", "meshpts", "climatic", "info", "int_log")
     expect_error(
         validate_ipm(tmp),
-        "IPM class must be composed of elements IPM, BA, mesh, climatic, rec and info"
+        "IPM class must be composed of elements IPM, BA, mesh, climatic, rec, info and int_log"
     )
 
     tmp <- x

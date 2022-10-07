@@ -130,6 +130,9 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 
     f_fit <- here(path, "output", species, "fit_sgr_all.Rds")
     fit <- readRDS(assertFileExists(f_fit)) # 0.16 sec
+    if(grepl(" ", species)){
+        species <- sub(" ", "_", species)
+    }
 
     max_dbh <- max(map_dbl(fit, ~ .x$maxDBH))
 

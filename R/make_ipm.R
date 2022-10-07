@@ -62,8 +62,8 @@ make_IPM <- function(species,
                      correction = c("constant", "none", "ceiling", "sizeExtremes"),
                      level = 420,
                      diag_tresh = 50,
-                     midbin_tresh = 100,
-                     mid_level = 100,
+                     midbin_tresh = 25,
+                     mid_level = 5,
                      year_delta = 1, # NOTE reu 3/10 pour le cas ou n est superieur a 1
                      IsSurv = TRUE,
                      verbose = FALSE) {
@@ -108,8 +108,9 @@ make_IPM <- function(species,
     inlevel <- floor(level / 3)
     U <- mesh["U"]
     L <- mesh["L"]
-    m <- mesh["m"]
+    m <- unname(mesh["m"])
     h <- (U - L) / m
+    int_log_err <- 1:(m/2)
 
     # build weight for GL integration on the two dim
     out1 <- gaussQuadInt(-h / 2, h / 2, 3) # For x integration
@@ -171,6 +172,14 @@ make_IPM <- function(species,
         cli_progress_bar("Integration", total = length(BA))
     }
 
+    ## loggin ####
+    int_log <- c(year_delta = year_delta, MaxError = 0,
+                 GL_Nint = N_int, GL_level = level, GL_min = 0,
+                 MB_Nint = midbin_tresh, MB_level = mid_level, MB_max = 0)
+    MaxError <- numeric(length(BA))
+    GL_min <- numeric(length(BA))
+    MB_max <- numeric(length(BA))
+
     # Loop ####
     for (ba in seq_along(BA)) {
         if (verbose) {
@@ -204,6 +213,8 @@ make_IPM <- function(species,
 
             P_LG <- WMat %*% P_LG
             P <- sub_diag(P, P_LG, dist = 0)
+
+            GL_min[ba] <- min(P_LG) # loggin
         }
         ## Midbin Int ####
         ## ADD mid point integration for the rest of the triangular matrix
@@ -216,7 +227,10 @@ make_IPM <- function(species,
                 Level = mid_level, year_delta = year_delta
             )
             P <- sub_diag(P, P_midint, dist = N_int)
+
+            MB_max[ba] <- max(P_midint) # loggin
         }
+        MaxError[ba] <- max(1 - colSums(P)[int_log_err]) # loggin
         # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Correction ####
         if (correction == "none") { # Based on IPMpack
@@ -247,6 +261,7 @@ make_IPM <- function(species,
         IPM[[ba]] <- P
     }
 
+
     if (verbose) {
         message("Loop done.")
         tmp <- Sys.time() - start
@@ -256,13 +271,25 @@ make_IPM <- function(species,
         )
     }
     # Format ####
+
+    int_log["MaxError"] <- max(MaxError)
+    int_log["MB_max"] <- max(MB_max)
+    int_log["GL_min"] <- min(GL_min)
+
+    if(int_log["MB_max"] > 1e-2){
+        warning(paste(
+            "At least one mid_bin integration has values above 1e-2.",
+            "This is linked with insufficient Gauss-Legendre",
+            "integration treshold. value :", diag_tresh, "mm."))
+    }
+
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
             IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
-            #
-            climatic = climate, clim_lab = clim_lab, rec = fit$rec$params_m,
-            species = species, compress = FALSE
+            # TODO : add int_log
+            climatic = climate, clim_lab = clim_lab, rec_params = fit$rec$params_m,
+            species = species, compress = FALSE, int_log = int_log
         )
     )
     return(res)
@@ -285,7 +312,7 @@ make_IPM <- function(species,
 #' @importFrom stats dnorm
 #'
 #' @noRd
-fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=100,
+fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=5,
                         year_delta = 1){
 
     mu_mesh <- gr(mesh)
