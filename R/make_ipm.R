@@ -1,7 +1,5 @@
 #' Build IPM for a given species and climate
 #'
-#' `r lifecycle::badge("experimental")`
-#'
 #' Integrate IPM for growth and survival function at a specific climate for a
 #' species on a basal area variation.
 #'

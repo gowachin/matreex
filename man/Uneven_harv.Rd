@@ -4,7 +4,7 @@
 \alias{Uneven_harv}
 \title{Perform the harvest Uneven}
 \usage{
-Uneven_harv(x, species, targetBAcut, ct)
+Uneven_harv(x, species, ...)
 }
 \arguments{
 \item{x}{population state distribution at time t}
@@ -12,9 +12,11 @@ Uneven_harv(x, species, targetBAcut, ct)
 \item{species}{The species class object of interest to get mesh and harv_lim
 values from.}
 
+\item{...}{Variables used in this case of Uneven harvest
+\describe{
 \item{targetBAcut}{Basal Area to cut.}
-
-\item{ct}{define this # TODO}
+\item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
+}}
 }
 \description{
 Perform the harvest Uneven

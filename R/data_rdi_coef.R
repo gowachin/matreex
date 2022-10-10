@@ -2,6 +2,6 @@
 #'
 #' @name rdi_coef
 #'
-#' @source Patrick
+#' @source https://10.12688/openreseurope.13671.2
 #'
 "rdi_coef"

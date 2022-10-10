@@ -84,7 +84,10 @@ sim_deter_forest  <- function(Forest,
                              equil_dist = 250,
                              equil_diff = 1,
                              equil_time = 1e4,
+                             harvest = c("default", "Uneven", "Even"),
                              targetBA = 20,
+                             targetRDI = 0.9,
+                             targetKg = 0.9,
                              correction = "none",
                              SurfEch = 0.03,
                              verbose = FALSE) {
@@ -98,7 +101,10 @@ sim_deter_forest.species  <- function(Forest,
                               equil_dist = 250,
                               equil_diff = 1,
                               equil_time = 1e4,
+                              harvest = c("default", "Uneven", "Even"),
                               targetBA = 20,
+                              targetRDI = 0.9,
+                              targetKg = 0.9,
                               correction = "none",
                               SurfEch = 0.03,
                               verbose = FALSE) {
@@ -110,7 +116,10 @@ sim_deter_forest.species  <- function(Forest,
         equil_diff = equil_diff,
         equil_time = equil_time,
 
+        harvest = harvest,
         targetBA = targetBA,
+        targetRDI = targetRDI,
+        targetKg = targetKg,
         correction = correction,
         SurfEch = SurfEch,
         verbose = verbose
@@ -124,11 +133,19 @@ sim_deter_forest.forest  <- function(Forest,
                                      equil_dist = 250,
                                      equil_diff = 1,
                                      equil_time = 1e4,
+                                     harvest = c("default", "Uneven", "Even"),
                                      targetBA = 20,
+                                     targetRDI = 0.9,
+                                     targetKg = 0.9,
                                      correction = "none",
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
 
+    # TEMP dev
+    FinalHarvT <- 200
+    targetRDI <- map_dbl(Forest$species, ~ targetRDI)
+    targetKg <- map_dbl(Forest$species, ~ targetKg)
+    # TEMP dev
 
     # Idiot Proof ####
     validate_forest(Forest)
@@ -140,7 +157,10 @@ sim_deter_forest.forest  <- function(Forest,
         stop("equil_time must be higher or equal to tlim and equil_dist")
     }
 
+    harvest <- match.arg(harvest)
     assertNumber(targetBA, lower = 0)
+    assertNumber(targetRDI, lower = 0, upper = 1)
+    assertNumber(targetKg, lower = 0, upper = 1)
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
@@ -208,7 +228,7 @@ sim_deter_forest.forest  <- function(Forest,
 
     if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
         stop(paste(
-            "Maximum Basal Area reached for this simulation.",
+            "Border Basal Area reached for this simulation.",
             "This maximum is reached before iteration, check init_pop functions"
         ))
     }
@@ -250,7 +270,8 @@ sim_deter_forest.forest  <- function(Forest,
         X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
 
         ### Harvest ####
-        if(t %% Forest$harv_rule["freq"] == 0){
+        #### Uneven ####
+        if(t %% Forest$harv_rule["freq"] == 0 && harvest == "Uneven"){
             BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
             BAstand <- sum(BAstandsp)
             BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
@@ -260,12 +281,40 @@ sim_deter_forest.forest  <- function(Forest,
 
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),
-                function(f, .y, X, sp, bacut, ct){
-                    exec(f, X[[.y]], sp[[.y]], bacut[[.y]], ct[[.y]])
-                }, X = X, sp = Forest$species, bacut = targetBAcut, ct = ct
+                function(f, .y, X, sp, bacut, ct, ...){
+                    exec(f, X[[.y]], sp[[.y]],
+                         targetBAcut = bacut[[.y]],
+                         ct = ct[[.y]], ...)
+                }, X = X, sp = Forest$species, bacut = targetBAcut,
+                ct = ct, t = t
             )
 
             X <- map2(X, Harv, `-`)
+        #### Even ####
+        } else if(harvest == "Even"){
+            if(t %% FinalHarvT == 0){
+                Harv <- X
+                X <- map2(map(Forest$species, `[[`, "init_pop"),
+                          meshs,
+                          exec, SurfEch = SurfEch)
+            } else if(t %% Forest$harv_rule["freq"] == 0){
+                Harv <- imap(
+                    map(Forest$species, `[[`, "harvest_fun"),
+                    function(f, .y, X, sp, tRDI, tKg, ct, ...){
+                        exec(f, X[[.y]], sp[[.y]],
+                             targetRDI = tRDI[[.y]],
+                             targetKg = tKg[[.y]],
+                             ct = ct[[.y]],
+                             ...)
+                    }, X = X, sp = Forest$species, tRDI = targetRDI,
+                    tKg = targetKg, ct = ct, t = t, SurfEch = SurfEch
+                )
+                X <- map2(X, Harv, `-`)
+
+            } else {
+                Harv <- map(meshs, ~ rep(0, length(.x)))
+            }
+        #### Nothing ####
         } else {
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
@@ -286,11 +335,12 @@ sim_deter_forest.forest  <- function(Forest,
         sim_BA[t] <- sum(sim_BAsp[t,])
         sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
 
-        # Update X
+        # Update X and extract values per ha
         if (t <= tlim) {
             tmp <- imap(X, function(x, .y, ba, harv){
-                c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]))
-            }, ba = sim_BAsp[t,,drop = FALSE], harv = Harv )
+                c(x / SurfEch, ba[[.y]], sum(x) /SurfEch,
+                  harv[[.y]] / SurfEch, sum(harv[[.y]] / SurfEch))
+            }, ba = sim_BAsp[t,,drop = FALSE], harv = Harv)
 
             tmp <- do.call("c", tmp)
             sim_X[, t] <- tmp

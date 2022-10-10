@@ -15,6 +15,7 @@ test_that("new_species works", {
                      structure(list(
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
                          harv_lim = c(dth = 175, dha = 575, hmax = 1),
+                         rdi_coef = NULL,
                          recruit_fun = exp_recFun(params = IPM$rec$params_m,
                                                   list_covs = IPM$climatic),
                          info = c(species = "Yggdrasil", clim_lab = "1")),
@@ -40,10 +41,11 @@ test_that("validate_species works", {
 
     expect_identical(x, validate_species(x))
     tmp <- x
-    names(tmp) <- c("IPM", "init_pop", "harvest_func", "recruit_fun", "info")
+    names(tmp) <- c("IPM", "init_pop", "harvest_func", "harv_lim", "rdi_coef",
+                    "recruit_fun", "info")
     expect_error(
         validate_species(tmp),
-        "species class must be composed of elements IPM, init_pop, harvest_fun, recruit_fun and info"
+        "species class must be composed of elements IPM, init_pop, harvest_fun, harv_lim, rdi_coef, recruit_fun and info"
     )
     tmp <- x
     names(tmp$info) <- c("sp", "clim_lab")
@@ -67,9 +69,7 @@ test_that("old_ipm2species works", {
         old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1),
         new_species(
             old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
-            def_init, def_harv,
-            # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                           # list_covs = raw_IPM$list_m)
+            def_init, def_harv, rdi_coef = c(intercept = 13.99, slope = -2.18)
             )
     )
 
@@ -79,9 +79,7 @@ test_that("old_ipm2species works", {
                 delay(old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1),
                       delay = 2
                       ),
-            def_init, def_harv,
-            # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                     # list_covs = raw_IPM$list_m)
+            def_init, def_harv, rdi_coef = c(intercept = 13.99, slope = -2.18)
         )
     )
 

@@ -15,7 +15,8 @@
 #' @export
 new_forest <- function(species = list(),
                        harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                                      freq = 1, alpha = 1)){
+                                      freq = 1, alpha = 1)
+                       ){
 
     sp <- names(species) <- map_chr(species, sp_name)
     forest <- list(

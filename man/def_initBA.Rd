@@ -4,11 +4,13 @@
 \alias{def_initBA}
 \title{Init population at BA}
 \usage{
-def_initBA(BA = 1)
+def_initBA(BA = 1, fun = c("def_init", "def_init_even"))
 }
 \arguments{
 \item{BA}{Basal area targeted. This single value must be above 0 but can be
 very close (minimal accepted value is 1e-10)}
+
+\item{fun}{Function to modify, single chr in choices.}
 }
 \value{
 Function similar to def_init

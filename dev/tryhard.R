@@ -1,6 +1,7 @@
 document()
 load_all()
 library(profvis)
+library(ggplot2)
 
 spe <- "Yggdrasil"
 Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
@@ -8,27 +9,49 @@ Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
 
 
 load_all()
-Yggdrasil$harvest_fun <- Uneven_harv
-body(Yggdrasil$init_pop)[[length(body(Yggdrasil$init_pop)) - 1]] <- expr(res <- res * 20)
-body(Yggdrasil$recruit_fun)[[length(body(Yggdrasil$recruit_fun)) - 2]] <- expr(distrib <- c(1, numeric(mesh - 1)))
+# Yggdrasil$harvest_fun <- Uneven_harv
+Yggdrasil$harvest_fun <- Even_harv
+# Yggdrasil$init_pop <- def_initBA(BA = 20)
+Yggdrasil$init_pop <- def_init_even
+# body(Yggdrasil$recruit_fun)[[length(body(Yggdrasil$recruit_fun)) - 2]] <- expr(distrib <- c(1, numeric(mesh - 1)))
 Forest <- forest(
     list(
         delay(Yggdrasil, delay = 0)
     ),
     harv_rules = c(Pmax = 0.7, dBAmin = 3,
-                   freq = 30, alpha = 1))
+                   freq = 10, alpha = 1))
 # Forest$species$Yggdrasil$recruit_fun
 targetBA <- 30
 
 # profvis({
 set.seed(42)
-res <- sim_deter_forest(Forest, tlim = 1000, equil_time = 1000,
+res <- sim_deter_forest(Forest, tlim = 250, equil_time = 250,
                  correction = "cut", targetBA = targetBA,
-                 verbose = TRUE)
+                 harvest = "Even", verbose = TRUE,
+                 targetRDI = 0.6, targetKg = 0.9)
 # })
 
+memor <-  tree_format(res)
+memor %>%
+    filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
+    # dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4, linetype = "dotted") +
+    geom_point(size = .4) +
+    NULL
 
-n <- 15
+memor %>%
+    filter(var == "m", ) %>%
+    dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = mesh, fill = value)) +
+    geom_tile() +
+    scale_fill_viridis_c(na.value="transparent") +
+    theme_dark() +
+    NULL
+
+
+n <- 2
 memor <- vector("list", n+1)
 memor[[1]] <- tree_format(res)
 

@@ -67,12 +67,10 @@ eviction of the model. TRUE by default.}
 \item{verbose}{Print message. FALSE by default}
 }
 \description{
-\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}}
-}
-\details{
 Integrate IPM for growth and survival function at a specific climate for a
 species on a basal area variation.
-
+}
+\details{
 The check between climate variables and fitted variable will assert if all
 variables in the model are provided expect variables derived from "size"
 (size, size2, logsize), "intercept" and "BATOTcomp". An error will be

@@ -4,16 +4,17 @@
 \alias{def_harv}
 \title{Default population harvest}
 \usage{
-def_harv(x, species, targetBAcut, ct)
+def_harv(x, species, ...)
 }
 \arguments{
 \item{x}{population state at time t}
 
 \item{species}{ignored}
 
-\item{targetBAcut}{ignored}
-
-\item{ct}{define this # TODO}
+\item{...}{Variables used in this case of Uneven harvest
+\describe{
+\item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
+}}
 }
 \value{
 Distribution of population to harvest.

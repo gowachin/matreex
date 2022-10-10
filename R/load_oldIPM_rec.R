@@ -199,7 +199,7 @@ exp_recFun <- function(params, list_covs){
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
 #'
-#' @importFrom purrr map
+#' @importFrom purrr map cross map_chr simplify_all
 #' @importFrom rlang expr call2 env_unbind
 #'
 #' @details
@@ -223,7 +223,20 @@ exp_sizeFun <- function(params, list_covs){
 
     df2 <- format_fit(params, list_covs)
 
-    invar <- names(params)[!names(params) %in% names(list_covs)]
+    # use this when we have sgdd:wai for example in params and not in list_covs
+    # NOTE does not cover sgdd2:wai yet...but not needed from all data(fit_species)
+    nms <- names(list_covs)
+    combination <- cross(list(nms, nms)) %>%
+        simplify_all() %>%
+        map_chr(~ if(.x[1] == .x[2]){
+            paste0(.x[1],"2")
+        } else {
+            paste0(.x, collapse = ":")
+        })
+
+    exp_list_covs <- unique(c(nms, combination))
+
+    invar <- names(params)[!names(params) %in% exp_list_covs]
     invar <- invar[! grepl("ntercept", invar)]
     inter <- sum(with(df2, K[! var1 %in% invar | var2 %in% invar]))
 
@@ -243,7 +256,7 @@ exp_sizeFun <- function(params, list_covs){
                                            "add_invar", "exp_invar",
                                            "inter", "invar", "df2"),
                inherit = FALSE)
-    # empty
+    empty
     return(empty)
 }
 

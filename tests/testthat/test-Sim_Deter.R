@@ -11,7 +11,7 @@ test_that("sim_deter_forest simple", {
                             correction = "cut")
 
     expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
+    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt261"))
 })
 
 
@@ -28,7 +28,7 @@ test_that("sim_deter_species simple", {
                             correction = "cut")
 
     expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
+    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt261"))
 })
 
 
@@ -50,7 +50,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
     expect_equal(res$messages[3], "time 500 | BA diff : 0.00\n")
     expect_equal(res$messages[4], "Simulation ended after time 500\n")
-    expect_equal(res$messages[5], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
+    expect_equal(res$messages[5], "BA stabilized at 2.51 with diff of 0.00 at time 500\n")
 
     expect_equal(dim(new), c(65, 501))
     expect_equal(colnames(new), c(paste0("t", 1:500), "eqt500"))
@@ -74,7 +74,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[1], "apply a IPM cut correction\n")
     expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
     expect_equal(res$messages[3], "Simulation ended after time 4\n")
-    expect_equal(res$messages[4], "BA stabilized at 1.07 with diff of 0.08 at time 3\n")
+    expect_equal(res$messages[4], "BA stabilized at 1.08 with diff of 0.08 at time 3\n")
     expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
     expect_equal(dim(new), c(73, 11))
@@ -106,7 +106,7 @@ test_that("sim_deter_forest error", {
     }
 
     exp <- paste(
-        "Maximum Basal Area reached for this simulation.",
+        "Border Basal Area reached for this simulation.",
         "This maximum is reached before iteration, check init_pop functions"
     )
     expect_error(

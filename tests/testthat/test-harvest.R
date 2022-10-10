@@ -29,9 +29,9 @@ test_that("uneven_harv works", {
     species <- list(IPM = list(mesh = ct),
                     harv_lim = c(dth = 15, dha = 35, hmax = 1))
 
-    expect_equal(Uneven_harv(x, species, targetBAcut = 20, ct),
+    expect_equal(Uneven_harv(x, species, targetBAcut = 20, ct = ct),
                  c(0, 0.00000607, 0.26666331, 0.3))
-    expect_equal(Uneven_harv(x, species, targetBAcut = 0,  ct),
+    expect_equal(Uneven_harv(x, species, targetBAcut = 0,  ct = ct),
                  c(0, 0, 0, 0))
 })
 

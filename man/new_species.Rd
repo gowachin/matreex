@@ -8,7 +8,8 @@ new_species(
   IPM,
   init_pop,
   harvest_fun,
-  harv_lim = c(dth = 175, dha = 575, hmax = 1)
+  harv_lim = c(dth = 175, dha = 575, hmax = 1),
+  rdi_coef = NULL
 )
 }
 \arguments{
@@ -32,6 +33,9 @@ distribution of the population to harvest}
 \item{dha}{harvest diameter}
 \item{hmax}{maximum harvest rate for a size class}
 }}
+
+\item{rdi_coef}{Coefficient for RDI curve used in even harvest.
+The model require the intercept and slope.}
 }
 \description{
 Only used in the treeforce package
