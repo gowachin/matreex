@@ -22,8 +22,8 @@ sim_deter_forest(
 \arguments{
 \item{Forest}{Group of species that each contains IPM for deterministic
 transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
-A species is also defined with recruitment and harvest functions.
-test # TODO link to class species}
+A species is also defined with recruitment and harvest functions, please
+see \code{\link[treeforce]{species}} for more information.}
 
 \item{tlim}{Number of simulation iterations (years) in the future. single int.}
 
@@ -49,13 +49,20 @@ IPM so that no individual can grow outside of the defines classes.}
 \item{verbose}{Print message. FALSE by default}
 }
 \value{
-Matrix of the population states for time in \eqn{[1, t_{lim}]},
-plus a last column that is the state at equilibrium.
-In row are the states of the population, plus two last rows :
-N, the total number of individual in the population at
-time \eqn{t} and BA, the basal area of the population.
-\code{colnames} are set as tn with n the time of simulation.
-\code{rownames} are labelled mi with i the different state of the population.
+Matrix of the population states for time in \eqn{[1, t_{lim}]} in a specific
+format plus a last column that is the state at equilibrium.
+In row are :
+\describe{
+\item{m}{Distribution of density by mesh along time per ha.}
+\item{N}{Sum of density per ha. (colSums for m)}
+\item{BA}{Basal area of the population per ha}
+\item{h}{Distribution of harvest density by mesh along time per ha.}
+\item{H}{Sum of density per ha. (colSums for h)}
+}
+\code{colnames} are set as tn with n the time of simulation. The last column
+is the equilibrium state if it's simulated after tlim (equil_time > tlim)
+\code{rownames} are labelled mi or hi with i the different state of the
+population.
 }
 \description{
 Simulate a population size state during \eqn{[1, t_{lim}]} times.

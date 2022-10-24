@@ -21,3 +21,10 @@ values from.}
 \description{
 Perform the harvest Uneven
 }
+\seealso{
+Other functions that defines harvest rules for a species.: 
+\code{\link{Even_harv}()},
+\code{\link{def_harv}()},
+\code{\link{species}()}
+}
+\concept{functions that defines harvest rules for a species.}

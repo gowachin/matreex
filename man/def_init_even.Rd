@@ -17,3 +17,11 @@ m states.}
 The population will initiate with only individual in the 5 first cells of the
 mesh.
 }
+\seealso{
+Other functions for initiating species population during simulation: 
+\code{\link{def_initBA}()},
+\code{\link{def_init_k}()},
+\code{\link{def_init}()},
+\code{\link{species}()}
+}
+\concept{functions for initiating species population during simulation}

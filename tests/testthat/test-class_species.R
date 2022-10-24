@@ -4,7 +4,7 @@ test_that("new_species works", {
                   "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
-    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- readRDS(file)
     raw_IPM <- raw_IPM[[1]]
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
@@ -29,7 +29,7 @@ test_that("validate_species works", {
                  "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
-    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- readRDS(file)
     raw_IPM <- raw_IPM[[1]]
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
@@ -62,7 +62,7 @@ test_that("old_ipm2species works", {
                  "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
-    raw_IPM <- readRDS(file) # NOTE 10" to load...
+    raw_IPM <- readRDS(file)
     raw_IPM <- raw_IPM[[1]]
 
     expect_identical(
@@ -108,7 +108,6 @@ test_that("def_init works", {
 
     foo <- def_init_k(c(12, 2, 0, 40, 0, 5))
     expect_identical(foo(1:6),c(12, 2, 0, 40, 0, 5))
-    # FIXME can't test this !
     expect_error(
         foo(1:5),
         paste0("A species initiate with a define distribution with ",

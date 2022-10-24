@@ -17,9 +17,17 @@ species.}
 \describe{
 \item{targetKg}{is the target Kg}
 \item{targetRDI}{is the target RDI}
-\item{}
+\item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
+\item{SurfEch}{Value of plot size surface in ha}
 }}
 }
 \description{
 Perform the harvest Even
 }
+\seealso{
+Other functions that defines harvest rules for a species.: 
+\code{\link{Uneven_harv}()},
+\code{\link{def_harv}()},
+\code{\link{species}()}
+}
+\concept{functions that defines harvest rules for a species.}

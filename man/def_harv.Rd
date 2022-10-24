@@ -24,3 +24,15 @@ Values are between 0 (null harvest) and Xi.
 Constant rate harvest of 0.06 percent per year
 (check if harvest frequence is 1 in forest object).
 }
+\details{
+This function is the default function for \code{harvest_fun} function of
+a species and always takes arguments \code{x}, \code{species} plus specific
+argument from different harvest models..
+}
+\seealso{
+Other functions that defines harvest rules for a species.: 
+\code{\link{Even_harv}()},
+\code{\link{Uneven_harv}()},
+\code{\link{species}()}
+}
+\concept{functions that defines harvest rules for a species.}

@@ -17,3 +17,15 @@ m states.}
 The population will initiate with a random distribution to match a basal area
 of 1.
 }
+\details{
+This function is the default function for \code{init_pop} function of a species
+and always takes arguments \code{mesh} and \code{SurfEch}.
+}
+\seealso{
+Other functions for initiating species population during simulation: 
+\code{\link{def_initBA}()},
+\code{\link{def_init_even}()},
+\code{\link{def_init_k}()},
+\code{\link{species}()}
+}
+\concept{functions for initiating species population during simulation}

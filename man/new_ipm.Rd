@@ -42,7 +42,7 @@ Help to limit  size when saved on disc. FALSE by default. lgl.}
 
 \item{delay}{Number of year delay between the recruitment of an individual
 and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-values of 1. # TODO see code{link{treeforce}{delay.ipm}}.}
+values of 1. See \code{\link[treeforce]{delay}}.}
 
 \item{int_log}{Internal vector used to store logs about integratio process
 that register year delta, maximum integration error on the first half of

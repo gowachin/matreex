@@ -86,12 +86,38 @@ validate_species <- function(x){
 #' Create a new species for simulation
 #'
 #' Species are defined by an IPM which is a transition matrix from size between
-#' t and t+1, recruitment and harvest functions. Each species has these items
+#' t and t+1, recruitment and harvest functions (see Details). Each species has these items
 #' defined for a given climate.
-#' An additionnal vector of harvest parameers is required with minimal size to
+#' An additionnal vector of harvest parameters is required with minimal size to
 #' harvest (dth), size above wich harvest is constant (dha).
 #'
 #' @inheritParams new_species
+#'
+#' @family functions for initiating species population during simulation
+#' @family functions that defines harvest rules for a species.
+#'
+#' @details
+#' A species is defined by an IPM that is an integrated prediction matrix
+#' for growth and survival functions of the species. Since the species has other
+#' functions defined, they are accessible and editable.
+#'  \describe{
+#'   \item{\code{init_pop}}{Function to initiate a new population. Default is
+#'   \code{\link[treeforce]{def_init}}.
+#'   }
+#'   \item{\code{recruit_fun}}{Function that give a distribution for recruits.
+#'   The default is defined from models associated with the IPM
+#'   (\code{x$IPM$rec}) but it's possible to replace it. For example you can
+#'   nullify the recruitment to simulate extinction.
+#'   }
+#'   \item{\code{harvest_fun}}{Function that give harvest density distribution
+#'   when an harvest event occurs (this frequence is set at the forest scale.).
+#'   The default function is \code{\link[treeforce]{def_harv}} with a constant
+#'   harvest rate of 0.6 percent. Other functions are
+#'   \code{\link[treeforce]{Uneven_harv}} and \code{\link[treeforce]{Even_harv}}.
+#'   }
+#' }
+#'
+#' @aliases harvest_fun init_pop recruit_fun
 #'
 #' @export
 species <- function(IPM, init_pop, harvest_fun,
@@ -124,7 +150,7 @@ species <- function(IPM, init_pop, harvest_fun,
 #' population.
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-#' values of 1. # TODO see code{link{treeforce}{delay.ipm}}.
+#' values of 1. See \code{\link[treeforce]{delay}}.
 #'
 #' @import checkmate
 #' @import here
@@ -176,7 +202,12 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 #' m states.
 #' @param SurfEch Value of plot size surface in \eqn{m^2}
 #'
+#' @details
+#' This function is the default function for \code{init_pop} function of a species
+#' and always takes arguments \code{mesh} and \code{SurfEch}.
+#'
 #' @importFrom stats runif rbinom
+#' @family functions for initiating species population during simulation
 #'
 #' @export
 def_init <- function(mesh, SurfEch = 0.03) {
@@ -206,7 +237,7 @@ def_init <- function(mesh, SurfEch = 0.03) {
 #' @param SurfEch Value of plot size surface in \eqn{m^2}
 #'
 #' @importFrom stats runif
-#'
+#' @family functions for initiating species population during simulation
 #'
 #' @export
 def_init_even <- function(mesh, SurfEch = 0.03) {
@@ -239,6 +270,7 @@ def_init_even <- function(mesh, SurfEch = 0.03) {
 #' Function similar to def_init
 #'
 #' @import checkmate
+#' @family functions for initiating species population during simulation
 #'
 #' @export
 def_initBA <- function(BA = 1, fun = c("def_init", "def_init_even")){
@@ -248,7 +280,7 @@ def_initBA <- function(BA = 1, fun = c("def_init", "def_init_even")){
 
     fun <- switch(fun, def_init = def_init, def_init_even = def_init_even)
     force(BA)
-    res <- NULL # HACK because res must be binded
+    res <- NULL # hack because res must be binded
     l <- length(as.list(body(fun))) - 1 # last - 1 line to edit.
     body(fun)[[l]] <- call2("<-", expr(res), call2("*", expr(res), BA))
 
@@ -270,6 +302,8 @@ def_initBA <- function(BA = 1, fun = c("def_init", "def_init_even")){
 #' Function similar def_init but with no random effect anymore.
 #'
 #' @import checkmate
+#' @family functions for initiating species population during simulation
+#'
 #' @export
 def_init_k <- function(x){
 
@@ -302,9 +336,16 @@ def_init_k <- function(x){
 #'  \item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
 #' }
 #'
+#' @details
+#' This function is the default function for \code{harvest_fun} function of
+#' a species and always takes arguments \code{x}, \code{species} plus specific
+#' argument from different harvest models..
+#'
 #' @return
 #' Distribution of population to harvest.
 #' Values are between 0 (null harvest) and Xi.
+#'
+#' @family functions that defines harvest rules for a species.
 #'
 #' @export
 def_harv <- function(x, species, ...){

@@ -20,3 +20,11 @@ Init population with precise distribution
 The resulting function will check if the provided vector is the same length
 as mesh.
 }
+\seealso{
+Other functions for initiating species population during simulation: 
+\code{\link{def_initBA}()},
+\code{\link{def_init_even}()},
+\code{\link{def_init}()},
+\code{\link{species}()}
+}
+\concept{functions for initiating species population during simulation}

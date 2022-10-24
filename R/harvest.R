@@ -120,6 +120,8 @@ getPcutUneven <- function(x,
 #'  \item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
 #' }
 #'
+#' @family functions that defines harvest rules for a species.
+#'
 #' @export
 Uneven_harv <- function(x,
                         species,
@@ -257,8 +259,11 @@ getPcutEven <- function(x,
 #' \describe{
 #'  \item{targetKg}{is the target Kg}
 #'  \item{targetRDI}{is the target RDI}
-#'  \item{}
+#'  \item{ct}{is the vector to compute BA with x (ct = Buildct(mesh, SurfEch))}
+#'  \item{SurfEch}{Value of plot size surface in ha}
 #' }
+#'
+#' @family functions that defines harvest rules for a species.
 #'
 #' @export
 Even_harv <- function(x,

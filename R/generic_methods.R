@@ -66,6 +66,9 @@ climatic.species <- function(x){
 #' Add delay states to an existing pop_state class object or an ipm class
 #' object.
 #'
+#' @details
+#' This function is a method that call \code{delay.ipm} internal function.
+#'
 #' @param x an object that require a delay addition
 #' @param delay the number of time delay to add. single positive int.
 #'

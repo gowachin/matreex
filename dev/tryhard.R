@@ -2,6 +2,7 @@ document()
 load_all()
 library(profvis)
 library(ggplot2)
+library(here)
 
 spe <- "Yggdrasil"
 Yggdrasil <- old_ipm2species(spe, path = here(), replicat = 1,
@@ -199,7 +200,7 @@ high_ba <- map2(Forest$species, higher_ba, get_ipm)
 
 sim_ipm <- lapply(
     seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-        low_ba[[i]] * (1 - (floor(ba) - nipm[i])) + # TODO check if this is correct formula !
+        low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
             high_ba[[i]] * ( floor(ba)  - nipm[i] )
     }, low_ba, high_ba, sim_BA[t], lower_ba
 )

@@ -43,8 +43,8 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #'
 #' @param Forest Group of species that each contains IPM for deterministic
 #' transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
-#' A species is also defined with recruitment and harvest functions.
-#' test # TODO link to class species
+#' A species is also defined with recruitment and harvest functions, please
+#' see \code{\link[treeforce]{species}} for more information.
 #' @param tlim Number of simulation iterations (years) in the future. single int.
 #' @param equil_dist Number of last n time for which the range difference
 #' should not exceed \code{equil_diff} during the equilibrium research.
@@ -64,13 +64,20 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #'
 #'
 #' @return
-#' Matrix of the population states for time in \eqn{[1, t_{lim}]},
-#' plus a last column that is the state at equilibrium.
-#' In row are the states of the population, plus two last rows :
-#' N, the total number of individual in the population at
-#' time \eqn{t} and BA, the basal area of the population.
-#' \code{colnames} are set as tn with n the time of simulation.
-#' \code{rownames} are labelled mi with i the different state of the population.
+#' Matrix of the population states for time in \eqn{[1, t_{lim}]} in a specific
+#' format plus a last column that is the state at equilibrium.
+#' In row are :
+#' \describe{
+#'  \item{m}{Distribution of density by mesh along time per ha.}
+#'  \item{N}{Sum of density per ha. (colSums for m)}
+#'  \item{BA}{Basal area of the population per ha}
+#'  \item{h}{Distribution of harvest density by mesh along time per ha.}
+#'  \item{H}{Sum of density per ha. (colSums for h)}
+#' }
+#' \code{colnames} are set as tn with n the time of simulation. The last column
+#' is the equilibrium state if it's simulated after tlim (equil_time > tlim)
+#' \code{rownames} are labelled mi or hi with i the different state of the
+#' population.
 #'
 #' @import Matrix
 #' @import checkmate
@@ -159,8 +166,8 @@ sim_deter_forest.forest  <- function(Forest,
 
     harvest <- match.arg(harvest)
     assertNumber(targetBA, lower = 0)
-    assertNumber(targetRDI, lower = 0, upper = 1)
-    assertNumber(targetKg, lower = 0, upper = 1)
+    # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
+    # assertNumber(targetKg, lower = 0, upper = 1)
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
@@ -220,7 +227,8 @@ sim_deter_forest.forest  <- function(Forest,
     sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
 
     tmp <- imap(X, function(x, .y, ba, harv){
-        c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]) )
+        c(x / SurfEch , ba[[.y]], sum(x) / SurfEch,
+          harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch )
     }, ba = sim_BAsp[1,, drop = FALSE], harv = Harv )
 
     tmp <- do.call("c", tmp)
@@ -338,8 +346,8 @@ sim_deter_forest.forest  <- function(Forest,
         # Update X and extract values per ha
         if (t <= tlim) {
             tmp <- imap(X, function(x, .y, ba, harv){
-                c(x / SurfEch, ba[[.y]], sum(x) /SurfEch,
-                  harv[[.y]] / SurfEch, sum(harv[[.y]] / SurfEch))
+                c(x / SurfEch, ba[[.y]], sum(x) / SurfEch,
+                  harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
             }, ba = sim_BAsp[t,,drop = FALSE], harv = Harv)
 
             tmp <- do.call("c", tmp)
@@ -388,8 +396,10 @@ sim_deter_forest.forest  <- function(Forest,
 
     # Format output ####
     tmp <- imap(X, function(x, .y, ba, harv){
-        c(x, ba[[.y]], sum(x), harv[[.y]], sum(harv[[.y]]))
+        c(x / SurfEch, ba[[.y]], sum(x) / SurfEch,
+          harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
     }, ba = sim_BAsp[t-1,,drop = FALSE], harv = Harv )
+
     tmp <- do.call("c", tmp)
     sim_X[, tlim +1] <- tmp
 
@@ -420,7 +430,7 @@ sim_deter_forest.forest  <- function(Forest,
 #' @param x a matrix.
 #' @param mesh mesh size values to be set as attributes.
 #'
-#' @details Format is specified in \code{\link{treeforce}{sim_deter_forest}}
+#' @details Format is specified in \code{\link[treeforce]{sim_deter_forest}}
 #'
 #' @noRd
 new_deter_sim <- function(x = matrix(), mesh = NULL){

@@ -2,6 +2,9 @@
 % Please edit documentation in R/class_species.R
 \name{species}
 \alias{species}
+\alias{harvest_fun}
+\alias{init_pop}
+\alias{recruit_fun}
 \title{Create a new species for simulation}
 \usage{
 species(
@@ -39,8 +42,43 @@ The model require the intercept and slope.}
 }
 \description{
 Species are defined by an IPM which is a transition matrix from size between
-t and t+1, recruitment and harvest functions. Each species has these items
+t and t+1, recruitment and harvest functions (see Details). Each species has these items
 defined for a given climate.
-An additionnal vector of harvest parameers is required with minimal size to
+An additionnal vector of harvest parameters is required with minimal size to
 harvest (dth), size above wich harvest is constant (dha).
 }
+\details{
+A species is defined by an IPM that is an integrated prediction matrix
+for growth and survival functions of the species. Since the species has other
+functions defined, they are accessible and editable.
+\describe{
+\item{\code{init_pop}}{Function to initiate a new population. Default is
+\code{\link[treeforce]{def_init}}.
+}
+\item{\code{recruit_fun}}{Function that give a distribution for recruits.
+The default is defined from models associated with the IPM
+(\code{x$IPM$rec}) but it's possible to replace it. For example you can
+nullify the recruitment to simulate extinction.
+}
+\item{\code{harvest_fun}}{Function that give harvest density distribution
+when an harvest event occurs (this frequence is set at the forest scale.).
+The default function is \code{\link[treeforce]{def_harv}} with a constant
+harvest rate of 0.6 percent. Other functions are
+\code{\link[treeforce]{Uneven_harv}} and \code{\link[treeforce]{Even_harv}}.
+}
+}
+}
+\seealso{
+Other functions for initiating species population during simulation: 
+\code{\link{def_initBA}()},
+\code{\link{def_init_even}()},
+\code{\link{def_init_k}()},
+\code{\link{def_init}()}
+
+Other functions that defines harvest rules for a species.: 
+\code{\link{Even_harv}()},
+\code{\link{Uneven_harv}()},
+\code{\link{def_harv}()}
+}
+\concept{functions for initiating species population during simulation}
+\concept{functions that defines harvest rules for a species.}

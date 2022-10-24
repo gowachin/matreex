@@ -115,7 +115,7 @@ format_fit <- function(params, list_covs){
     res <- data.frame(var1 = x, var2 = y, params = params,
                       value.x = lc[x], value.y = lc[y],
                       row.names = NULL)
-    value.x <- NULL # HACK rm the note in devtools::check() about unbinded
+    value.x <- NULL # hack rm the note in devtools::check() about unbinded
     res <- within(res, {
         value.y[is.na(value.y)] <- 1
         K <- params * value.x * value.y
@@ -165,7 +165,7 @@ exp_recFun <- function(params, list_covs){
     add_invar <- map(c(list(expr(intercept <- 1)),exp_invar),
                      ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
 
-    SurfEch <- NULL # HACK rm the note in devtools::check() about unbinded
+    SurfEch <- NULL # hack rm the note in devtools::check() about unbinded
     final_res <- list(
         expr(mesh <- length(mesh)),
         expr(distrib <- c(rep(1/2, 2), numeric(mesh - 2)) ),
