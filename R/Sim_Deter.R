@@ -455,17 +455,16 @@ tree_format <- function(x){
 
 
 #' @rdname tree_format
-#' @importFrom dplyr mutate relocate
-#' @importFrom tidyr pivot_longer separate
+#' @importFrom dplyr relocate
+#' @importFrom tidyr pivot_longer
 #' @importFrom rlang .data
-#' @importFrom tibble rownames_to_column
-#' @importFrom purrr map
+#' @importFrom purrr map flatten_dbl
 #' @keywords internal
 #' @export
 tree_format.deter_sim <- function(x){
 
     mesh <- attributes(x)$mesh %>%
-        map( ~ c(.x, NA, NA, .x, NA)) %>%
+        purrr::map( ~ c(.x, NA, NA, .x, NA)) %>%
         purrr::flatten_dbl()
 
     if(length(mesh) == 0){
@@ -473,25 +472,28 @@ tree_format.deter_sim <- function(x){
         mesh <- rep(NA_real_, nrow(x))
     }
 
-    res <- x %>%
-        as.data.frame() %>%
-        tibble::rownames_to_column(var = "var") %>%
-        mutate(size = mesh) %>%
-        tidyr::pivot_longer( -c(.data$var, .data$size), names_to = "time") %>%
-        mutate( species = sub( "\\..*$", "", .data$var, perl = TRUE)) %>%
-        mutate( var = sub("^.*\\.", "", .data$var, perl = TRUE)) %>%
-        dplyr::mutate(
-            equil = grepl("eq", .data$time),
-            time = as.numeric(
-                sub("([[:alpha:]]+)([[:digit:]]+)", "\\2", .data$time,
-                    perl = TRUE)
-            )) %>%
-        dplyr::mutate( mesh = as.numeric(
-            sub("([[:alpha:]]+)([[:digit:]]*)", "\\2", .data$var, perl = TRUE)
-        )) %>%
-        dplyr::mutate( var = sub("([[:alpha:]]+)([[:digit:]]*)",
-                                 "\\1", .data$var, perl = TRUE)) %>%
-        dplyr::relocate(.data$species, .data$var, .data$time, .data$mesh,
-                        .data$size, .data$equil, .data$value)
+    # cut rownames in different variables.
+    var <- rownames(x)
+    pattern <- "([[:alpha:]]+_?[[:alpha:]]*)[.]([[:alpha:]]+)([[:digit:]]*)"
+    rnms <- data.frame(
+        species = sub(pattern, "\\1", var, perl = TRUE),
+        var = sub(pattern, "\\2", var, perl = TRUE),
+        mesh = as.numeric(sub(pattern, "\\3", var, perl = TRUE)))
+
+    eq_lgl <- function(x){ # function used in pivot_longer
+        x == "eq"
+    }
+
+    # pivot_longer all of it.
+    res <- cbind(as.data.frame(x), rnms, size = mesh)
+    res <- tidyr::pivot_longer(
+        res,
+        -c(.data$var, .data$species, .data$mesh, .data$size),
+        names_to = c("equil", "time"), names_pattern = "(eq)?t(.*)",
+        names_transform = list(time = as.numeric, equil = eq_lgl)
+    )
+
+    res <- dplyr::relocate(res, .data$species, .data$var, .data$time, .data$mesh,
+                           .data$size, .data$equil, .data$value)
     return(res)
 }

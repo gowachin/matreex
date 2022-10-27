@@ -167,7 +167,9 @@ Uneven_harv <- function(x,
 #'
 #' @noRd
 RDI <- function(x, RDI_int, RDI_slo, meshcm2, tx){
-    sum(x) / exp(RDI_int + RDI_slo / 2 * log(meshcm2 %*% (x) / tx))
+    res <- sum(x) / exp(RDI_int + RDI_slo / 2 * log(meshcm2 %*% x / tx))
+
+    return(drop(res))
 }
 
 #' Compute the harvest curve for even stand (Pcut)
@@ -274,7 +276,7 @@ Even_harv <- function(x,
     targetRDI <- dots$targetRDI
     targetKg <- dots$targetKg
     ct <- dots$ct
-    SurfEch <- dots$SurfEch
+    SurfEch <- ifelse(is.null(dots$SurfEch), 0.03, dots$SurfEch)
 
     Pcut <- getPcutEven(
         x = x,
