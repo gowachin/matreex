@@ -19,7 +19,7 @@
 #' constant (default), ceiling, sizeExtremes and none.
 #' @param level Number of point to use for integration in a cell during
 #' Gauss-Legendre integration. This value will be divided by 3 since size t is
-#' integrated at level = 3 and size t+1 at level = level/3. ingle int
+#' integrated at level = 3 and size t+1 at level = level/3. single int
 #' (default 420).
 #' @param diag_tresh Threshold for Gauss-Legendre integration, which a distance
 #' to the diagonal. Number of cell integrated is the number of cell for which
@@ -116,6 +116,7 @@ make_IPM <- function(species,
     out2 <- gaussQuadInt(-h / 2, h / 2, inlevel) # For x1 integration
     mesh_x <- seq(L + h / 2, U - h / 2, length.out = m)
     N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
+    # N_int <- ceiling(diag_tresh / h) # IDEA equivalent and quick
     # minor midbin_tresh if mesh is shorter.
     if(midbin_tresh + N_int > m){
         midbin_tresh <- m - N_int
@@ -125,6 +126,8 @@ make_IPM <- function(species,
     }
     # vector for integration on dim 2
     mesh_x <- as.vector(outer(mesh_x, out1$nodes, "+"))
+    # mesh_x <- outer(mesh_x, out1$nodes, "+") # HACK testing stuff
+
     # empty matrix
     e_P <- matrix(0, ncol = m, nrow = m)
 
@@ -138,15 +141,18 @@ make_IPM <- function(species,
     }
 
     # Create matrix for GL integration on dimension level
+    # mesh_x1B <- outer(out2$nodes, 0:(N_int - 1) * h, "+") # HACK faster and clean
     mesh_x1B <- as.vector(outer(
         out2$nodes, seq(0, (N_int - 1) * h, length.out = N_int), "+"
     ))
+
+
     mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
     mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
     mesh_x1C <- mesh_x1B - out1$nodes[3]
 
     # function used in gauss legendre integration
-    temp <- function(d_x1_x, mu, sig) {
+    temp <- function(d_x1_x, mu, sig, year_delta) {
         out <- numeric(length(d_x1_x))
         sel <- d_x1_x > 0
         tmp <- d_x1_x[sel]
@@ -177,7 +183,6 @@ make_IPM <- function(species,
     MaxError <- numeric(length(BA))
     GL_min <- numeric(length(BA))
     MB_max <- numeric(length(BA))
-
     # Loop ####
     for (ba in seq_along(BA)) {
         if (verbose) {
@@ -191,23 +196,30 @@ make_IPM <- function(species,
         grFun <- exp_sizeFun(fit$gr$params_m, list_covs)
         svFun <- exp_sizeFun(fit$sv$params_m, list_covs)
         mu_gr <- grFun(mesh_x)
+        # # HACK testing stuff
+        # mu_gr <- as.vector(grFun(mesh_x)) # same line
         if (IsSurv) {
             P_sv <- svlink(svFun(mesh_x))
-            m3 <- length(mesh_x) / 3
-            P_sv <- P_sv[1:m3] * weights1[1] +
-                P_sv[(m3 + 1):(2 * m3)] * weights1[2] +
-                P_sv[(2 * m3 + 1):(3 * m3)] * weights1[3]
-            # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+            P_sv <- P_sv[1:m] * weights1[1] +
+                P_sv[(m + 1):(2 * m)] * weights1[2] +
+                P_sv[(2 * m + 1):(3 * m)] * weights1[3]
+            # # HACK testing stuff
+            # P_sv <- svlink(svFun(mesh_x))
+            # P_sv <- P_sv[, 1] * weights1[1] + # works quickier with matrix
+            #     P_sv[, 2] * weights1[2] +
+            #     P_sv[, 3] * weights1[3]
+            # P_sv <- colSums(t(P_sv) * weights1) # alt works with integration > 3
             P_sv <- 1 - P_sv
+            # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
             P_sv <- P_sv ^ year_delta
         }
 
         # Integration ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Gauss-Legendre Int ####
         if(N_int > 0){
-            P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr) * weights1[1] +
-                outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr) * weights1[2] +
-                outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr) * weights1[3]
+            P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr, year_delta) * weights1[1] +
+                outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr, year_delta) * weights1[2] +
+                outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr, year_delta) * weights1[3]
 
             P_LG <- WMat %*% P_LG
             P <- sub_diag(P, P_LG, dist = 0)

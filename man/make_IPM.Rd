@@ -45,7 +45,7 @@ constant (default), ceiling, sizeExtremes and none.}
 
 \item{level}{Number of point to use for integration in a cell during
 Gauss-Legendre integration. This value will be divided by 3 since size t is
-integrated at level = 3 and size t+1 at level = level/3. ingle int
+integrated at level = 3 and size t+1 at level = level/3. single int
 (default 420).}
 
 \item{diag_tresh}{Threshold for Gauss-Legendre integration, which a distance

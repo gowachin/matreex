@@ -1,0 +1,285 @@
+---
+title: "Building IPM"
+output: 
+    rmarkdown::html_vignette:
+        toc: true # table of content true
+    github_document:
+        toc: true # table of content true
+vignette: >
+  %\VignetteIndexEntry{Building IPM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+
+# Introduction
+
+The `{treeforce}` package use Integral Projection Model (IPM here after) for tree growth and survival models. Each IPM is defined for a given climate (*sggd* and *wai* variables) and competition (*BA* variable).
+
+This vignette expose how the different IPM are built and some mathematical explanations of the integration. It's composed of chapter about default function call, methods for Gauss Legendre and Midbin integration and finally more code examples for specific calls.
+
+## Pipeline example
+
+Below is a simple script to show default function calls. To build an IPM for a species, we need the fitted models for growth, survival and recruitment in a `fit_sgr` class (see the main vignette for class explanations). A vector of climatic variables is also needed, as it represent the climate of our simulations.
+
+
+```{r, example code}
+library(treeforce)
+species <- "Pinus_pinea"
+# You can choose any species in the dataset.
+data("fit_species") # available species
+
+# Data sets ####
+# load data with fit models and place it in fit object.
+data(list = paste0("fit_", species))
+
+# load data et select optimum climate (N == 2, see ?climate_species)
+data("climate_species")
+climate <- subset(climate_species, N == 2 & sp == species, select = -sp)
+climate <- drop(as.matrix(climate)) # we need it as a vector.
+
+# Integration ####
+# Integration of IP. They are to large to be stored with the package.
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90,
+             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
+    BA = 0:3#0
+)
+#> Launching integration loop
+#> GL integration occur on 27 cells
+#> midbin integration occur on 25 cells
+#> Loop done.                                                   
+#> Time difference of 22.6 secs
+```
+
+```{r, echo = FALSE, eval = FALSE}
+devtools::load_all()
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 6, L = 100,  U = 1300), diag_tresh = 500, level = 12,
+    BA = 0:3#0
+)
+```
+
+
+**The BA range will limit simulation capability so it's best to set it between 0 and a large value such as 200.** This example is lower to speed up computations, the integration time of 200 matrices is measured in minutes.
+
+# Methods
+
+We implemented 2 way to integrate our matrix with this package : Gauss-Legendre and Mid-bin. The first one is more precise but takes a lot more time whereas the second is rapid but include more error for a larger values in the derivative growth function. We combine both is most use cases.
+
+## Band matrix
+
+To speed up computations, several methods are used : 
+
+- The upper-half of the matrix is not integrated because it represent tree whose size reduces along time.
+
+- The integration is made in a band matrix that we replace in the IPM final matrix. This allow to vectorise the computation.
+
+- Only few cells next to the diagonal are computed because tree growth is very slow. This number of cell is named $N_{int}$ and is computed for Gauss Legendre and an argument for mid-bin integration.
+
+```{r band matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+\begin{tikzpicture}[scale = 0.4, every node/.style={scale=0.4}]
+        \foreach \i in {4,3.5,...,0}{
+                        {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
+                }
+        \foreach \i in {5,4.5,...,0.5}{
+                        {\fill[gray!50] (\i, 5-\i) -- (5,5-\i) -- (5,5) -- (\i,5);}
+                }
+
+        \draw (0,0) grid[step=.5] (5,5);
+        \draw (2.5,5) node[above]{$size_t$} ;
+        \draw (0,2.5) node[left]{$size_{t+1}$} ;
+        \draw(0,5) node[above] {$L$};
+        \draw(5,5) node[above] {$U$};
+
+        \draw(7,3.5) node[fill=gray!50,above] {Un-integrated};
+        \draw(7,3.5) node[below] {$m = 10$};
+        \draw(7,2.5) node[fill=red!50,above] {Gauss-Legendre};
+        \draw(7,2.5) node[below] {$N_{int} = 2$};
+
+        \node[draw,text width=5cm] at (9,0) {
+                $L$: Lower value of the mesh \\
+                $U$: Upper value of the mesh
+                %$mesh = [L + h / 2, U - h / 2]$ with $m$ element \\
+                %$N_{int} = sum((mesh - (L + \frac{h}{2}) < tresh)$
+        };
+
+        \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+        \fill[red!30] (4.5, -2) -- (4.5,-1.5) -- (5,-1.5) -- (5,-2);
+        \draw (0,-2) grid[step=.5] (5,-1);
+        \draw(7,-1.5) node[above] {Band Matrix};
+        \draw(7,-1.5) node[below] {$\alpha$ is ignored};
+
+        \draw(.25,4.75) node {$x$};
+        \draw(.25,4.25) node {$y$};
+        \draw(.25,-1.25) node {$x$};
+        \draw(.25,-1.75) node {$y$};
+        \draw(4.75,-1.75) node {$\alpha$};
+
+        \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-1.3, 2.5) to [out=-90,in=150] (0,-1.5);
+
+\end{tikzpicture}
+```
+
+## Gauss Legendre
+
+The Gauss Legendre use the `statmod::gauss.quad()` function. This integration has different levels on different dimensions : on $size_t$ we integrate at $level = 3$ whereas on $size_{t+1}$ we integrate at $N_{int}$.
+
+$N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. We can also understand it as
+
+$$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
+
+
+Below is a schematic view so to represent how the points are placed for the Gauss Legendre integration with $N_{int} = 2; level = 4$. The red lign is the diagonal of the mesh and triangle points are values we set to 0 because they represent the probability that $size_{t+1} < size_t$.
+
+```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+
+\begin{tikzpicture}[declare function = {f(\x, \y) = exp(-(\x-(\y+3))^2)+\y*1.2;},
+                    scale = 0.4, every node/.style={scale=0.4}]
+        \begin{axis}[xlabel={size $t+1$}, ylabel={size $t$}]
+
+                \addplot3[mesh, shader=interp, samples=20, domain=0.1:4.1, domain y = 0.1:2.1] {f(x, y)};
+                \addplot3 table [z expr = exp(-(x-(y+3))^2) + y*1.2, x = col1,  y = col2, color = black] 
+                        {
+                        col1 col2
+                        0.1 0.1
+                        2.1  2.1
+                        };
+                \addplot3[mesh, shader=interp,samples=3,samples y = 2,domain=0.1:4.1,domain y = 0.1:2.1, color = black] 
+                {f(x, y)};
+                \addplot3[mark=triangle*,mark size=4pt, color = purple]
+                        (0.35,0.6, {exp(-(0.35-(0.6+3))^2) + 0.6 * 1.2});
+                \addplot3[domain=0.35:0.85, samples=2, only marks,mark=triangle*,mark size=4pt, color = blue]
+                        (x,1.1, {exp(-(x-(1.1+3))^2) + 1.1 * 1.2});
+                \addplot3[domain=0.35:1.35, samples=3, only marks,mark=triangle*,mark size=4pt, color = green]
+                        (x,1.6,{exp(-(x-(1.6+3))^2) + 1.6 * 1.2});
+
+                \addplot3[domain=0.85:3.85, samples=7, only marks,mark=*,mark size=4pt, color = purple]
+                        (x,0.6,{exp(-(x-(0.6+3))^2) + 0.6 * 1.2});
+                \addplot3[domain=1.35:3.85, samples=6, only marks,mark=*,mark size=4pt, color = blue]
+                        (x,1.1, {exp(-(x-(1.1+3))^2) + 1.1 * 1.2});
+                \addplot3[domain=1.85:3.85, samples=5, only marks,mark=*,mark size=4pt, color = green]
+                        (x,1.6, {exp(-(x-(1.6+3))^2) + 1.6 * 1.2} );
+
+
+                % line not working, don't know why
+                % \addplot3[domain=1.85:3.85, samples=5, only marks,mark=*,mark size=4pt, color = green]
+                        % (x,1.6, {f(x, 1.6)} );
+
+        \end{axis}
+\end{tikzpicture}
+```
+
+<!-- ## Midbin -->
+
+<!-- ```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE} -->
+
+<!-- \begin{tikzpicture}[scale = 0.4,every node/.style={scale=0.4}] -->
+
+<!--         \begin{axis}[xlabel={size $t+1$}, ylabel={size $t$}] -->
+
+<!--                 \addplot3[mesh, shader=interp, samples=20, domain=0.1:1.1, domain y = 0.1:2.1] {1 /x + y}; -->
+<!--                 \addplot3[domain=0.1:1.1, domain y= 0.1:2.1, samples=10,samples y=0,  -->
+<!--                         only marks,mark=*,mark size=4pt, color = purple] -->
+<!--                         (x,1.1,1/x + 1.1); -->
+<!--                 \addplot3[domain=0.1:1.1, domain y= 0.1:2.1, samples=10,samples y=0, line width=2pt] -->
+<!--                         (x,1.1,1/x + 1.1); -->
+
+<!--         \end{axis} -->
+
+<!--         \begin{scope}[shift={(10,0)}] -->
+<!--                 \node[draw,text width=4cm] at (0,2) {Integration on size at $t$ is $1$ and $n=level$ for size at $t+1$.}; -->
+<!--         \end{scope} -->
+
+<!-- \end{tikzpicture} -->
+<!-- ``` -->
+
+
+## Code option examples
+
+Few specific settings allow to test partial integration, this section will list few of them.
+
+Beyond some points, the levels values cancel integration. For example we can deactivate the Gauss-Legendre integration with a negative `diag_tresh`. If the mid-bin integration has values abose `0.001`, a message will indicate an insufficient integration.
+
+```{r no GL}
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90,
+             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
+    BA = 0:30,
+    diag_tresh = -1
+)
+
+#> Launching integration loop
+#> GL integration won't occur because of negative treshold
+#> midbin integration occur on 25 cells
+#> Loop done.
+#> Time difference of 1.49 secs
+```
+
+To deactivate mid-bin integration, the `midbin_tresh` must be set to 0. 
+
+```{r no midbin}
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90,
+             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
+    BA = 0:30,
+    midbin_tresh = 0
+)
+
+#> Launching integration loop
+#> GL integration occur on 27 cells
+#> midbin integration won't occur because of treshold at 0
+#> Loop done.                                                   
+#> Time difference of 21.2 secs
+```
+
+<!-- Obviously we can integrate with everything desactivated, which is really fast and not really helpfull. -->
+
+<!-- ```{r nothing} -->
+<!-- IPM <- make_IPM( -->
+<!--     species = species, climate = climate, fit =  fit_Pinus_pinea, -->
+<!--     clim_lab = "optimum clim", -->
+<!--     mesh = c(m = 700, L = 90, -->
+<!--              U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1), -->
+<!--     BA = 0:30, -->
+<!--     diag_tresh = -1, -->
+<!--     midbin_tresh = 0 -->
+<!-- ) -->
+
+<!-- #> Launching integration loop -->
+<!-- #> GL integration occur on 27 cells -->
+<!-- #> midbin integration won't occur because of treshold at 0 -->
+<!-- #> Loop done.                                                    -->
+<!-- #> Time difference of 21.2 secs -->
+<!-- ``` -->
+
+# Glossary {-}
+
+sgdd
+
+:   Sum of Growing Degree Days above $5.5^{\circ}C$.
+
+wai
+
+:   Water Aridity Index.
+
+BA
+
+:   Basal area of population of tree. ${\displaystyle BA=\pi \times (DBH/2)^{2}}$.
+
+
+
