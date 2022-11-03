@@ -144,7 +144,7 @@ test_that("old_fit2fit works", {
     exp <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                    res_fit$gr$params_m, res_fit$gr$sigma,
                    res_fit$rec$params_m,
-                   species = species, max_dbh = max_dbh)
+                   species = species, max_dbh = 1544)
 
     expect_equal(old_fit2fit(species, path, replicat = 42, mean = FALSE), exp)
 

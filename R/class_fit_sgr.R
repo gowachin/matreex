@@ -134,9 +134,8 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
         species <- sub(" ", "_", species)
     }
 
-    max_dbh <- max(map_dbl(fit, ~ .x$maxDBH))
-
     if(mean){
+        max_dbh <- max(map_dbl(fit, ~ .x$maxDBH))
         res_fit <- mean_oldfit(fit, species, max_dbh)
     } else {
         assertNumber(replicat, lower = 1, upper = length(fit))
@@ -144,7 +143,7 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
         res_fit <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                            res_fit$gr$params_m, res_fit$gr$sigma,
                            res_fit$rec$params_m,
-                           species = species, max_dbh = max_dbh)
+                           species = species, max_dbh = res_fit$maxDBH)
     }
 
     return(res_fit)

@@ -3,36 +3,7 @@
 #' Integrate IPM for growth and survival function at a specific climate for a
 #' species on a basal area variation.
 #'
-#' @param species The species names to be registered in the object
-#' @param climate Named vector of the environmental variables used in the fitted
-#' model. Was data_plot_pred before.
-#' @param clim_lab Label for climatic used. This values will be matched when
-#' simulating multiple species together.
-#' @param fit Fitted model for growth and survival of the species and climate
-#' given. Functions will depend on size and basal area.
-#' @param mesh vector of mesh variables. m is the number of bins, L is the
-#' minimum size and U the maximum size. h will be defined in the function as
-#' \eqn{h <- (U - L) / m}.
-#' @param BA Vector of basal area to integrate on. Integrating on 0 is important
-#' so use it. Integrating above 200 is absurd.
-#' @param correction Correction to apply to the IPM matrix for eviction. Choices
-#' constant (default), ceiling, sizeExtremes and none.
-#' @param level Number of point to use for integration in a cell during
-#' Gauss-Legendre integration. This value will be divided by 3 since size t is
-#' integrated at level = 3 and size t+1 at level = level/3. single int
-#' (default 420).
-#' @param diag_tresh Threshold for Gauss-Legendre integration, which a distance
-#' to the diagonal. Number of cell integrated is the number of cell for which
-#' size t+1 - size t is inferior to this threshold. single dbl (default 50).
-#' @param midbin_tresh Number of cells external to the GL integration to
-#' integrate with the mid bin method.
-#' @param mid_level Number of point to use for integration in a cell during
-#' mid bin integration.
-#' @param year_delta Number of year between 2 obersavtion when using this model.
-#' default 1, single int. NOTE : value for dev usage only !
-#' @param IsSurv Adding survival to the IPM. Set to FALSE is useful to test for
-#' eviction of the model. TRUE by default.
-#' @param verbose Print message. FALSE by default
+#' @inheritParams make_IPM
 #'
 #' @details
 #' The check between climate variables and fitted variable will assert if all
@@ -45,19 +16,21 @@
 #' integration and a midbin_tresh null value (ex: 0) will cancel the midbin
 #' integration.
 #'
+#' This is a working function to test faster integration.
+#'
 #' @import cli
 #' @import checkmate
 #' @importFrom stats dnorm
 #'
-#' @export
-make_IPM <- function(species,
+#' @keywords internal
+dev_make_IPM <- function(species,
                      climate,
                      clim_lab,
                      fit,
                      mesh = c(m = 700, L = 90, U = 1500),
                      BA = 0:100,
                      correction = c("constant", "none", "ceiling", "sizeExtremes"),
-                     level = 420,
+                     level = c(3, 140),
                      diag_tresh = 50,
                      midbin_tresh = 25,
                      mid_level = 5,
@@ -89,7 +62,7 @@ make_IPM <- function(species,
     }
     assertNumeric(BA, lower = 0, upper = 200)
     correction <- match.arg(correction)
-    assertCount(level)
+    assertIntegerish(level, lower = 1, any.missing = FALSE, len = 2)
     assertNumeric(diag_tresh,any.missing = FALSE, len = 1)
     assertLogical(IsSurv, len = 1)
     assertCount(year_delta)
@@ -102,18 +75,16 @@ make_IPM <- function(species,
 
     # Precomput constant ####
     #  we integrate on 2 dimension along the size at t and level/3 along size at t+1
-    inlevel <- floor(level / 3)
     U <- mesh["U"]
     L <- mesh["L"]
     m <- unname(mesh["m"])
-    out_mesh <- seq(L, U, length.out = m)
     h <- (U - L) / m
     int_log_err <- 1:(m/2)
 
     # build weight for GL integration on the two dim
-    out1 <- gaussQuadInt(-h / 2, h / 2, 3) # For x integration
+    out1 <- gaussQuadInt(-h / 2, h / 2, level[[1]]) # For x integration
     weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
-    out2 <- gaussQuadInt(-h / 2, h / 2, inlevel) # For x1 integration
+    out2 <- gaussQuadInt(-h / 2, h / 2, level[[2]]) # For x1 integration
     mesh_x <- seq(L + h / 2, U - h / 2, length.out = m)
     N_int <- sum((mesh_x - min(mesh_x)) < diag_tresh)
     # N_int <- ceiling(diag_tresh / h) # IDEA equivalent and quick
@@ -125,8 +96,8 @@ make_IPM <- function(species,
         WMat <- t(build_weight_matrix(out2$weights, N_int))
     }
     # vector for integration on dim 2
-    mesh_x <- as.vector(outer(mesh_x, out1$nodes, "+"))
-    # mesh_x <- outer(mesh_x, out1$nodes, "+") # HACK testing stuff
+    # mesh_x <- as.vector(outer(mesh_x, out1$nodes, "+"))
+    mesh_x <- outer(mesh_x, out1$nodes, "+") # HACK testing stuff
 
     # empty matrix
     e_P <- matrix(0, ncol = m, nrow = m)
@@ -146,10 +117,10 @@ make_IPM <- function(species,
         out2$nodes, seq(0, (N_int - 1) * h, length.out = N_int), "+"
     ))
 
-
-    mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
-    mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
-    mesh_x1C <- mesh_x1B - out1$nodes[3]
+    mesh_x1 <- purrr::map(out1$nodes,  ~ mesh_x1B - .x)
+    # mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
+    # mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
+    # mesh_x1C <- mesh_x1B - out1$nodes[3]
 
     # function used in gauss legendre integration
     temp <- function(d_x1_x, mu, sig, year_delta) {
@@ -178,7 +149,7 @@ make_IPM <- function(species,
 
     ## loggin ####
     int_log <- c(year_delta = year_delta, MaxError = 0,
-                 GL_Nint = N_int, GL_level = level, GL_min = 0,
+                 GL_Nint = N_int, GL_level1 = level[[1]],  GL_level2 = level[[2]], GL_min = 0,
                  MB_Nint = midbin_tresh, MB_level = mid_level, MB_max = 0)
     MaxError <- numeric(length(BA))
     GL_min <- numeric(length(BA))
@@ -195,14 +166,19 @@ make_IPM <- function(species,
         ## Functions ####
         grFun <- exp_sizeFun(fit$gr$params_m, list_covs)
         svFun <- exp_sizeFun(fit$sv$params_m, list_covs)
-        mu_gr <- grFun(mesh_x)
         # # HACK testing stuff
         # mu_gr <- as.vector(grFun(mesh_x)) # same line
+        mu_gr <- grFun(mesh_x)
         if (IsSurv) {
             P_sv <- svlink(svFun(mesh_x))
-            P_sv <- P_sv[1:m] * weights1[1] +
-                P_sv[(m + 1):(2 * m)] * weights1[2] +
-                P_sv[(2 * m + 1):(3 * m)] * weights1[3]
+            P_sv <- purrr::imap(weights1, function(.x, .y, P_sv){
+                P_sv[, .y] * .x
+                }, P_sv = P_sv) %>%
+                reduce(`+`)
+
+            # P_sv <- P_sv[1:m] * weights1[1] +
+            #     P_sv[(m + 1):(2 * m)] * weights1[2] +
+            #     P_sv[(2 * m + 1):(3 * m)] * weights1[3]
             # # HACK testing stuff
             # P_sv <- svlink(svFun(mesh_x))
             # P_sv <- P_sv[, 1] * weights1[1] + # works quickier with matrix
@@ -217,9 +193,17 @@ make_IPM <- function(species,
         # Integration ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
         ## Gauss-Legendre Int ####
         if(N_int > 0){
-            P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr, year_delta) * weights1[1] +
-                outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr, year_delta) * weights1[2] +
-                outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr, year_delta) * weights1[3]
+            # old_P_LG <- outer(mesh_x1A, mu_gr[1:m], "temp", sig_gr, year_delta) * weights1[1] +
+            #     outer(mesh_x1B, mu_gr[(m + 1):(2 * m)], "temp", sig_gr, year_delta) * weights1[2] +
+            #     outer(mesh_x1C, mu_gr[(2 * m + 1):(3 * m)], "temp", sig_gr, year_delta) * weights1[3]
+
+            P_LG <- purrr::imap(weights1,
+                               function(.x, .y, mesh, mu, sig_gr, year_delta)
+                               {
+                                  outer(mesh[[.y]], mu[, .y], "temp", sig_gr, year_delta) * .x
+                               }, mesh = mesh_x1, mu = mu_gr,
+                               sig_gr = sig_gr, year_delta = year_delta) %>%
+                reduce(`+`)
 
             P_LG <- WMat %*% P_LG
             P <- sub_diag(P, P_LG, dist = 0)
@@ -231,7 +215,7 @@ make_IPM <- function(species,
         if(midbin_tresh > 0){
             P_midint <- fun_mid_int(
                 seq(L, U, length.out = m), h, grFun, sig_gr,
-                       # if no GL, N_int mesh cell is not integrated
+                # if no GL, N_int mesh cell is not integrated
                 N_ini = N_int + (N_int > 0), N_int = midbin_tresh,
                 # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
                 Level = mid_level, year_delta = year_delta
@@ -293,10 +277,6 @@ make_IPM <- function(species,
             "integration treshold. value :", diag_tresh, "mm."))
     }
 
-    if(correction == "ceiling"){
-        out_mesh <- c(out_mesh, U)
-    }
-
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
@@ -306,112 +286,4 @@ make_IPM <- function(species,
         )
     )
     return(res)
-}
-
-
-#' Function to integrate growth  with midbin function.
-#'
-#' @param mesh Mesh to integrate on, a vector of size m between U and L. dbl.
-#' @param h mesh cell size. single dbl.
-#' @param gr Growth function from the fitted model. Argument is size vector.
-#' @param sig_gr Sigma of the fitted growth function.
-#' @param N_ini Distance to diagonal to start the integration. single dbl.
-#' @param N_int Number of cells to integrate on. single dbl.
-#' @param Level Number of point to use for integration in a cell during
-#' mid bin integration.
-#' @param year_delta Number of year between 2 obersavtion when using this model.
-#' default 1, single int. NOTE : value for dev usage only !
-#'
-#' @importFrom stats dnorm
-#'
-#' @noRd
-fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=5,
-                        year_delta = 1){
-
-    mu_mesh <- gr(mesh)
-    dx1 <- seq(N_ini*h- h/2, (N_ini+N_int-1)*h + h/2, by=h/Level)[-1]
-    inf <- dx1 > 0
-    dx1i <- dx1[inf]
-    # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
-    ldx1 <- log(dx1i / year_delta)
-
-    rep0 <- numeric(length = length(dx1))
-
-    # ca <- factor(rep(0:N_int, c(Level/2, rep(Level, N_int-1), Level/2)))
-    ca <- factor(rep(1:N_int, each = Level))
-    ca <- .Internal(split(1:length(dx1), ca))
-
-    P_incr <- matrix(NA_real_, ncol= length(mesh), nrow=N_int)
-
-    for (k in seq_along(mu_mesh)){
-        out <- rep0 # 0.004ms
-        out[inf] <- dnorm(ldx1, mu_mesh[k], sig_gr) / dx1i * year_delta  # 220ms
-        # C code not speedable or loose precision
-        # https://stackoverflow.com/questions/27425658/speed-up-dnorm-function
-        g <- out * h / Level
-        res <- unlist(lapply(ca, function(i) sum(g[i])))
-        P_incr[, k] <- res[1:N_int] # 380ms
-    }
-
-    return(P_incr)
-}
-
-
-
-#' Quadratique integration
-#'
-#' @param L Minimum mesh size. single dbl.
-#' @param U Maximum mesh size. single dbl.
-#' @param order TODO, default is 7. int.
-#'
-#' @importFrom statmod gauss.quad
-#' @import checkmate
-#' @noRd
-gaussQuadInt <- function(L,
-                         U,
-                         order = 7) {
-
-    assertNumber(L)
-    assertNumber(U, lower = L)
-    assertCount(order)
-
-
-    out <- gauss.quad(order) # GL is the default
-    w <- out$weights
-    x <- out$nodes
-    weights <- 0.5 * (U - L) * w
-    nodes <- 0.5 * (U + L) + 0.5 * (U - L) * x
-    return(list(weights = weights, nodes = nodes))
-}
-
-
-#' Build matrix of weight for integration.
-#'
-#' @param weight TODO
-#' @param N_int
-#'
-#' @import checkmate
-#'
-#' @noRd
-build_weight_matrix <- function(weight, N_int) {
-
-    assertNumeric(weight)
-    assertCount(N_int)
-
-    N_sub <- length(weight)
-    ct <- ceiling(
-        matrix(rep(1:(N_sub * N_int), N_int), ncol = N_int, nrow = N_int * N_sub)
-        / N_sub
-    )
-
-    ct2 <- t(matrix(rep(1:N_int, N_int * N_sub),
-                    ncol = N_int * N_sub, nrow = N_int
-    ))
-    ind <- 0 * ct
-    ind[ct == ct2] <- 1
-    for (k in 1:N_int) {
-        ind[which(ind[, k] == 1), k] <- weight
-    }
-
-    return(ind)
 }

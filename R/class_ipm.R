@@ -60,8 +60,8 @@ validate_ipm <- function(x){
     }
 
     # check the IPM part ####
-    assertList(values$IPM, types = c("dtCMatrix", "dgCMatrix", "ddiMatrix"),
-               any.missing = FALSE, min.len = 1)
+    # assertList(values$IPM, types = c("dtCMatrix", "dgCMatrix", "ddiMatrix"),
+               # any.missing = FALSE, min.len = 1)
     # check other values ####
     assertNumeric(values$BA, lower = 0, any.missing = FALSE, min.len = 1)
     assertNumeric(values$mesh, lower = 0, any.missing = FALSE,
