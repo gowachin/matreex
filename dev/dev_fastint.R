@@ -11,17 +11,6 @@ require(tidyr)
 #(at any BA, any climatic conditions, ...) without any additional computer cost
 # One potential drawback : we do not integrate anymore on the size at the first time-step,
 # can be fixed but need more time and be sure it's valuable
-gaussQuadInt <- function(L,
-                         U,
-                         order=7) {
-    require(statmod)
-    out <- gauss.quad(order) # GL is the default
-    w <- out$weights; x <- out$nodes
-    weights <- 0.5 * (U - L) * w
-    nodes <- 0.5 * (U + L) + 0.5 * (U - L) * x
-    return(list(weights = weights, nodes = nodes))
-}
-
 
 fit <- function(d_x1_x, mu, sig){
     out <- rep(0, length.out = length(d_x1_x))
@@ -57,14 +46,24 @@ getInt <- function(mu,
 getTabGrowth <- function(minMu=-4,
                          maxMu=3,
                          stepMu=1e-3,
-                         spsel='Picea abies',
+                         species='Picea_abies',
                          level=120,
                          IntTotal=300){
-    fi <- readRDS(paste0('~/Documents/IPM/full_ipm/output/New100/fit_sgr_all_', spsel, '.Rds'))
-    Sig <- fi[[1]]$rec$sigma
+    # TEMP dev
+    minMu=-4
+    maxMu=3
+    stepMu=1e-3
+    species='Picea_abies'
+    level=120
+    IntTotal=300
+    # TEMP dev
+
+    data(list = paste0("fit_", species))
+    fi <- eval(parse(text=paste0("fit_", species)))
+    Sig <- fi$gr$sigma
     m_size <- 700
     L <- 90
-    U <- 1.1 * fi[[1]]$maxDBH
+    U <- as.numeric(fi$info[["max_dbh"]]) * 1.1
     h <- (U - L) / m_size
     mesh <- seq(0, (IntTotal)*h, by=h)
     tabMu <- seq(minMu, maxMu, by=stepMu)
@@ -73,6 +72,9 @@ getTabGrowth <- function(minMu=-4,
     TabGrowth <- rbind((1-apply(TT, 2, sum)), TT)
     return(t(TabGrowth))
 }
+
+
+x <- getTabGrowth()
 
 # return the line in TabGrowth corresponding to the argument mu
 LinkMuLine <- function(mu,
@@ -97,47 +99,40 @@ getIPM <- function(mumesh,
 #################################
 ####### Get the range of mu values
 #################################
-getMaxMinmu <- function(spsel='Picea abies',
-                        Nmodel=1){
-    print(spsel)
-    meshSize <- seq(90, 900, by=10)
-    fi <- readRDS(paste0('~/Documents/IPM/full_ipm/output/New100/fit_sgr_all_', spsel, '.Rds'))
-    da <- readRDS(paste0('~/Documents/IPM/full_ipm/output/New100/data_plots_pred_', spsel, '.Rds'))
+getRangemu <- function(species='Picea_abies'){
+
+    mesh_x <- seq(90, 900, by=10)
+    BA <- seq(0, 200, by = 10)
+    data(list = paste0("fit_", species))
+    fit <- eval(parse(text=paste0("fit_", species)))
+    data("climate_species")
+    climate_species <- subset(climate_species, sp == species, select = -sp)
+
+    fres <- data.frame(sp = species,
+                       min = 1:3, max = 1:3, sig = fit$gr$sigma)
     for (Nc in 1:3){
-        da1 <- pivot_longer(dplyr::select(filter(da, N==Nc), -N, -SDM, -PC1, -PC2), sgdd:sgdd2)
-        sig <- fi[[Nmodel]]$gr$sigma
-        params <- fi[[Nmodel]]$gr$params_m
-        params <- data.frame(name=names(params), Val=as.numeric(params))
-        Interact <- sum(grepl(':', params$name)) == 0
-        minmu <- 100
-        maxmu <- -100
-        for (iBA in seq(0, 200, by=10)){
-            da1i <- rbind(da1, data.frame(name='BATOTcomp', value=iBA))
-            if (Interact==FALSE){
-                par <- mutate(params, name1=str_split(name, ':', simplify=TRUE)[,1],
-                              name2=str_split(name, ':', simplify=TRUE)[, 2]) %>%
-                    left_join(da1i, by=c('name1'='name')) %>% left_join(da1i, by=c('name2'='name'))
-            }else{
-                par <- mutate(params, name1=str_split(name, ':', simplify=TRUE)[,1]) %>%
-                    left_join(da1i, by=c('name1'='name'))
-                names(par)[4] <- 'value.x'
-                par <- mutate(par, value.y=NA)
-            }
-            par$value.x[is.na(par$value.x)] <- 1
-            par$value.y[is.na(par$value.y)] <- 1
-            Size <- filter(par, grepl('size', name)) %>% filter(!grepl('logsize', name))
-            IntSize <- sum(Size$Val*Size$value.x*Size$value.y)
-            LogSize <- filter(par, grepl('logsize', name))
-            IntLogSize <- sum(LogSize$Val*LogSize$value.x*LogSize$value.y)
-            Int <- filter(par, !grepl('size', name))
-            IntInt <- sum(Int$Val*Int$value.x*Int$value.y)
-            mu <- IntInt + IntSize*meshSize + IntLogSize*log(meshSize)
-            minmu <- min(c(minmu, mu))
-            maxmu <- max(c(maxmu, mu))
+        climate <- subset(climate_species, N == Nc, select = -N)
+        climate <- drop(as.matrix(climate)) # we need it as a vector.
+        list_covs <- c(climate, BATOTcomp = 0)
+
+        res <- matrix(ncol = 2, nrow = length(BA))
+
+        for (iBA in seq_along(BA)){
+
+            list_covs["BATOTcomp"] <- BA[iBA]
+
+            grFun <- exp_sizeFun(fit$gr$params_m, list_covs)
+            mu <- grFun(mesh_x)
+
+            res[iBA,] <- range(mu)
         }
+        fres[Nc, 2:3] <- c(min(res[,1]), max(res[,2]))
+
     }
-    return(data.frame(sp=spsel, minmu=minmu, maxmu=maxmu, sig=sig))
+    return(fres)
 }
+
+getRangemu()
 
 F <- function(spsel){
     cl <- makeForkCluster(5)
