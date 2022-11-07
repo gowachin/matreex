@@ -221,4 +221,5 @@ x$mutrix %>%
     NULL
 
 x$mutrix[4000, 40] # why is it 0 ? So smoll values ?
+# let's find out tomorrow
 
