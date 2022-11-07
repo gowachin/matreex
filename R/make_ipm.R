@@ -90,7 +90,9 @@ make_IPM <- function(species,
     assertNumeric(BA, lower = 0, upper = 200)
     correction <- match.arg(correction)
     assertCount(level)
-    assertNumeric(diag_tresh,any.missing = FALSE, len = 1)
+    assertNumber(diag_tresh)
+    assertNumber(midbin_tresh)
+    assertCount(mid_level)
     assertLogical(IsSurv, len = 1)
     assertCount(year_delta)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
@@ -319,7 +321,7 @@ make_IPM <- function(species,
 #' @param N_int Number of cells to integrate on. single dbl.
 #' @param Level Number of point to use for integration in a cell during
 #' mid bin integration.
-#' @param year_delta Number of year between 2 obersavtion when using this model.
+#' @param year_delta Number of year between 2 observation when using this model.
 #' default 1, single int. NOTE : value for dev usage only !
 #'
 #' @importFrom stats dnorm
