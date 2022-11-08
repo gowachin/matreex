@@ -93,8 +93,8 @@ make_IPM <- function(species,
     assertNumber(diag_tresh)
     assertNumber(midbin_tresh)
     assertCount(mid_level)
-    assertLogical(IsSurv, len = 1)
     assertCount(year_delta)
+    assertLogical(IsSurv, len = 1)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
@@ -302,7 +302,8 @@ make_IPM <- function(species,
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
-            IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
+            # IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
+            IPM = IPM, BA = BA, mesh = seq(L + h / 2, U - h / 2, length.out = m), # IDEA to test diff of old and new IPM
             climatic = climate, clim_lab = clim_lab, rec_params = fit$rec$params_m,
             species = species, compress = FALSE, int_log = int_log
         )

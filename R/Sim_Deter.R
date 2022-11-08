@@ -202,7 +202,7 @@ sim_deter_forest.forest  <- function(Forest,
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
-    delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
+    # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
@@ -364,7 +364,7 @@ sim_deter_forest.forest  <- function(Forest,
 
         ## Get sim IPM ####
         # IDEA make a function for this
-        # input : BAsp, sim_BA, delay, Forest, t
+        # input : BAsp, sim_BA, Forest, t
         # output : sim_ipm
         low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[t]])) )
         high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[t]])) )

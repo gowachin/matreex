@@ -325,6 +325,7 @@ make_mutrix <- function(species,
                         midbin_tresh = 25,
                         mid_level = 5,
                         year_delta = 1, # NOTE reu 3/10 pour le cas ou n est superieur a 1
+                        IsSurv = TRUE,
                         verbose = FALSE) {
 
     # Idiot Proof ####
@@ -364,6 +365,7 @@ make_mutrix <- function(species,
     assertNumber(midbin_tresh)
     assertCount(mid_level)
     assertCount(year_delta)
+    assertLogical(IsSurv, len = 1)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
@@ -396,19 +398,32 @@ make_mutrix <- function(species,
     mu_mesh <- seq(0, (N_int + midbin_tresh)*h, by=h)
     mu_tab <- seq(floor(mu_range["min"]), ceiling(mu_range["max"]), by=stepMu)
 
-    meshQuad <- mu_mesh[1:N_int]
-    outQuad <- gaussQuadInt(-h/2, h/2, level[[2]])
-    meshQuad2 <- outer(meshQuad, outQuad$nodes, '+')
+    # meshQuad <- mu_mesh[1:N_int]
+    # build weight for GL integration on the two dim
+    out1 <- gaussQuadInt(-h / 2, h / 2, level[[1]]) # For x integration
+    weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
+    out2 <- gaussQuadInt(-h / 2, h / 2, level[[2]]) # For x1 integration
+    if(N_int > 0){
+        WMat <- t(build_weight_matrix(out2$weights, N_int))
+    }
+    # meshQuad2 <- outer(meshQuad, out2$nodes, '+')
+    # Create matrix for GL integration on dimension level
+    # mesh_x1B <- outer(out2$nodes, 0:(N_int - 1) * h, "+") # HACK faster and clean
+    mesh_x1B <- as.vector(outer(
+        out2$nodes, seq(0, (N_int - 1) * h, length.out = N_int), "+"
+    ))
+    mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
+    mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
+    mesh_x1C <- mesh_x1B - out1$nodes[3]
 
-    meshMid <- seq(mu_mesh[(N_int+1+(N_int > 0))] - h/2,
-                   mu_mesh[N_int + midbin_tresh +(N_int > 0)] + h/2,
+    meshMid <- seq(mu_mesh[(N_int + (N_int > 0))] - h/2,
+                   mu_mesh[N_int + (N_int > 0) + midbin_tresh -1 ] + h/2,
                    by=h/mid_level)[-1]
-    ca <- factor(rep(1:N_int, each = mid_level))
+    ca <- factor(rep(1:midbin_tresh, each = mid_level))
     ca <- .Internal(split(1:length(meshMid), ca))
 
     # empty matrix
-    Mutrix <- matrix(0, ncol = N_int + midbin_tresh, nrow = length(mu_tab))
-
+    Mutrix <- matrix(0, ncol = N_int + (N_int > 0) + midbin_tresh - 1, nrow = length(mu_tab))
     # Functions ####
     ### Growth
     svlink <- fit$sv$family$linkinv
@@ -446,10 +461,17 @@ make_mutrix <- function(species,
         }
 
         ## Gauss-Legendre ####
-        tt <- vapply(meshQuad2, FUN = temp, mu = mu_tab[mu], sig = sig_gr,
-                     year_delta = year_delta, numeric(1))
-        tt <- structure(tt, dim = dim(meshQuad2))
-        ValQuad <- tt %*% outQuad$weights
+    #     tt <- vapply(meshQuad2, FUN = temp, mu = mu_tab[mu], sig = sig_gr, # old way
+    #                  year_delta = year_delta, numeric(1))
+    #     tt <- structure(tt, dim = dim(meshQuad2))
+    #     ValQuad <- tt %*% out2$weights
+        if(N_int > 0){
+            P_LG <- outer(mesh_x1A, mu_tab[mu], "temp", sig_gr, year_delta) * weights1[1] +
+                outer(mesh_x1B, mu_tab[mu], "temp", sig_gr, year_delta) * weights1[2] +
+                outer(mesh_x1C, mu_tab[mu], "temp", sig_gr, year_delta) * weights1[3]
+
+            ValQuad <- WMat %*% P_LG
+        }
         ## Midbin
         tt <- sapply(meshMid, temp, mu = mu, sig = sig_gr) * h / mid_level
         ValMid <- unlist(lapply(ca, function(i) sum(tt[i])))
@@ -466,13 +488,20 @@ make_mutrix <- function(species,
             " ", attr(tmp, "units")
         )
     }
+
     # res <- validate_mutrix( # TODO validate_mutrix
     res <- new_mutrix(
-            mutrix = Mutrix, BA = BA, mesh = mu_mesh, mu_tab = mu_tab,
-            fit = fit, species = species, correction = correction
+            mutrix = Mutrix, BA = BA,
+            # mesh = seq(L, U, length.out = m),
+            mesh = seq(L + h / 2, U - h / 2, length.out = m),
+            mu_tab = mu_tab, mu_step = stepMu,
+            fit = fit, species = species, correction = correction,
+            surv = IsSurv,
+            int = c(gl1 = level[[1]], gl2 = level[[2]],
+                    gl_tresh = N_int, mb_tresh = midbin_tresh,
+                    mid_level = mid_level, year_delta = year_delta)
         )
     # )
-
     return(res)
 }
 
@@ -480,8 +509,9 @@ make_mutrix <- function(species,
 #'
 #' @param mutrix Matrix of computed mesh values along a mu gradient.
 #' @param BA values of BA used to get the range of mu for this species. num.
-#' @param mesh mesh of Delta size t-1 and size t. This mesh is lower
-#' than the full mesh because we do not inegrate the full matrix. num
+#' @param mesh vector of mesh variables. m is the number of bins, L is the
+#' minimum size and U the maximum size. h will be defined in the function as
+#' \eqn{h <- (U - L) / m}.
 #' @param mu_tab Mu values for which the values are computed. Each row of mutrix
 #' matrix is for a given mu.
 #' @param fit fit_sgr model for survival growth and recruitment for the given
@@ -490,11 +520,15 @@ make_mutrix <- function(species,
 #' @param correction IPM correction wanted for this species. Single char.
 #'
 #' @export
-new_mutrix <- function(mutrix, BA, mesh, mu_tab, fit, species, correction){
+new_mutrix <- function(mutrix, BA, mesh, mu_tab, mu_step,
+                       fit, species, correction, surv = TRUE, int){
 
-    mutrix <- list(mutrix = mutrix, BA = BA, mesh = mesh, mu_tab = mu_tab,
-                   fit = fit,
-                   info = c(species = species, correction = correction))
+    mutrix <- list(mutrix = mutrix, BA = BA, mesh = mesh,
+                   mu_tab = mu_tab,
+                   sv = fit$sv, gr = fit$gr, rec = fit$rec,
+                   info = c(species = species, correction = correction,
+                            clim_lab = "mutrix", step = mu_step, surv = surv),
+                   int = int)
 
     class(mutrix) <- "mutrix"
 
@@ -549,3 +583,177 @@ getRangemu <- function(climate,
 
   return(range)
 }
+
+#' Constructor for species class
+#'
+#' Only used in the treeforce package
+#'
+#' @param IPM ipm class object from the treeforce package.
+#' @param init_pop Function to initiate the population at simulation start.
+#' Arguments must be \code{mesh} and \code{SurfEch}.
+#' Using the arguments is not mandatory, it's most useful when creating random
+#' population.
+#' @param harvest_fun Function to impact the population with harvest rule.
+#' Argument must be \code{x}, \code{species},  \code{harv_rule},
+#' \code{BAtarget}, \code{ct} and \code{t}.
+#' Should return a population state as it's take it in input, with less
+#' population than before. Unless you want zombie trees. It represent the
+#' distribution of the population to harvest
+#' @param harv_lim Limits of harvest for a population size distribution.
+#' \describe{
+#'   \item{dth}{minimum diameter at which we cut the size distribution}
+#'   \item{dha}{harvest diameter}
+#'   \item{hmax}{maximum harvest rate for a size class}
+#' }
+#' @param rdi_coef Coefficient for RDI curve used in even harvest.
+#' The model require the intercept and slope.
+#'
+#' @keywords internal
+#' @export
+mu_species <- function(IPM, init_pop,
+                        harvest_fun,
+                        harv_lim = c(dth = 175, dha = 575, hmax = 1),
+                        rdi_coef = NULL
+){
+    # TODO merge with new species ? method ?
+    if(inherits(IPM, "IPM")){
+        rec <- exp_recFun(params = IPM$rec$params_m,
+                          list_covs = IPM$climatic)
+    } else if(inherits(IPM, "mutrix")){
+        rec <- "to define"
+    } else {
+        stop("this case is not yet implemented.")
+    }
+
+    species <- list(
+        IPM = IPM, init_pop = init_pop,
+        harvest_fun = harvest_fun, harv_lim = harv_lim,
+        rdi_coef = rdi_coef,
+        recruit_fun = rec,
+        info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
+    )
+
+    class(species) <- "species"
+
+    return(species)
+}
+
+#' @method sp_name mutrix
+#' @export
+sp_name.mutrix <- function(x){
+    return(unname(x$info["species"]))
+}
+
+#' @method climatic mutrix
+#' @export
+climatic.mutrix <- function(x){
+
+    res <- unname(x$info["clim_lab"])
+    return(res)
+}
+
+#' @param species species class object
+#' @param BA BA value to get an IPM or mutrix matrix element for.
+#'
+#' @keywords Internal
+get_step_IPM <- function(mutrix, BA, climate, verbose = FALSE){
+
+    # Idiot Proof ####
+    assertClass(mutrix, "mutrix")
+    assertNumber(BA, lower = 0, upper = 200)
+    assertNumeric(climate, any.missing = FALSE)
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    # profvis::profvis({
+    start <- Sys.time()
+
+    list_covs <- c(climate, BATOTcomp = BA)
+    IPM <- vector("list", length(BA))
+
+    # # Precomput constant ####
+    m <- length(mutrix$mesh)
+    U <- mutrix$mesh[[m]]
+    L <- mutrix$mesh[[1]]
+    h <- (U - L) / m
+    IsSurv <- as.logical(mutrix$info["surv"])
+    correction <- mutrix$info["correction"]
+    x_level <- mutrix$int["gl1"]
+    year_delta <- mutrix$int["year_delta"]
+    #
+    # build weight for GL integration on the two dim
+    out1 <- gaussQuadInt(-h / 2, h / 2, x_level) # For x integration
+    weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
+    mesh_x <- mutrix$mesh
+    mesh_sv <- outer(mesh_x, out1$nodes, "+")
+
+    # empty matrix
+    P <- matrix(0, ncol = m, nrow = m)
+
+    ## Functions ####
+    ### Growth
+    svlink <- mutrix$sv$family$linkinv
+    sig_gr <- mutrix$gr$sigma
+    ### Survival
+    if(!IsSurv) {
+        P_sv <- rep(1, m)
+    }
+
+
+    ## Functions ####
+    grFun <- exp_sizeFun(mutrix$gr$params_m, list_covs)
+    svFun <- exp_sizeFun(mutrix$sv$params_m, list_covs)
+    mu_gr <- grFun(mesh_x)
+    if (IsSurv) {
+        P_sv <- svlink(svFun(mesh_sv))
+        P_sv <- colSums(t(P_sv) * weights1) # alt works with integration > 3
+        P_sv <- 1 - P_sv
+        # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+        P_sv <- P_sv ^ year_delta
+    }
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    ## extract MU ####
+    # IDEA round by mu step ???
+    index <- findInterval(mu_gr, mutrix$mu_tab)
+    P_LG <- t(mutrix$mutrix[index, ])
+    P <- sub_diag(P, P_LG, dist = 0)
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    ## Correction ####
+    if (correction == "none") { # Based on IPMpack
+        P <- t(t(P) * P_sv)
+    } else if (correction == "constant") { # Based on IPMpack
+        nvals <- colSums(P)
+        P <- t((t(P) / nvals))
+        P <- P * P_sv
+    } else if (correction == "sizeExtremes") { # Based on IPMpack
+        selectsize_t <- (N_int + 0:(m - 1)) > m
+        DiffNvals <- pmax(1 - colSums(P), 0)
+        P[m, selectsize_t] <- P[m, selectsize_t] + DiffNvals[selectsize_t]
+        P <- t(t(P) * P_sv)
+    } else if (correction == "ceiling") {
+        # Based on Williams et al. 2012 Ecology integral towards
+        # infinity is not explicitely calculated
+        P_sv_U <- svlink(svFun(U + out1$nodes))
+        P_sv_U <- 1 - sum(P_sv_U * weights1)
+        nvals <- colSums(P)
+        P <- rbind(P, pmax((1 - nvals), 0))
+        P <- cbind(P, c(rep(0, m), 1))
+        P <- t(t(P) * c(P_sv, P_sv_U))
+    }
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+    # Format ####
+    ## Matrix and exp ####
+    res <- Matrix(P, sparse = TRUE)
+
+    if (verbose) {
+        tmp <- Sys.time() - start
+        message(
+            "Time difference of ", format(unclass(tmp), digits = 3),
+            " ", attr(tmp, "units")
+        )
+    }
+    # }, interval = 0.0001)
+
+    return(res)
+}
+
+
+

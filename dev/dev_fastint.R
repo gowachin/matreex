@@ -26,17 +26,17 @@ getInt <- function(mu,
                    IntQuad=30,
                    IntTotal=300){
 
-    # TEMP dev
-    mu <- 0
-    sig <- 0.6
-    h <- 2
-    mesh <- seq(0, 16, by = h)
-    level=120
-    IntQuad=3
-    IntTotal= 8
-    Level <- 5
-    N_int <- 5
-    # TEMP dev
+    # # TEMP dev
+    # mu <- 0
+    # sig <- 0.6
+    # h <- 2
+    # mesh <- seq(0, 16, by = h)
+    # level=120
+    # IntQuad=3
+    # IntTotal= 8
+    # Level <- 5
+    # N_int <- 5
+    # # TEMP dev
 
     meshQuad <- mesh[1:IntQuad]
     outQuad <- gaussQuadInt(-h/2, h/2, floor(level/3))
@@ -77,14 +77,14 @@ getTabGrowth <- function(minMu=-4,
                          species='Picea_abies',
                          level=120,
                          IntTotal=300){
-    # TEMP dev
-    minMu=-4
-    maxMu=3
-    stepMu=1e-3
-    species='Picea_abies'
-    level=120
-    IntTotal=300
-    # TEMP dev
+    # # TEMP dev
+    # minMu=-4
+    # maxMu=3
+    # stepMu=1e-3
+    # species='Picea_abies'
+    # level=120
+    # IntTotal=300
+    # # TEMP dev
 
     data(list = paste0("fit_", species))
     fit <- eval(parse(text=paste0("fit_", species)))
@@ -96,14 +96,14 @@ getTabGrowth <- function(minMu=-4,
     mesh <- seq(0, (IntTotal)*h, by=h)
     mu_tab <- seq(minMu, maxMu, by=stepMu)
 
-    tic()
+    # tic()
     tmp <- lapply(mu_tab, getInt, sig = sig_gr, mesh = mesh[-1],
                   level = level, IntQuad = 30, IntTotal = IntTotal)
-    toc() # 32 sec
-    tic()
-    test <- map(mu_tab, ~ getInt(.x, sig = sig_gr, mesh = mesh[-1],
-                                level = level, IntQuad = 30, IntTotal = IntTotal))
-    toc()
+    # toc() # 32 sec
+    # tic()
+    # test <- map(mu_tab, ~ getInt(.x, sig = sig_gr, mesh = mesh[-1],
+    #                             level = level, IntQuad = 30, IntTotal = IntTotal))
+    # toc()
 
     TabGrowth <- t(do.call(rbind, tmp))
     # TabGrowth <- rbind((1-apply(TT, 2, sum)), TT) # FIXME what is TT ??
@@ -111,7 +111,7 @@ getTabGrowth <- function(minMu=-4,
 }
 
 
-x <- getTabGrowth()
+# x <- getTabGrowth()
 
 # return the line in TabGrowth corresponding to the argument mu
 LinkMuLine <- function(mu,
@@ -199,27 +199,36 @@ G <- function(){
 
 
 # Testing personnal function ####
-
+library(ggplot2)
 load_all()
-x <- make_mutrix(species = "Abies_alba", fit_Abies_alba, verbose = TRUE)
-# Mu range done
-# Launching mu computation loop
-# GL integration occur on 25 cells
-# midbin integration occur on 25 cells
-# Loop done.
-# Time difference of 2.45 mins
-
+rm(list = ls())
+x <- make_mutrix(species = "Picea_abies", fit_Picea_abies,
+                 mesh = c(m = 700, L = 90,
+                          U = as.numeric(fit_Picea_abies$info["max_dbh"]) * 1.1),
+                 verbose = TRUE, stepMu = 0.001)
+IPM <- old_ipm2ipm(species = "Picea_abies", climatic = 2)
+fit_Picea_abies
 lobstr::obj_size(x) # 2.87 MB
 
-# take as long as integration but is less dense.
-x$mutrix %>%
-    reshape2::melt() %>%
-    ggplot(aes(x = Var1, y = Var2, fill = log(value))) +
-    geom_tile() +
-    scale_fill_viridis_c(na.value="transparent") +
-    theme_dark() +
-    NULL
+mu_Picea <- mu_species(IPM = x,
+                        init_pop = def_initBA(15), harvest_fun = def_harv)
 
-x$mutrix[4000, 40] # why is it 0 ? So smoll values ?
-# let's find out tomorrow
+climate <- subset(climate_species, sp == "Picea_abies" & N ==2, select = -c(N, sp))
+climate <- drop(as.matrix(climate))
+BA <- 20
+species <- mu_Picea
+mutrix <- x
+verbose = TRUE
+
+load_all()
+test <- get_step_IPM(mutrix = x, BA = 20, climate = climate, verbose = TRUE)
+
+max(abs((IPM$IPM[[20]] * 1e-7) - test))
+(IPM$IPM[[20]] * 1e-7)[1:5, 1:5]
+test[1:5, 1:5]
+
+
+microbenchmark::microbenchmark(
+    o = get_step_IPM(mutrix = x, BA = 20, climate = climate, verbose = TRUE)
+)
 
