@@ -155,7 +155,7 @@ sim_deter_forest.forest  <- function(Forest,
     # TEMP dev
 
     # Idiot Proof ####
-    validate_forest(Forest)
+    # validate_forest(Forest) # TEMP dev
     assertCount(tlim)
     assertCount(equil_dist)
     assertNumber(equil_diff)
@@ -171,6 +171,19 @@ sim_deter_forest.forest  <- function(Forest,
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
+
+
+    # TODO : add climatic table as input
+    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
+                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
+                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
+    )
+    # TEMP dev
+
+    ipms <- map_lgl(Forest$species, ~ inherits(.x$IPM, "mutrix"))
+    if(any(ipms & missing(climate))){
+        stop("Mutrix species require climatic vector.")
+    }
 
     start <- Sys.time()
 
@@ -190,7 +203,6 @@ sim_deter_forest.forest  <- function(Forest,
         names(res) <- names(mesh)
         return(res)
     }
-
     nsp <- length(Forest$species)
 
     ## Modify IPM ####
@@ -220,6 +232,8 @@ sim_deter_forest.forest  <- function(Forest,
     Harv <- map(lengths(meshs), ~ rep(0, .x))
     ct <- map(meshs, Buildct, SurfEch = SurfEch)
 
+    # browser()
+
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
@@ -241,22 +255,14 @@ sim_deter_forest.forest  <- function(Forest,
         ))
     }
 
+    # browser() # WORKING HERE
+    #' change how we get the IPM for normal and mutrix species !
+    #' with a new function that is a method.
     # Create sim IPM ####
 
-    low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[1]])) )
-    high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[1]])) )
-    lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
-    higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
-
-    low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
-    high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
-
-    sim_ipm <- lapply(
-        seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-            low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
-                high_ba[[i]] * ( floor(ba)  - nipm[i] )
-        }, low_ba, high_ba, sim_BA[1], lower_ba
-    )
+    sim_ipm <- map(Forest$species, ~ get_step_IPM(
+        x = .x$IPM, BA = sim_BA[1], climate = climate, sim_corr = correction
+    ))
 
     if (verbose) {
         message("Starting while loop. Maximum t = ", equil_time)
@@ -328,8 +334,11 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         ### Recruitment ####
+        # browser() # TODO change climate along time here
+        rec <- map(Forest$species, sp_rec.species, climate)
+
         recrues <- imap(
-            map(Forest$species, `[[`, "recruit_fun"),
+            rec,
             function(x, .y, basp, banonsp, mesh, SurfEch){
                 exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
@@ -362,27 +371,30 @@ sim_deter_forest.forest  <- function(Forest,
             break()
         }
 
-        ## Get sim IPM ####
-        # IDEA make a function for this
-        # input : BAsp, sim_BA, Forest, t
-        # output : sim_ipm
-        low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[t]])) )
-        high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[t]])) )
-        lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
-        higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
-
-        low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
-        high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
-
-        sim_ipm <- lapply(
-            # NOTE : bottleneck of the function because of sum of sparse matrix !
-            # But using as.matrix is even longer so long live the sparse matrix !
-            seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-                low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
-                    high_ba[[i]] * ( floor(ba)  - nipm[i] )
-            }, low_ba, high_ba, sim_BA[t], lower_ba
-        )
-        # eof idea
+        # ## Get sim IPM ####
+        # # IDEA make a function for this
+        # # input : BAsp, sim_BA, Forest, t
+        # # output : sim_ipm
+        # low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[t]])) )
+        # high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[t]])) )
+        # lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
+        # higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
+        #
+        # low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
+        # high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
+        #
+        # sim_ipm <- lapply(
+        #     # NOTE : bottleneck of the function because of sum of sparse matrix !
+        #     # But using as.matrix is even longer so long live the sparse matrix !
+        #     seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
+        #         low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
+        #             high_ba[[i]] * ( floor(ba)  - nipm[i] )
+        #     }, low_ba, high_ba, sim_BA[t], lower_ba
+        # )
+        # # eof idea
+        sim_ipm <- map(Forest$species, ~ get_step_IPM(
+            x = .x$IPM, BA = sim_BA[t], climate = climate, sim_corr = correction
+        ))
 
         ## Loop Verbose ####
         if (t %% 500 == 0 && verbose) {

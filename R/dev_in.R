@@ -652,11 +652,49 @@ climatic.mutrix <- function(x){
     return(res)
 }
 
-#' @param species species class object
+#' @param x IPM or mutrix class object.
 #' @param BA BA value to get an IPM or mutrix matrix element for.
 #'
-#' @keywords Internal
-get_step_IPM <- function(mutrix, BA, climate, verbose = FALSE){
+#' @export
+get_step_IPM <- function(x, ...){
+    UseMethod("get_step_IPM")
+}
+
+#' @method get_step_IPM ipm
+#' @export
+get_step_IPM.ipm <- function(x, ...){
+
+    dots <- list(...)
+    ipm <- x
+    BA <- dots$BA
+
+    # Idiot Proof ####
+    assertClass(ipm, "ipm")
+    assertNumber(BA, lower = 0, upper = 200)
+    # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
+
+    # # Precomput constant ####
+    BAsp <- ipm$BA
+
+    low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
+    high_id <- which(BAsp == min(BAsp[BAsp > BA]))
+
+    delta <- diff(BAsp[c(low_id, high_id)])
+    w <- (BA - BAsp[low_id]) / delta
+
+    res <- ipm$IPM[[low_id]] * (1  - w) + ipm$IPM[[high_id]] * w
+    return(res)
+}
+
+#' @method get_step_IPM mutrix
+#' @export
+get_step_IPM.mutrix <- function(x, ...){
+
+    dots <- list(...)
+    mutrix <- x
+    BA <- dots$BA
+    climate <- dots$climate
+    sim_corr <- dots$sim_corr
 
     # Idiot Proof ####
     assertClass(mutrix, "mutrix")
@@ -664,8 +702,6 @@ get_step_IPM <- function(mutrix, BA, climate, verbose = FALSE){
     assertNumeric(climate, any.missing = FALSE)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # profvis::profvis({
-    start <- Sys.time()
-
     list_covs <- c(climate, BATOTcomp = BA)
     IPM <- vector("list", length(BA))
 
@@ -740,20 +776,59 @@ get_step_IPM <- function(mutrix, BA, climate, verbose = FALSE){
     }
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     # Format ####
+    if(sim_corr == "cut"){
+        P[, m] <- 0
+        P[m, ] <- 0
+    }
     ## Matrix and exp ####
     res <- Matrix(P, sparse = TRUE)
 
-    if (verbose) {
-        tmp <- Sys.time() - start
-        message(
-            "Time difference of ", format(unclass(tmp), digits = 3),
-            " ", attr(tmp, "units")
-        )
-    }
     # }, interval = 0.0001)
 
     return(res)
 }
 
+
+#' @method correction mutrix
+#' @export
+correction.mutrix <- function(x, correction = "none"){
+    # nothing to modify here !
+    return(x)
+}
+
+
+
+#' sp recruit
+#'
+#' Get species recruitment function
+#'
+#' @param x an object that require a correction addition
+#'
+#' @name sp_rec
+#'
+#' @export
+sp_rec <- function(x, climatic){
+    UseMethod("sp_rec")
+}
+
+#' @method correction mutrix
+#' @export
+sp_rec.mutrix <- function(x, climatic){
+
+    res <- exp_recFun(params = x$rec$params_m, list_covs = climatic)
+    return(res)
+}
+
+#' @method correction species
+#' @export
+sp_rec.species <- function(x, climatic){
+
+    if(inherits(x$IPM, "ipm")){
+        res <- x$recruit_fun
+    } else {
+        res <- sp_rec(x$IPM, climatic)
+    }
+    return(res)
+}
 
 

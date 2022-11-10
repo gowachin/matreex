@@ -206,29 +206,71 @@ x <- make_mutrix(species = "Picea_abies", fit_Picea_abies,
                  mesh = c(m = 700, L = 90,
                           U = as.numeric(fit_Picea_abies$info["max_dbh"]) * 1.1),
                  verbose = TRUE, stepMu = 0.001)
-IPM <- old_ipm2ipm(species = "Picea_abies", climatic = 2)
-fit_Picea_abies
+# fit_Picea_abies
 lobstr::obj_size(x) # 2.87 MB
 
 mu_Picea <- mu_species(IPM = x,
-                        init_pop = def_initBA(15), harvest_fun = def_harv)
+                        init_pop = def_initBA(20), harvest_fun = def_harv)
+# mu_Picea$info["species"] <- "mPicea_abies"
 
 climate <- subset(climate_species, sp == "Picea_abies" & N ==2, select = -c(N, sp))
 climate <- drop(as.matrix(climate))
-BA <- 20
-species <- mu_Picea
-mutrix <- x
-verbose = TRUE
+# BA <- 20 ; species <- mu_Picea ; mutrix <- x ; verbose = TRUE
+# load_all()
+test <- get_step_IPM.mutrix(x = x, BA = 20, climate = climate, sim_corr = "cut")
 
-load_all()
-test <- get_step_IPM(mutrix = x, BA = 20, climate = climate, verbose = TRUE)
+# IPM <- old_ipm2ipm(species = "Picea_abies", climatic = 2)
+# max(abs((IPM$IPM[[20]] * 1e-7) - test))
+# (IPM$IPM[[20]] * 1e-7)[1:5, 1:5]
+# test[1:5, 1:5]
+# microbenchmark::microbenchmark(
+#     o = get_step_IPM(x = x, BA = 20, climate = climate, sim_corr = "cut")
+# )
 
-max(abs((IPM$IPM[[20]] * 1e-7) - test))
-(IPM$IPM[[20]] * 1e-7)[1:5, 1:5]
-test[1:5, 1:5]
+# working in sim deter
+spsel <- "Picea_abies"
+climate <- subset(climate_species, sp == spsel & N == 2, select = -sp)
+climate <- drop(as.matrix(climate))
 
-
-microbenchmark::microbenchmark(
-    o = get_step_IPM(mutrix = x, BA = 20, climate = climate, verbose = TRUE)
+Picea_ipm <- make_IPM("Picea_abies", climate, "opt_clim", fit_Picea_abies,
+                    mesh = c(m = 700, L = 90,
+                             U = as.numeric(fit_Picea_abies$info["max_dbh"]) * 1.1),
+                    BA = 0:200, verbose = TRUE
 )
+Picea <- species(Picea_ipm, init_pop = def_initBA(20), harvest_fun = def_harv)
+
+forest <- new_forest(species = list(mu_Picea = mu_Picea))
+time <- 1000
+load_all()
+set.seed(42)
+memor_mu <- sim_deter_forest(forest, tlim = time, equil_dist = time, equil_time = time,
+                      verbose = TRUE, correction = "none") %>%
+    tree_format()
+# 27.1 sec
+forest <- new_forest(species = list(Picea = Picea))
+# TODO modify the validate_species !
+set.seed(42)
+memor <- sim_deter_forest(forest, tlim = time, equil_dist = time, equil_time = time,
+                             verbose = TRUE, correction = "none") %>%
+    tree_format()
+# 3.42 sec
+e_memor <- bind_rows(ipm = memor, mu = memor_mu, .id = "meth")
+
+e_memor %>%
+    filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
+    # dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = value, color = meth)) +
+    facet_wrap(meth ~ var, scales = "free_y") +
+    geom_line(size = .4, linetype = "dotted") +
+    geom_point(size = .4) +
+    NULL
+
+
+e_memor %>%
+    filter(var %in% c("BAsp"), ! equil) %>%
+    group_by(time) %>% summarise(value = diff(value)) %>%
+    ggplot(aes(x = time, y = value)) +
+    geom_line(size = .4, linetype = "dotted") +
+    geom_point(size = .4) +
+    NULL
 
