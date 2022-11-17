@@ -42,7 +42,8 @@ Authors@R: c(person(given = "Georges",
               )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
-Imports: checkmate,
+Imports: 
+    checkmate,
     Matrix,
     here,
     dplyr,
@@ -69,3 +70,4 @@ Suggests:
     magrittr
 Config/testthat/edition: 3
 VignetteBuilder: knitr
+

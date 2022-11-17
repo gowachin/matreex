@@ -673,7 +673,6 @@ get_step_IPM.ipm <- function(x, ...){
     assertNumber(BA, lower = 0, upper = 200)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
-    # # Precomput constant ####
     BAsp <- ipm$BA
 
     low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
@@ -696,6 +695,15 @@ get_step_IPM.mutrix <- function(x, ...){
     climate <- dots$climate
     sim_corr <- dots$sim_corr
 
+
+    # # TEMP dev
+    # mutrix <- x
+    # BA <- 20
+    # sim_corr <- "cut"
+    # # TEMP dev
+
+
+    # profvis::profvis({
     # Idiot Proof ####
     assertClass(mutrix, "mutrix")
     assertNumber(BA, lower = 0, upper = 200)
@@ -720,9 +728,8 @@ get_step_IPM.mutrix <- function(x, ...){
     weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
     mesh_x <- mutrix$mesh
     mesh_sv <- outer(mesh_x, out1$nodes, "+")
-
     # empty matrix
-    P <- matrix(0, ncol = m, nrow = m)
+    # P <- matrix(0, ncol = m, nrow = m)
 
     ## Functions ####
     ### Growth
@@ -732,8 +739,6 @@ get_step_IPM.mutrix <- function(x, ...){
     if(!IsSurv) {
         P_sv <- rep(1, m)
     }
-
-
     ## Functions ####
     grFun <- exp_sizeFun(mutrix$gr$params_m, list_covs)
     svFun <- exp_sizeFun(mutrix$sv$params_m, list_covs)
@@ -750,15 +755,17 @@ get_step_IPM.mutrix <- function(x, ...){
     # IDEA round by mu step ???
     index <- findInterval(mu_gr, mutrix$mu_tab)
     P_LG <- t(mutrix$mutrix[index, ])
-    P <- sub_diag(P, P_LG, dist = 0)
+    P <- sub_diag(matrix = NULL, P_LG, dist = 0, new = TRUE)
+    # NEW allow to create new matrix in and don' duplicate on modify
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     ## Correction ####
     if (correction == "none") { # Based on IPMpack
         P <- t(t(P) * P_sv)
     } else if (correction == "constant") { # Based on IPMpack
-        nvals <- colSums(P)
-        P <- t((t(P) / nvals))
-        P <- P * P_sv
+        # nvals <- colSums(P)
+        # P <- t((t(P) / nvals))
+        # P <- P * P_sv
+        P <- P / outer( rep(1, m), colSums(P), "*") * P_sv
     } else if (correction == "sizeExtremes") { # Based on IPMpack
         selectsize_t <- (N_int + 0:(m - 1)) > m
         DiffNvals <- pmax(1 - colSums(P), 0)
@@ -782,7 +789,6 @@ get_step_IPM.mutrix <- function(x, ...){
     }
     ## Matrix and exp ####
     res <- Matrix(P, sparse = TRUE)
-
     # }, interval = 0.0001)
 
     return(res)

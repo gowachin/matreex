@@ -147,7 +147,21 @@ sim_deter_forest.forest  <- function(Forest,
                                      correction = "none",
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
+    # browser()
+    # Forest <- forest
+    # tlim = 500
+    # equil_dist = 500
+    # equil_diff = 500
+    # equil_time = 500
+    # harvest = "default"
+    # targetBA = 20
+    # targetRDI = 0.9
+    # targetKg = 0.9
+    # correction = "none"
+    # SurfEch = 0.03
+    # verbose = FALSE
 
+    # profvis::profvis({
     # TEMP dev
     FinalHarvT <- 200
     targetRDI <- map_dbl(Forest$species, ~ targetRDI)
@@ -372,26 +386,6 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         # ## Get sim IPM ####
-        # # IDEA make a function for this
-        # # input : BAsp, sim_BA, Forest, t
-        # # output : sim_ipm
-        # low_id <- map_dbl(BAsp, ~ which(.x == max(.x[.x <= sim_BA[t]])) )
-        # high_id <- map_dbl(BAsp, ~ which(.x == min(.x[.x > sim_BA[t]])) )
-        # lower_ba <- map2_dbl(BAsp, low_id, ~ .x[.y] )
-        # higher_ba <- map2_dbl(BAsp, high_id, ~ .x[.y] )
-        #
-        # low_ba <- map2(Forest$species, low_id, ~ .x$IPM$IPM[[.y]])
-        # high_ba <- map2(Forest$species, high_id, ~ .x$IPM$IPM[[.y]])
-        #
-        # sim_ipm <- lapply(
-        #     # NOTE : bottleneck of the function because of sum of sparse matrix !
-        #     # But using as.matrix is even longer so long live the sparse matrix !
-        #     seq_along(low_ba), function(i, low_ba, high_ba, ba, nipm){
-        #         low_ba[[i]] * (1 - (floor(ba) - nipm[i])) +
-        #             high_ba[[i]] * ( floor(ba)  - nipm[i] )
-        #     }, low_ba, high_ba, sim_BA[t], lower_ba
-        # )
-        # # eof idea
         sim_ipm <- map(Forest$species, ~ get_step_IPM(
             x = .x$IPM, BA = sim_BA[t], climate = climate, sim_corr = correction
         ))
@@ -431,6 +425,7 @@ sim_deter_forest.forest  <- function(Forest,
                 " ", attr(tmp, "units"))
     }
     sim_X <- new_deter_sim(sim_X, mesh = meshs)
+    # })
 
     # Return ####
     return(sim_X)

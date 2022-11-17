@@ -14,7 +14,8 @@ new_ipm(
   rec_params,
   compress = FALSE,
   delay = 0,
-  int_log
+  int_log,
+  correction
 )
 }
 \arguments{

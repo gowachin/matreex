@@ -85,7 +85,7 @@ multi <- function(x, df){
         tmp <- call2("*", df$params[df$var1 == x & is.na(df$var2)], xvar)
     }
     res <- call2("<-", ensym(new_name), tmp)
-    res
+    # res
 
     return(res)
 }
@@ -104,6 +104,7 @@ multi <- function(x, df){
 format_fit <- function(params, list_covs){
 
     nms <- names(params)
+    unparams <- unname(params)
     invar <- nms[!nms %in% names(list_covs)]
 
     lc <- c(drop(as.matrix(list_covs)),
@@ -112,14 +113,22 @@ format_fit <- function(params, list_covs){
     x <- sub(":.*$", "", nms)
     y <- sub("^[[:alnum:]]*:?", "", nms)
     y[nchar(y) == 0] <- NA_character_
-    res <- data.frame(var1 = x, var2 = y, params = params,
-                      value.x = lc[x], value.y = lc[y],
-                      row.names = NULL)
-    value.x <- NULL # hack rm the note in devtools::check() about unbinded
-    res <- within(res, {
-        value.y[is.na(value.y)] <- 1
-        K <- params * value.x * value.y
-    })
+
+    vx <- unname(lc[x])
+    vy <- unname(lc[y])
+    vy[is.na(vy)] <- 1
+    K <- unparams * vx * vy
+
+    # res <- data.frame(var1 = x, var2 = y, params = params,
+    #                   value.x = vx, value.y = vy, K = K
+    #             , row.names = NULL
+    #             )
+    # HACK List is Fast and Furious. Graou !
+    res <- list(var1 = x, var2 = y, params = unparams,
+                value.x = vx, value.y = vy, K = K
+    )
+    class(res) <- "data.frame"
+    attributes(res)$row.names <- 1:5
 
     return(res)
 }
@@ -132,7 +141,6 @@ format_fit <- function(params, list_covs){
 #' @param list_covs Climatic covariates values.
 #'
 #' @importFrom purrr map
-#' @importFrom dplyr filter
 #' @importFrom rlang expr call2 env_unbind .data
 #'
 #' @details
@@ -158,7 +166,7 @@ exp_recFun <- function(params, list_covs){
 
     invar <- names(params)[!names(params) %in% names(list_covs)]
     invar <- invar[! grepl("ntercept", invar)]
-    inter <- sum(filter(df2, ! .data$var1 %in% invar | .data$var2 %in% invar)$K)
+    inter <- sum(df2$K[! (df2$var1 %in% invar | df2$var2 %in% invar)])
 
 
     exp_invar <- map(invar, multi, df2)
@@ -199,7 +207,7 @@ exp_recFun <- function(params, list_covs){
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
 #'
-#' @importFrom purrr map cross map_chr simplify_all
+#' @importFrom purrr map
 #' @importFrom rlang expr call2 env_unbind
 #'
 #' @details
@@ -226,13 +234,18 @@ exp_sizeFun <- function(params, list_covs){
     # use this when we have sgdd:wai for example in params and not in list_covs
     # NOTE does not cover sgdd2:wai yet...but not needed from all data(fit_species)
     nms <- names(list_covs)
-    combination <- cross(list(nms, nms)) %>%
-        simplify_all() %>%
-        map_chr(~ if(.x[1] == .x[2]){
-            paste0(.x[1],"2")
-        } else {
-            paste0(.x, collapse = ":")
-        })
+    # browser()
+    # combination <- cross(list(nms, nms)) %>%
+    #     simplify_all() %>%
+    #     map_chr(~ if(.x[1] == .x[2]){
+    #         paste0(.x[1],"2")
+    #     } else {
+    #         paste0(.x, collapse = ":")
+    #     })
+    tmp <- paste(nms, rep(nms, each = length(nms)), sep = ":")
+    sel <- tmp %in% paste0(nms, ":", nms)
+    tmp[sel] <- sub(":.*", "2", tmp[sel])
+    combination <- tmp
 
     exp_list_covs <- unique(c(nms, combination))
 
@@ -256,7 +269,7 @@ exp_sizeFun <- function(params, list_covs){
                                            "add_invar", "exp_invar",
                                            "inter", "invar", "df2"),
                inherit = FALSE)
-    empty
+    # empty
     return(empty)
 }
 

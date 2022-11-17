@@ -200,6 +200,7 @@ G <- function(){
 
 # Testing personnal function ####
 library(ggplot2)
+library(dplyr)
 load_all()
 rm(list = ls())
 x <- make_mutrix(species = "Picea_abies", fit_Picea_abies,
@@ -223,9 +224,7 @@ test <- get_step_IPM.mutrix(x = x, BA = 20, climate = climate, sim_corr = "cut")
 # max(abs((IPM$IPM[[20]] * 1e-7) - test))
 # (IPM$IPM[[20]] * 1e-7)[1:5, 1:5]
 # test[1:5, 1:5]
-# microbenchmark::microbenchmark(
-#     o = get_step_IPM(x = x, BA = 20, climate = climate, sim_corr = "cut")
-# )
+
 
 # working in sim deter
 spsel <- "Picea_abies"
@@ -237,24 +236,35 @@ Picea_ipm <- make_IPM("Picea_abies", climate, "opt_clim", fit_Picea_abies,
                              U = as.numeric(fit_Picea_abies$info["max_dbh"]) * 1.1),
                     BA = 0:200, verbose = TRUE
 )
+
+load_all()
+microbenchmark::microbenchmark(
+    o = get_step_IPM.mutrix(x = x, BA = 20, climate = climate, sim_corr = "cut"),
+    ipm = get_step_IPM.ipm(x = Picea_ipm, BA = 20, climate = climate, sim_corr = "cut")
+)
+
 Picea <- species(Picea_ipm, init_pop = def_initBA(20), harvest_fun = def_harv)
 
 forest <- new_forest(species = list(mu_Picea = mu_Picea))
 time <- 1000
 load_all()
 set.seed(42)
-memor_mu <- sim_deter_forest(forest, tlim = time, equil_dist = time, equil_time = time,
+# profvis::profvis({
+#     sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
+#                      verbose = TRUE, correction = "none")
+# })
+memor_mu <- sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
                       verbose = TRUE, correction = "none") %>%
     tree_format()
 # 27.1 sec
 forest <- new_forest(species = list(Picea = Picea))
 # TODO modify the validate_species !
 set.seed(42)
-memor <- sim_deter_forest(forest, tlim = time, equil_dist = time, equil_time = time,
+memor <- sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
                              verbose = TRUE, correction = "none") %>%
     tree_format()
 # 3.42 sec
-e_memor <- bind_rows(ipm = memor, mu = memor_mu, .id = "meth")
+e_memor <- dplyr::bind_rows(ipm = memor, mu = memor_mu, .id = "meth")
 
 e_memor %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
@@ -272,5 +282,9 @@ e_memor %>%
     ggplot(aes(x = time, y = value)) +
     geom_line(size = .4, linetype = "dotted") +
     geom_point(size = .4) +
+    geom_hline(yintercept = c(-0.05, 0.05)) +
     NULL
+
+# gain time ! ###
+
 
