@@ -27,8 +27,8 @@
 #' @noRd
 multi <- function(x, df){
 
-    assertCharacter(x, any.missing = FALSE, len = 1)
-    assertDataFrame(df, min.rows = 1, ncols = 6)
+    # assertString(x)
+    # assertDataFrame(df, min.rows = 1, ncols = 6)
 
     new_name <- paste0(x, "_in")
 
@@ -76,7 +76,6 @@ multi <- function(x, df){
                    log = call2("log", yvar),
                    '^' = call2("^", yvar, 2),
                    yvar )
-
 
     if(!is.na(y)){
         evar <- call2("*", xvar, yvar)

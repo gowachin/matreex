@@ -166,6 +166,11 @@ sim_deter_forest.forest  <- function(Forest,
     FinalHarvT <- 200
     targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     targetKg <- map_dbl(Forest$species, ~ targetKg)
+    # TODO : add climatic table as input
+    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
+                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
+                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
+    )
     # TEMP dev
 
     # Idiot Proof ####
@@ -185,14 +190,6 @@ sim_deter_forest.forest  <- function(Forest,
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
-
-
-    # TODO : add climatic table as input
-    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
-                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
-                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
-    )
-    # TEMP dev
 
     ipms <- map_lgl(Forest$species, ~ inherits(.x$IPM, "mutrix"))
     if(any(ipms & missing(climate))){
@@ -246,8 +243,6 @@ sim_deter_forest.forest  <- function(Forest,
     Harv <- map(lengths(meshs), ~ rep(0, .x))
     ct <- map(meshs, Buildct, SurfEch = SurfEch)
 
-    # browser()
-
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
@@ -269,9 +264,6 @@ sim_deter_forest.forest  <- function(Forest,
         ))
     }
 
-    # browser() # WORKING HERE
-    #' change how we get the IPM for normal and mutrix species !
-    #' with a new function that is a method.
     # Create sim IPM ####
 
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
@@ -358,7 +350,9 @@ sim_deter_forest.forest  <- function(Forest,
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
             mesh = meshs, SurfEch = SurfEch )
 
-        X <- map2(X, recrues, `+`)
+        # X <- map2(X, recrues, `+`) # gain time
+        X <- sapply(names(X), function(n, x, y) x[[n]] + y[[n]], X, recrues,
+               simplify = FALSE)
 
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values

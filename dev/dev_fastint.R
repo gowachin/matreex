@@ -249,10 +249,12 @@ forest <- new_forest(species = list(mu_Picea = mu_Picea))
 time <- 1000
 load_all()
 set.seed(42)
-# profvis::profvis({
-#     sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
-#                      verbose = TRUE, correction = "none")
-# })
+profvis::profvis({
+    sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
+                     verbose = TRUE, correction = "none")
+})
+
+
 memor_mu <- sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_time = time,
                       verbose = TRUE, correction = "none") %>%
     tree_format()
@@ -266,6 +268,9 @@ memor <- sim_deter_forest.forest(forest, tlim = time, equil_dist = time, equil_t
 # 3.42 sec
 e_memor <- dplyr::bind_rows(ipm = memor, mu = memor_mu, .id = "meth")
 
+
+library(ggplot2)
+library(dplyr)
 e_memor %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
     # dplyr::na_if(0) %>%

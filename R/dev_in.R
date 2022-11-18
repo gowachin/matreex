@@ -762,9 +762,6 @@ get_step_IPM.mutrix <- function(x, ...){
     if (correction == "none") { # Based on IPMpack
         P <- t(t(P) * P_sv)
     } else if (correction == "constant") { # Based on IPMpack
-        # nvals <- colSums(P)
-        # P <- t((t(P) / nvals))
-        # P <- P * P_sv
         P <- P / outer( rep(1, m), colSums(P), "*") * P_sv
     } else if (correction == "sizeExtremes") { # Based on IPMpack
         selectsize_t <- (N_int + 0:(m - 1)) > m
