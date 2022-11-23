@@ -8,6 +8,10 @@ test_that("sp_name works", {
     expect_identical(sp_name(x), "Yggdrasil")
     x <- old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1)
     expect_identical(sp_name(x), "Yggdrasil")
+    x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                    level = c(3, 10), midbin_tresh = 2)
+    expect_identical(sp_name(x), "Picea_abies")
 })
 
 test_that("climatic works", {
@@ -18,6 +22,10 @@ test_that("climatic works", {
     expect_identical(climatic(x), "1")
     x <- old_ipm2species("Yggdrasil", climatic = 1, path = path, replicat = 1)
     expect_identical(climatic(x), "1")
+    x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                    level = c(3, 10), midbin_tresh = 2)
+    expect_identical(climatic(x), "mu_gr")
 })
 
 
@@ -120,11 +128,11 @@ test_that("delay forest works", {
     validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv)
+                      harvest_fun = def_harv)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = delay(sp, 2)))
-    # HACK ne pas nommer les elements ici fout la merde.
+    # hack ne pas nommer les elements ici fout la merde.
 
     # validate_forest(x)
     # validate_forest(exp)
@@ -143,8 +151,8 @@ test_that("correction ipm works", {
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     new_mat<- new("dtCMatrix", i = c(0L, 1L, 1L),
-              p = c(0L, 2L,  3L, 3L),
-              Dim = c(3L, 3L), x = c(1, 2, 1), uplo = "L", diag = "N")
+                  p = c(0L, 2L,  3L, 3L),
+                  Dim = c(3L, 3L), x = c(1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
                  species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
 
@@ -167,6 +175,14 @@ test_that("correction ipm works", {
     expect_identical( correction(x, "cut"), exp )
 })
 
+test_that("correction mu_sgr works", {
+
+    x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                    level = c(3, 10), midbin_tresh = 2)
+    expect_identical(x, correction(x))
+
+})
 
 test_that("correction species works", {
 
@@ -210,9 +226,67 @@ test_that("correction forest works", {
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = correction(sp, "cut")))
-    # HACK ne pas nommer les elements ici fout la merde.
+    # hack ne pas nommer les elements ici fout la merde.
 
     expect_identical( correction(x, "cut"), exp )
     expect_identical( correction(x), x )
 
 })
+
+
+test_that("sp_rec mu_gr works", {
+
+    x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                    level = c(3, 10), midbin_tresh = 2)
+    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
+                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
+                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
+    )
+
+    expect_identical(
+        exp_recFun(params = x$rec$params_m, list_covs = climate),
+        sp_rec(x, climate)
+    )
+
+})
+
+
+test_that("sp_rec species works", {
+
+    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
+    IPM <- new_ipm(IPM = list(
+        new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
+            p = c(0L, 3L,  5L, 6L),
+            Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
+    ), BA = 1, mesh = 1:3,
+    species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
+    validate_ipm(IPM)
+
+    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
+                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
+                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
+    )
+
+
+    sp <- new_species(IPM = IPM, init_pop = def_init,
+                      harvest_fun = def_harv)
+
+    expect_identical(
+        sp$recruit_fun,
+        sp_rec(sp, climate)
+    )
+
+    x <- make_mu_gr(species = "Picea_abies", fit_Picea_abies,
+                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                    level = c(3, 10), midbin_tresh = 2)
+    sp <- new_species(IPM = x, init_pop = def_init,
+                      harvest_fun = def_harv)
+
+    expect_identical(
+        sp_rec(x, climate),
+        sp_rec(sp, climate)
+    )
+
+})
+

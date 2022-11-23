@@ -15,6 +15,7 @@
 "fit_species"
 
 #' @rdname fit_data
+#' @keywords datasets
 "fit_Abies_alba"
 
 #' @rdname fit_data

@@ -23,7 +23,7 @@
 #'
 #' @export
 new_ipm <- function(IPM, BA, mesh, species, climatic, clim_lab,
-                    rec_params, compress = FALSE, delay = 0, int_log, correction){
+                    rec_params, compress = FALSE, delay = 0, int_log){
 
     if(missing(int_log)){
         int_log <- c(year_delta = 0, MaxError = 0,
@@ -31,15 +31,10 @@ new_ipm <- function(IPM, BA, mesh, species, climatic, clim_lab,
                                 MB_Nint = 0, MB_level = 0, MB_max = 0)
     }
 
-    if(missing(correction)){
-        correction <- "unknown"
-    }
-
     IPM <- list(IPM = IPM, BA = BA, mesh = mesh, climatic = climatic,
                 rec = list(params_m = rec_params),
                 info = c(species = species, clim_lab = clim_lab,
-                         compress = compress, delay = delay,
-                         correction = correction),
+                         compress = compress, delay = delay),
                 int_log = int_log)
     class(IPM) <- "ipm"
 
@@ -81,9 +76,9 @@ validate_ipm <- function(x){
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "clim_lab", "compress",
-                                   "delay", "correction"))){
+                                   "delay"))){
         stop(paste0("IPM class must have info of elements species,",
-                    " climatic, compress, delay and correction"))
+                    " climatic, compress and delay"))
     }
 
     invisible(x)
@@ -115,7 +110,7 @@ old_ipm2ipm <- function(species, climatic = 1, delay = 0, path = here(),
     assertCount(delay)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
-    IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
+    IPM <- readRDS(assertFileExists(fIPM)) # note 10" to load...
     assertNumber(replicat, lower = 1, upper = length(IPM))
     IPM <- IPM[[replicat]]
 
@@ -123,7 +118,7 @@ old_ipm2ipm <- function(species, climatic = 1, delay = 0, path = here(),
         IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
         species = species, climatic = drop(as.matrix(IPM$list_m)),
         rec_params = IPM$rec$params_m,
-        clim_lab = climatic, delay = 0, compress = TRUE, correction = "constant"
+        clim_lab = climatic, delay = 0, compress = TRUE
     ))
 
     if(delay > 0){

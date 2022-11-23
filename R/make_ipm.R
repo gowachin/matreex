@@ -150,7 +150,7 @@ make_IPM <- function(species,
 
 
     mesh_x1A <- mesh_x1B - out1$nodes[1] # to resacle the position on x
-    mesh_x1B <- mesh_x1B - out1$nodes[2] # IDEA why - here !!!
+    mesh_x1B <- mesh_x1B - out1$nodes[2]
     mesh_x1C <- mesh_x1B - out1$nodes[3]
 
     # function used in gauss legendre integration

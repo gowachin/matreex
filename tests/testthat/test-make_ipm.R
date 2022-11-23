@@ -85,7 +85,7 @@ test_that("make_IPM works : fonctions communes", {
                  correction = "none", level = 420, diag_tresh = -1,
                  midbin_tresh = 0),
         validate_ipm(new_ipm(
-                IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
+                IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
                 climatic = climate, clim_lab = "test",
                 rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
                 species = species, compress = FALSE, int_log = int_log
@@ -98,7 +98,7 @@ test_that("make_IPM works : fonctions communes", {
                  correction = "none", level = 420, diag_tresh = -1,
                  midbin_tresh = 0, IsSurv = FALSE),
         validate_ipm(new_ipm(
-            IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
+            IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test",
             rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
             species = species, compress = FALSE, int_log = int_log
@@ -150,7 +150,7 @@ test_that("make_IPM works : mid_bin", {
     expect_equal(
         res$result,
         validate_ipm(new_ipm(
-            IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
+            IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test",
             rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
             species = species, compress = FALSE, int_log = int_log
@@ -212,7 +212,7 @@ test_that("make_IPM works : gauss-legendre", {
                  correction = "none", level = 420, diag_tresh = 1500,
                  midbin_tresh = 0),
         validate_ipm(new_ipm(
-            IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
+            IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test",
             rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
             species = species, compress = FALSE, int_log = int_log
@@ -257,7 +257,7 @@ test_that("make_IPM works : corrections", {
                  correction = "sizeExtremes", level = 420, diag_tresh = -1,
                  midbin_tresh = 0, IsSurv = FALSE),
         validate_ipm(new_ipm(
-            IPM = list(`1` = ex), BA = 1, mesh = seq(90, 1500, length.out = 10),
+            IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test",
             rec_params = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2),
             species = species, compress = FALSE, int_log = int_log

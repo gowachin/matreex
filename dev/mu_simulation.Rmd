@@ -1,0 +1,269 @@
+---
+title: "Climate variation simulation"
+output: pdf_document
+date: "2022-11-23"
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Testing mu simulation
+
+This document show how to simulate a species with mu growth pre-computation and not integrate a classical IPM.
+For now, the package is in experimental state and use the branch *fast_int*. For this example we will use the species *Picea abies* as an example.
+
+```{r constant}
+# Libraries
+library(ggplot2)
+library(dplyr)
+library(devtools)
+
+# Loading all functions of the package
+devtools::load_all()
+species <- "Picea_abies"
+data(list = paste0("fit_", species))
+fit <- eval(parse(text=paste0("fit_", species)))
+climate <- subset(climate_species, sp == species, select = -sp)
+```
+
+## Get Mu values
+
+The first step consist in computing all mu values for a species in its climatic and basal area range. For this, we compute the mu range of the species and simulate a matrix for each values of mu, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
+
+```{r range_mu}
+mu_range <- getRangemu(
+    climate = climate, fit = fit, BA = seq(0, 200, by = 10), 
+    mesh = seq(90, get_maxdbh(fit_Picea_abies) * 1.1, by = 2))
+mu_range
+```
+
+*Note : Low values highly depend on maximum basal area, so, one can limit the mu computation time if he expect the basal area to stay low during simulation.*
+
+Making the mu matrix takes more or less the same arguments as the function `make_IPM` in term of integration levels for Gauss-Legendre and midbin methods. The important argument that limit computation time is stepMu.
+
+```{r make_mu}
+mu_Picea_abies <- make_mu_gr(
+    species = "Picea_abies", fit = fit_Picea_abies,
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    verbose = TRUE, stepMu = 0.001)
+```
+
+This object is a matrix with as many row as integrated cells for a given mu, and a range of mu in column. During simulation, the loop will compute the mu needed for climate and basal area for a given time and extract from the matrix the required columns. 
+
+**This step is 5 times longer than extracting the IPM matrix, this is the bottleneck during simulation.**
+
+```{r get step_IPM}
+step_climate <- subset(climate, N ==2, select = -N)
+step_climate <- drop(as.matrix(step_climate))
+Picea_IPM_BA20 <- get_step_IPM(x = mu_Picea_abies, BA = 20, 
+                               climate = step_climate, sim_corr = "cut")
+Picea_IPM_BA20[1:5, 1:5]
+dim(Picea_IPM_BA20)
+```
+
+## Simulations
+
+Once the mu matrix is created, creating species and simulating is really close to simulating with IPM. Because the mu matrix are not defined for a specific climate, we need to set one to simulate on it. For now we only set a single climate that will not change during simulation.
+
+```{r simulation}
+time <- 1000
+
+Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_initBA(20), 
+                           harvest_fun = def_harv)
+
+forest <- new_forest(species = list(mu_Picea = Picea_abies))
+set.seed(42)
+memor_mu <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor_mu %>%
+    filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) +
+    geom_point(size = .4) +
+    NULL
+```
+
+We can compare this with a classical IPM simulation to see that it's not so different. Obviously this takes some times since integration takes longer. To limit this, we only integrate for basal area up to 100.
+
+```{r compare_IPM, eval = FALSE}
+ipm_Picea <- make_IPM(
+    "Picea_abies", step_climate, "opt_Picab_clim", fit = fit_Picea_abies,
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:100, verbose = TRUE
+)
+Picea_abies_ipm <- species(IPM = ipm_Picea, init_pop = def_initBA(20), 
+                          harvest_fun = def_harv)
+forest_ipm <- new_forest(species = list(ipm_Picea = Picea_abies_ipm))
+set.seed(42)
+memor_ipm <- sim_deter_forest.forest(forest_ipm, tlim = time, 
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+```
+
+Below is a plot that combine both simulations and compute the difference along time.
+
+```{r compare_plot, eval = FALSE}
+e_memor <- dplyr::bind_rows(ipm = memor_ipm, mu = memor_mu, .id = "meth")
+e_memor %>%
+    filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
+    # dplyr::na_if(0) %>%
+    ggplot(aes(x = time, y = value, color = meth)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4, linetype = "dotted") +
+    geom_point(size = .4) +
+    NULL
+
+e_memor %>%
+    filter(var %in% c("BAsp"), ! equil) %>%
+    group_by(time) %>% summarise(value = diff(value)) %>%
+    ggplot(aes(x = time, y = value)) +
+    ylab("BA difference") +
+    geom_line(size = .4, linetype = "dotted") +
+    geom_point(size = .4) +
+    NULL
+```
+
+## Climate evolution in time
+
+Previous simulation specified a single climate that is used from start to finish, with only a variation on BA. The interest of using precomputed values is too create new IPM matrix for a lot more climates. But as integrating an IPM takes around 2 or minutes, integrating a climate gradient would takes way too long, and only to use few basal area values when we integrate between 0 and 200.
+
+Of course we now need to define a climate at each time step of the future simulation. For example, the simulation will start on cold edge and migrate to hot edge in a thousand years, with a small random effect.
+
+**This code is an example and some functions may be added to the package later.**
+
+```{r future_in_pkg}
+# future function for the package treeforce. 
+# I may need some help on what's needed or usefull
+
+#' @param x a named values for a climatic variable. 
+#' Example : \code{x = c(sgdd = 2000)}
+value2sqb <- function(x){
+
+    nms <- names(x)
+    res <- numeric(3)
+    names(res) <- c(nms, paste0(nms, c("2", "b")))
+    res[nms] <- x
+    res[paste0(nms, "2")] <- x^2
+    res[paste0(nms, "b")] <- 1/(1- x)
+    
+    res
+}
+
+#' @param climate Named vector of climatic variables.
+#' Example : \code {climate = c(sgdd = 2000, wai = 0.16)}
+expand_clim <- function(climate){
+    
+    assertNumeric(climate, any.missing = FALSE)
+    
+    nms <- names(climate)
+    res <- vector("list", length(climate))
+    for(x in seq_along(nms)){
+        res[[x]] <- value2sqb(climate[nms[x]])
+    }
+    res <- unlist(res)
+
+    return(res)
+}
+
+# May be usefull to create the same function but to work on data.frame 
+# or matrices likes below code
+```
+
+
+```{r build_climate}
+n <- time
+tmp <- subset(climate, N != 2, select = c(sgdd,wai, N))
+
+sim_clim <- as.matrix(data.frame(
+    sgdd = seq(tmp$sgdd[2], tmp$sgdd[1], length.out = n) + runif(n, -50, 50),
+    wai = seq(tmp$wai[2], tmp$wai[1], length.out = n) + runif(n, -0.05, 0.05), 
+    t = 1:n
+))
+# NEED TO CHECK WAIB values, they are too high !
+
+exp_clim <- vector("list", n)
+for(i in 1:n){
+    exp_clim[[i]] <- c(expand_clim(sim_clim[i, -3]), t = i)
+}
+exp_clim <- do.call("rbind", exp_clim)
+dim(exp_clim)
+head(exp_clim)
+```
+
+Once the climate is set, we can simulate a species.
+
+```{r clim_sim}
+# I recreate the species to start with a BA closer to the equilibrium
+Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_initBA(20), 
+                           harvest_fun = def_harv)
+load_all()
+clim_forest <- new_forest(species = list(clim_Picea = Picea_abies))
+set.seed(42)
+memor_clim <- sim_deter_forest.forest(clim_forest, tlim = time, climate = exp_clim,
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor_clim %>%
+    filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) +
+    geom_point(size = .4) +
+    NULL
+```
+
+
+
+
+## Testing effect of stepMu
+
+The BA difference is already pretty low between IPM and mu simulations, but this section will illustrate that it's directly linked with `stepMu` value. Error is negligeable for stepMu of 0.0001, but computing mu values takes around 2 minutes.
+
+```{r stepMu}
+steps <- c(0.05, 0.01, 0.005, 0.001, 0.0005)
+diff_list <- vector("list", length(steps))
+
+for(s in seq_along(steps)){
+    cat(sprintf(" %.4f", steps[s]))
+    mu_Picea <- make_mu_gr(
+        species = "Picea_abies", fit = fit_Picea_abies,
+        mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+        stepMu = steps[s])
+    
+    Picea <- new_species(IPM = mu_Picea, init_pop = def_initBA(20), 
+                               harvest_fun = def_harv)
+    
+    forest <- new_forest(species = list(Picea = Picea))
+    set.seed(42)
+    memor <- sim_deter_forest.forest(forest, tlim = time, 
+                                        climate = step_climate,
+                                        equil_dist = time, equil_time = time,
+                                        correction = "cut") %>%
+        tree_format()
+    
+    diff_list[[s]] <- dplyr::bind_rows(ipm = memor_ipm, mu = memor, 
+                                       .id = "meth") %>%
+    filter(var %in% c("BAsp"), ! equil) %>%
+    group_by(time) %>% summarise(value = diff(value))
+}
+
+names(diff_list) <- c("a: 5e-2", "b: 1e-2", "c: 5e-3", "d: 1e-3", "e: 5e-4")
+res <- do.call("bind_rows", c(diff_list, list(.id = "stepMu")))
+res %>%
+    ggplot(aes(x = time, y = value, color = stepMu)) +
+    ylab("BA difference") +
+    geom_line(size = .4) +
+    NULL
+
+res %>% group_by(stepMu) %>%
+    summarise(min = min(value), max = max(value), d = max - min)
+```
+
+

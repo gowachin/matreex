@@ -16,6 +16,12 @@ sp_name.ipm <- function(x){
     return(unname(x$info["species"]))
 }
 
+#' @method sp_name mu_gr
+#' @export
+sp_name.mu_gr <- function(x){
+    return(unname(x$info["species"]))
+}
+
 #' @method sp_name species
 #' @export
 sp_name.species <- function(x){
@@ -51,6 +57,14 @@ climatic.ipm <- function(x){
     return(res)
 }
 
+#' @method climatic mu_gr
+#' @export
+climatic.mu_gr <- function(x){
+
+    res <- unname(x$info["clim_lab"])
+    return(res)
+}
+
 #' @method climatic species
 #' @export
 climatic.species <- function(x){
@@ -58,6 +72,7 @@ climatic.species <- function(x){
     res <- unname(x$info["clim_lab"])
     return(res)
 }
+
 
 
 # Delay ####
@@ -214,5 +229,68 @@ correction.forest <- function(x, correction = "none"){
 
     x$species <- lapply(x$species, correction.species, correction)
     return(x)
+}
+
+
+#' @method correction mu_gr
+#' @export
+correction.mu_gr <- function(x, correction = "none"){
+    # nothing to modify here !
+    return(x)
+}
+
+
+
+#' sp recruit
+#'
+#' Get species recruitment function
+#'
+#' @param x Species to get the recruitment function from
+#' @param climatic Climate vector is needed for mu_gr object to build the
+#' corresponding recruitment function.
+#'
+#' @name sp_rec
+#'
+#' @export
+sp_rec <- function(x, climatic){
+    UseMethod("sp_rec")
+}
+
+#' @method sp_rec mu_gr
+#' @export
+sp_rec.mu_gr <- function(x, climatic){
+
+    res <- exp_recFun(params = x$rec$params_m, list_covs = climatic)
+    return(res)
+}
+
+#' @method sp_rec species
+#' @export
+sp_rec.species <- function(x, climatic){
+
+    if(inherits(x$IPM, "ipm")){
+        res <- x$recruit_fun
+    } else {
+        res <- sp_rec(x$IPM, climatic)
+    }
+    return(res)
+}
+
+
+# get_maxdbh ####
+#' Get the max_dbh of a fitted species
+#'
+#' @param x treeforce class object. Used on fit_sgr for now.
+#' @name get_maxdbh
+#'
+#' @export
+get_maxdbh <- function(x){
+    UseMethod("get_maxdbh")
+}
+
+#' @method get_maxdbh fit_sgr
+#' @export
+get_maxdbh.fit_sgr <- function(x){
+    return(as.numeric(x$info["max_dbh"]))
 }
 

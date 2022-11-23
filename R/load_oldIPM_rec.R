@@ -118,10 +118,6 @@ format_fit <- function(params, list_covs){
     vy[is.na(vy)] <- 1
     K <- unparams * vx * vy
 
-    # res <- data.frame(var1 = x, var2 = y, params = params,
-    #                   value.x = vx, value.y = vy, K = K
-    #             , row.names = NULL
-    #             )
     # HACK List is Fast and Furious. Graou !
     res <- list(var1 = x, var2 = y, params = unparams,
                 value.x = vx, value.y = vy, K = K
@@ -233,14 +229,6 @@ exp_sizeFun <- function(params, list_covs){
     # use this when we have sgdd:wai for example in params and not in list_covs
     # NOTE does not cover sgdd2:wai yet...but not needed from all data(fit_species)
     nms <- names(list_covs)
-    # browser()
-    # combination <- cross(list(nms, nms)) %>%
-    #     simplify_all() %>%
-    #     map_chr(~ if(.x[1] == .x[2]){
-    #         paste0(.x[1],"2")
-    #     } else {
-    #         paste0(.x, collapse = ":")
-    #     })
     tmp <- paste(nms, rep(nms, each = length(nms)), sep = ":")
     sel <- tmp %in% paste0(nms, ":", nms)
     tmp[sel] <- sub(":.*", "2", tmp[sel])

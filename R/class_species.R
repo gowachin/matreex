@@ -29,12 +29,21 @@ new_species <- function(IPM, init_pop,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                         rdi_coef = NULL
                         ){
+
+    if(inherits(IPM, "ipm")){
+        rec <- exp_recFun(params = IPM$rec$params_m,
+                          list_covs = IPM$climatic)
+    } else if(inherits(IPM, "mu_gr")){
+        rec <- "to define"
+    } else {
+        stop("IPM must either be an ipm or mu_gr object.")
+    }
+
     species <- list(
         IPM = IPM, init_pop = init_pop,
         harvest_fun = harvest_fun, harv_lim = harv_lim,
         rdi_coef = rdi_coef,
-        recruit_fun = exp_recFun(params = IPM$rec$params_m,
-                                 list_covs = IPM$climatic),
+        recruit_fun = rec,
         info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
     )
 
@@ -65,7 +74,14 @@ validate_species <- function(x){
     }
 
     # check all values ####
-    validate_ipm(values$IPM)
+    if(inherits(values$IPM, "ipm")){
+        validate_ipm(values$IPM)
+    } else if(inherits(values$IPM, "mu_gr")){
+        validate_mu_gr(values$IPM)
+    } else {
+        stop("IPM must either be an ipm or mu_gr object.")
+    }
+
     assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
     assertFunction(values$harvest_fun,
                    args = c("x", "species", "..."))
@@ -74,6 +90,14 @@ validate_species <- function(x){
     # TODO : check that X return >= 0 values of same length
     assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
                                                 "mesh", "SurfEch"))
+    if(inherits(values$IPM, "ipm")){
+        assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
+                                                    "mesh", "SurfEch"))
+    } else if(inherits(values$IPM, "mu_gr")){
+        assertString(values$recruit_fun)
+    } else {
+        stop("IPM must either be an ipm or mu_gr object.")
+    }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "clim_lab"))){
@@ -165,7 +189,7 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
     assertCount(delay)
 
     fIPM <- here(path, "output", species, paste0("IPM_Clim_", climatic, ".Rds"))
-    raw_IPM <- readRDS(assertFileExists(fIPM)) # NOTE 10" to load...
+    raw_IPM <- readRDS(assertFileExists(fIPM)) # note 10" to load...
     assertNumber(replicat, lower = 1, upper = length(raw_IPM))
     raw_IPM <- raw_IPM[[replicat]]
 
@@ -249,7 +273,6 @@ def_init_even <- function(mesh, SurfEch = 0.03) {
       sel <- 1
   }
   x[-(sel:(sel+4))] <- 0
-  # x[!(1:5)] <- 0 # FIXME ask Arnaud because !(1:5) is not possible in R, its -(1:5)
   res <- as.numeric(x / sum(ct * x))
   res <- res + 1e-15 # FIXME for pending point...while BA = 0 is not integrated
   res <- res # line to add BA later if needed

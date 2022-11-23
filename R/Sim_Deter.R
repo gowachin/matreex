@@ -95,6 +95,7 @@ sim_deter_forest  <- function(Forest,
                              targetBA = 20,
                              targetRDI = 0.9,
                              targetKg = 0.9,
+                             climate = NULL,
                              correction = "none",
                              SurfEch = 0.03,
                              verbose = FALSE) {
@@ -112,6 +113,7 @@ sim_deter_forest.species  <- function(Forest,
                               targetBA = 20,
                               targetRDI = 0.9,
                               targetKg = 0.9,
+                              climate = NULL,
                               correction = "none",
                               SurfEch = 0.03,
                               verbose = FALSE) {
@@ -127,6 +129,7 @@ sim_deter_forest.species  <- function(Forest,
         targetBA = targetBA,
         targetRDI = targetRDI,
         targetKg = targetKg,
+        climate = climate,
         correction = correction,
         SurfEch = SurfEch,
         verbose = verbose
@@ -144,6 +147,7 @@ sim_deter_forest.forest  <- function(Forest,
                                      targetBA = 20,
                                      targetRDI = 0.9,
                                      targetKg = 0.9,
+                                     climate = NULL,
                                      correction = "none",
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
@@ -161,16 +165,15 @@ sim_deter_forest.forest  <- function(Forest,
     # SurfEch = 0.03
     # verbose = FALSE
 
-    # profvis::profvis({
     # TEMP dev
     FinalHarvT <- 200
     targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     targetKg <- map_dbl(Forest$species, ~ targetKg)
-    # TODO : add climatic table as input
-    climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
-                 waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
-                 PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
-    )
+    # # TODO : add climatic table as input
+    # climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
+    #              waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
+    #              PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
+    # )
     # TEMP dev
 
     # Idiot Proof ####
@@ -265,9 +268,14 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
+    if(inherits(climate, "matrix")){
+        start_clim <- climate[1, ]
+    } else {
+        start_clim <- climate
+    }
 
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
-        x = .x$IPM, BA = sim_BA[1], climate = climate, sim_corr = correction
+        x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction
     ))
 
     if (verbose) {
@@ -341,7 +349,12 @@ sim_deter_forest.forest  <- function(Forest,
 
         ### Recruitment ####
         # browser() # TODO change climate along time here
-        rec <- map(Forest$species, sp_rec.species, climate)
+        if(inherits(climate, "matrix")){
+            sim_clim <- climate[t, , drop = TRUE]
+        } else {
+            sim_clim <- climate
+        }
+        rec <- map(Forest$species, sp_rec.species, sim_clim)
 
         recrues <- imap(
             rec,
@@ -381,7 +394,7 @@ sim_deter_forest.forest  <- function(Forest,
 
         # ## Get sim IPM ####
         sim_ipm <- map(Forest$species, ~ get_step_IPM(
-            x = .x$IPM, BA = sim_BA[t], climate = climate, sim_corr = correction
+            x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction
         ))
 
         ## Loop Verbose ####
@@ -419,7 +432,6 @@ sim_deter_forest.forest  <- function(Forest,
                 " ", attr(tmp, "units"))
     }
     sim_X <- new_deter_sim(sim_X, mesh = meshs)
-    # })
 
     # Return ####
     return(sim_X)

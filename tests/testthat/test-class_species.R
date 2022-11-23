@@ -10,7 +10,6 @@ test_that("new_species works", {
 
     expect_identical(new_species(IPM = IPM, init_pop = def_init,
                                  harvest_fun = def_harv,
-                                 # recruit_fun = raw_IPM$RecFun
                                  ),
                      structure(list(
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
@@ -20,6 +19,25 @@ test_that("new_species works", {
                                                   list_covs = IPM$climatic),
                          info = c(species = "Yggdrasil", clim_lab = "1")),
                          class = "species"))
+
+    class(IPM) <- "mu_gr"
+
+    expect_identical(
+        new_species(IPM = IPM, init_pop = def_init, harvest_fun = def_harv),
+        structure(list(
+            IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
+            harv_lim = c(dth = 175, dha = 575, hmax = 1),
+            rdi_coef = NULL, recruit_fun = "to define",
+            info = c(species = "Yggdrasil", clim_lab = "1")),
+            class = "species")
+    )
+
+    class(IPM) <- "mu_growth"
+
+    expect_error(
+        new_species(IPM = IPM, init_pop = def_init, harvest_fun = def_harv),
+        "IPM must either be an ipm or mu_gr object."
+    )
 })
 
 
@@ -33,10 +51,7 @@ test_that("validate_species works", {
     raw_IPM <- raw_IPM[[1]]
     IPM <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
 
-    x <- new_species(IPM, def_init, def_harv,
-                     # recruit_fun = exp_recFun(params = raw_IPM$rec$params_m,
-                                # list_covs = raw_IPM$list_m)
-    )
+    x <- new_species(IPM, def_init, def_harv)
 
 
     expect_identical(x, validate_species(x))
@@ -52,6 +67,12 @@ test_that("validate_species works", {
     expect_error(
         validate_species(tmp),
         "species class must have info of elements species and clim_lab"
+    )
+
+    class(x$IPM) <- "mu_growth"
+    expect_error(
+        validate_species(x),
+        "IPM must either be an ipm or mu_gr object."
     )
 })
 
@@ -97,10 +118,24 @@ test_that("def_init works", {
           1e-04)
     )
 
-    # NOTE Case with all(alea) require specific seed that I don't know.
+    set.seed(666)
+    expect_equal(
+        def_init_even(x),
+        c(6.4829468383972, 6.51861894865491, 6.5544873430226, 6.59055310154436,
+          6.62681731020718, 1e-15)
+    )
+
+    set.seed(666)
+    expect_equal(
+        def_init_even(delay(x, 2)),
+        c(0, 0, 6.4829468383972, 6.51861894865491, 6.5544873430226, 6.59055310154436,
+          6.62681731020718, 1e-15)
+    )
+
+    # Case with all(alea) require specific seed that I don't know.
     foo <- def_initBA(20)
     set.seed(666)
-    expect_identical(
+    expect_equal(
         foo(x),
         c(206.8314481049748, 0, 0, 210.26451022729145, 211.42148081166937,
           0)
