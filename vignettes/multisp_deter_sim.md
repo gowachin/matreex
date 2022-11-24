@@ -50,17 +50,16 @@ def_init
 #>     ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
 #>     ini <- exp(runif(1, -.005, .005) * mesh)
 #>     alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-#>     while(all(alea)){ # because god knows it's fucking possible.
-#>                       # and it will return NaN
+#>     while(all(alea)){ # because god knows it's fucking possible that alea is
+#>                       # all FALSE and it will return NaN
 #>         alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
 #>     }
 #>     ini[alea] <- 0
 #>     res <- as.numeric(ini / sum(ct * ini) )
-#>     res <- res + 1e-10 # HACK to limit falling in floating point trap !
-#> 
+#>     res <- res + 1e-4 # HACK to limit falling in floating point trap !
+#>                       # also line to add BA later if needed
 #>     return(res)
 #> }
-#> <bytecode: 0x563fb96cf408>
 #> <environment: namespace:treeforce>
 ```
 
@@ -91,8 +90,8 @@ sim1sp <- sim_deter_forest(Forest, tlim = 60, equil_time = 1e3,
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 63
-#> BA stabilized at 2.37 with diff of 0.97 at time 63
-#> Time difference of 0.18 secs
+#> BA stabilized at 2.38 with diff of 0.98 at time 63
+#> Time difference of 0.136 secs
 ```
 
 The output is a single table with time in column and different variables
@@ -110,15 +109,15 @@ state. They are defined below :
 ``` r
 m <- length(Forest$species$Yggdrasil$IPM$mesh)
 sim1sp[c(1:2, m:(m+3), (2 *m + 2):(2 *m + 3)), c(1:3,30:31)]
-#>                          t1           t2           t3          t30          t31
-#> Yggdrasil.m1   0.0000000001 2.324830e-01 0.2652896686 0.2172349914 0.2179111877
-#> Yggdrasil.m2   0.0000000001 2.324830e-01 0.3882716584 0.3561306655 0.3572528088
-#> Yggdrasil.m30  0.0000000001 0.000000e+00 0.0000000000 0.0000000000 0.0000000000
-#> Yggdrasil.BAsp 1.0000000012 1.129719e+00 1.1857246574 2.4503084449 2.4276446165
-#> Yggdrasil.N    2.1973234556 2.603026e+00 2.8739984221 6.2944046900 6.2512793204
-#> Yggdrasil.h1   0.0000000000 1.056226e-13 0.0002455546 0.0002351896 0.0002359474
-#> Yggdrasil.h30  0.0000000000 0.000000e+00 0.0000000000 0.0000000000 0.0000000000
-#> Yggdrasil.H    0.0000000000 1.290580e-02 0.0146364960 0.0358422185 0.0355752567
+#>                          t1           t2          t3          t30          t31
+#> Yggdrasil.m1    0.003333333 7.747297e+00  8.84561167 7.248014e+00 7.269409e+00
+#> Yggdrasil.m2    0.003333333 7.749060e+00 12.94675813 1.190738e+01 1.194154e+01
+#> Yggdrasil.m30   0.003333333 0.000000e+00  0.00000000 0.000000e+00 0.000000e+00
+#> Yggdrasil.BAsp  1.001247781 1.130797e+00  1.18682383 2.467116e+00 2.444072e+00
+#> Yggdrasil.N    73.344115088 8.685144e+01 95.88504142 2.111872e+02 2.097068e+02
+#> Yggdrasil.h1    0.000000000 3.520878e-06  0.00821321 7.956546e-03 7.975125e-03
+#> Yggdrasil.h30   0.000000000 0.000000e+00  0.00000000 0.000000e+00 0.000000e+00
+#> Yggdrasil.H     0.000000000 4.307325e-01  0.48842130 1.203184e+00 1.194027e+00
 times <- as.numeric(sub(".*t", "", colnames(sim1sp)))
 
 tree_format(sim1sp) %>%
@@ -153,8 +152,8 @@ sim2sp <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 66
-#> BA stabilized at 4.62 with diff of 0.84 at time 66
-#> Time difference of 0.313 secs
+#> BA stabilized at 4.65 with diff of 0.87 at time 66
+#> Time difference of 0.245 secs
 ```
 
 The result is the same table with each species tables grouped one under
@@ -163,23 +162,23 @@ row names, one can extract variables of interest.
 
 *Only few rows and columns are displayed below*
 
-    #>                          t1           t2          t30       eqt66
-    #> Yggdrasil.m1   0.0000000001 2.265361e-01 0.2080203418 0.211777876
-    #> Yggdrasil.m2   0.0000000001 2.265361e-01 0.3437018044 0.350519204
-    #> Yggdrasil.m30  0.0000000001 0.000000e+00 0.0000000000 0.000000000
-    #> Yggdrasil.BAsp 1.0000000012 1.127200e+00 2.4049620398 2.308959666
-    #> Yggdrasil.N    2.1973234556 2.592697e+00 6.1631962417 6.020980385
-    #> Yggdrasil.h1   0.0000000000 1.086139e-13 0.0002377750 0.000242952
-    #> Yggdrasil.h30  0.0000000000 0.000000e+00 0.0000000000 0.000000000
-    #> Yggdrasil.H    0.0000000000 1.291524e-02 0.0351666298 0.034273175
-    #> Ents.m1        0.0000000001 2.265361e-01 0.2095372535 0.211788383
-    #> Ents.m2        0.4040221124 2.959769e-01 0.3463472323 0.350538614
-    #> Ents.m30       0.0000000001 0.000000e+00 0.0000000000 0.000000000
-    #> Ents.BAsp      1.0000000012 1.013410e+00 2.3469132878 2.308626424
-    #> Ents.N         2.7559008815 2.973863e+00 6.0640456443 6.020500471
-    #> Ents.h1        0.0000000000 1.086139e-13 0.0002397218 0.000242967
-    #> Ents.h30       0.0000000000 0.000000e+00 0.0000000000 0.000000000
-    #> Ents.H         0.0000000000 1.521604e-02 0.0345537161 0.034270182
+    #>                          t1           t2          t30        eqt66
+    #> Yggdrasil.m1    0.003333333 7.548911e+00 6.950370e+00 7.073081e+00
+    #> Yggdrasil.m2    0.003333333 7.550683e+00 1.152393e+01 1.173678e+01
+    #> Yggdrasil.m30   0.003333333 0.000000e+00 0.000000e+00 0.000000e+00
+    #> Yggdrasil.BAsp  1.001247781 1.128276e+00 2.425893e+00 2.322848e+00
+    #> Yggdrasil.N    73.344115088 8.650693e+01 2.072597e+02 2.019230e+02
+    #> Yggdrasil.h1    0.000000000 3.620717e-06 8.127348e-03 8.257006e-03
+    #> Yggdrasil.h30   0.000000000 0.000000e+00 0.000000e+00 0.000000e+00
+    #> Yggdrasil.H     0.000000000 4.310481e-01 1.183411e+00 1.149976e+00
+    #> Ents.m1         0.003333333 7.548911e+00 7.002202e+00 7.073474e+00
+    #> Ents.m2        13.470737078 9.865542e+00 1.161425e+01 1.173750e+01
+    #> Ents.m30        0.003333333 0.000000e+00 0.000000e+00 0.000000e+00
+    #> Ents.BAsp       1.001247781 1.014490e+00 2.365301e+00 2.322459e+00
+    #> Ents.N         91.963362618 9.921262e+01 2.037742e+02 2.019034e+02
+    #> Ents.h1         0.000000000 3.620717e-06 8.194788e-03 8.257563e-03
+    #> Ents.h30        0.000000000 0.000000e+00 0.000000e+00 0.000000e+00
+    #> Ents.H          0.000000000 5.077425e-01 1.161881e+00 1.149854e+00
 
 ``` r
 tree_format(sim2sp) %>%
@@ -202,11 +201,14 @@ harvesting rate of 0.6 percent per year.
 
 ``` r
 Yggdrasil$harvest_fun
-#> function(x, species, targetBAcut, ct){
+#> function(x, species, ...){
+#> 
+#>     dots <- list(...)
+#>     ct <- dots$ct
+#> 
 #>     rate <- 0.006 * (ct > 0)
 #>     return(x * rate)
 #> }
-#> <bytecode: 0x563fb992fd50>
 #> <environment: namespace:treeforce>
 ```
 
@@ -225,24 +227,24 @@ targetBA <- 2
 set.seed(42)
 sim1harv <- sim_deter_forest(Forest_harv, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
-                        correction = "cut", targetBA = targetBA,
-                        verbose = TRUE)
+                        harvest = "Uneven", targetBA = targetBA,
+                        correction = "cut", verbose = TRUE)
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
-#> BA stabilized at 2.18 with diff of 0.32 at time 60
-#> Time difference of 0.218 secs
+#> BA stabilized at 2.19 with diff of 0.32 at time 60
+#> Time difference of 0.172 secs
 ```
 
-    #>                          t1       t2        t3       t30       t31
-    #> Yggdrasil.m1   0.0000000001 0.232483 0.2651870 0.2136275 0.2226034
-    #> Yggdrasil.m2   0.0000000001 0.232483 0.3889114 0.3511912 0.3606267
-    #> Yggdrasil.m30  0.0000000001 0.000000 0.0000000 0.0000000 0.0000000
-    #> Yggdrasil.BAsp 1.0000000012 1.135913 1.1980519 2.2349815 2.4191546
-    #> Yggdrasil.N    2.1973234556 2.615932 2.8998717 6.0079951 6.3133095
-    #> Yggdrasil.h1   0.0000000000 0.000000 0.0000000 0.0000000 0.0000000
-    #> Yggdrasil.h30  0.0000000000 0.000000 0.0000000 0.0000000 0.0000000
-    #> Yggdrasil.H    0.0000000000 0.000000 0.0000000 0.5874806 0.0000000
+    #>                          t1        t2        t3        t30        t31
+    #> Yggdrasil.m1    0.003333333  7.747301  8.842460   7.131691   7.510876
+    #> Yggdrasil.m2    0.003333333  7.749075 12.968488  11.756685  12.129711
+    #> Yggdrasil.m30   0.003333333  0.000000  0.000000   0.000000   0.000000
+    #> Yggdrasil.BAsp  1.001247781  1.136997  1.199171   2.137105   2.329908
+    #> Yggdrasil.N    73.344115088 87.282173 96.749186 195.133715 206.155726
+    #> Yggdrasil.h1    0.000000000  0.000000  0.000000   0.000000   0.000000
+    #> Yggdrasil.h30   0.000000000  0.000000  0.000000   0.000000   0.000000
+    #> Yggdrasil.H     0.000000000  0.000000  0.000000  26.438140   0.000000
 
 ``` r
 tree_format(sim1harv) %>%
@@ -281,13 +283,13 @@ Forest_harv2 <- forest(species = list(Yggdrasil = Yggdrasil,
 set.seed(42)
 sim2harv <- sim_deter_forest(Forest_harv2, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
-                        correction = "cut", targetBA = targetBA,
-                        verbose = TRUE)
+                        harvest = "Uneven", targetBA = targetBA,
+                        correction = "cut", verbose = TRUE)
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
-#> BA stabilized at 2.35 with diff of 1.36 at time 60
-#> Time difference of 0.274 secs
+#> BA stabilized at 2.36 with diff of 1.36 at time 60
+#> Time difference of 0.482 secs
 ```
 
 ``` r
@@ -329,8 +331,8 @@ sim5d <- sim_deter_forest(Forest_delay, tlim = 60, equil_time = 1e3,
 #> apply a IPM cut correction
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 69
-#> BA stabilized at 2.39 with diff of 0.91 at time 69
-#> Time difference of 0.242 secs
+#> BA stabilized at 2.39 with diff of 0.93 at time 69
+#> Time difference of 0.179 secs
 ```
 
 Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected
@@ -346,6 +348,8 @@ tree_format(sim5d) %>%
     geom_point(size = .7) + ylab("BA") +
     facet_wrap(~ var, scales = "free_y") +
     NULL
+#> Warning in data.frame(species = sub(pattern, "\\1", var, perl = TRUE), var =
+#> sub(pattern, : NAs introduits lors de la conversion automatique
 ```
 
 ![](multisp_deter_sim_files/figure-gfm/delay_plot-1.png)<!-- -->
@@ -366,6 +370,8 @@ tree_format(sim5d) %>%
     annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
              color = "red", angle = 90) +
     NULL
+#> Warning in data.frame(species = sub(pattern, "\\1", var, perl = TRUE), var =
+#> sub(pattern, : NAs introduits lors de la conversion automatique
 ```
 
 ![](multisp_deter_sim_files/figure-gfm/delay_dist_plot-1.png)<!-- -->

@@ -164,8 +164,8 @@ targetBA <- 2
 set.seed(42)
 sim1harv <- sim_deter_forest(Forest_harv, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
-                        correction = "cut", targetBA = targetBA,
-                        verbose = TRUE)
+                        harvest = "Uneven", targetBA = targetBA,
+                        correction = "cut", verbose = TRUE)
 ```
 
 
@@ -216,8 +216,8 @@ Forest_harv2 <- forest(species = list(Yggdrasil = Yggdrasil,
 set.seed(42)
 sim2harv <- sim_deter_forest(Forest_harv2, tlim = 60, 
                         equil_time = 60, equil_dist = 5,
-                        correction = "cut", targetBA = targetBA,
-                        verbose = TRUE)
+                        harvest = "Uneven", targetBA = targetBA,
+                        correction = "cut", verbose = TRUE)
 ```
 
 

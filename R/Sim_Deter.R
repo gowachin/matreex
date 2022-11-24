@@ -169,11 +169,6 @@ sim_deter_forest.forest  <- function(Forest,
     FinalHarvT <- 200
     targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     targetKg <- map_dbl(Forest$species, ~ targetKg)
-    # # TODO : add climatic table as input
-    # climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
-    #              waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
-    #              PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
-    # )
     # TEMP dev
 
     # Idiot Proof ####
@@ -343,6 +338,15 @@ sim_deter_forest.forest  <- function(Forest,
                 Harv <- map(meshs, ~ rep(0, length(.x)))
             }
         #### Nothing ####
+        } else if (t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
+            Harv <- imap(
+                map(Forest$species, `[[`, "harvest_fun"),
+                function(f, .y, X, sp, ct){
+                    exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]])
+                }, X = X, sp = Forest$species, ct = ct
+            )
+
+            X <- map2(X, Harv, `-`)
         } else {
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }

@@ -90,7 +90,7 @@ memor_mu %>%
 
 We can compare this with a classical IPM simulation to see that it's not so different. Obviously this takes some times since integration takes longer. To limit this, we only integrate for basal area up to 100.
 
-```{r compare_IPM, eval = FALSE}
+```{r compare_IPM}
 ipm_Picea <- make_IPM(
     "Picea_abies", step_climate, "opt_Picab_clim", fit = fit_Picea_abies,
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
@@ -108,7 +108,7 @@ memor_ipm <- sim_deter_forest.forest(forest_ipm, tlim = time,
 
 Below is a plot that combine both simulations and compute the difference along time.
 
-```{r compare_plot, eval = FALSE}
+```{r compare_plot}
 e_memor <- dplyr::bind_rows(ipm = memor_ipm, mu = memor_mu, .id = "meth")
 e_memor %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
@@ -142,35 +142,39 @@ Of course we now need to define a climate at each time step of the future simula
 # I may need some help on what's needed or usefull
 
 #' @param x a named values for a climatic variable. 
+#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
+#' case of var can take 0 for value.
 #' Example : \code{x = c(sgdd = 2000)}
-value2sqb <- function(x){
+value2sqb <- function(x, inv_null = FALSE){
 
     nms <- names(x)
     res <- numeric(3)
     names(res) <- c(nms, paste0(nms, c("2", "b")))
     res[nms] <- x
     res[paste0(nms, "2")] <- x^2
-    res[paste0(nms, "b")] <- 1/(1- x)
+    res[paste0(nms, "b")] <- 1/(x + inv_null)
     
     res
 }
 
 #' @param climate Named vector of climatic variables.
-#' Example : \code {climate = c(sgdd = 2000, wai = 0.16)}
-expand_clim <- function(climate){
+#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
+#' case of var can take 0 for value.
+#' Example : \code {climate = c(sgdd = 2000, wai = 0.16) ; in_null = c(sgdd = FALSE, wai = TRUE)}
+expand_clim <- function(climate, inv_null){
     
     assertNumeric(climate, any.missing = FALSE)
+    assertLogical(inv_null, any.missing = FALSE)
     
     nms <- names(climate)
     res <- vector("list", length(climate))
     for(x in seq_along(nms)){
-        res[[x]] <- value2sqb(climate[nms[x]])
+        res[[x]] <- value2sqb(climate[nms[x]], inv_null[nms[x]])
     }
     res <- unlist(res)
 
     return(res)
 }
-
 # May be usefull to create the same function but to work on data.frame 
 # or matrices likes below code
 ```
@@ -180,29 +184,33 @@ expand_clim <- function(climate){
 n <- time
 tmp <- subset(climate, N != 2, select = c(sgdd,wai, N))
 
+wai <- seq(tmp$wai[2], tmp$wai[1], length.out = n) + runif(n, -0.05, 0.05)
+wai <- pmax(wai, 0) ; wai <- pmin(wai, 1) # range the values after runif
 sim_clim <- as.matrix(data.frame(
     sgdd = seq(tmp$sgdd[2], tmp$sgdd[1], length.out = n) + runif(n, -50, 50),
-    wai = seq(tmp$wai[2], tmp$wai[1], length.out = n) + runif(n, -0.05, 0.05), 
+    wai = wai, 
     t = 1:n
 ))
-# NEED TO CHECK WAIB values, they are too high !
+# We need to specify if variables can be set 0 for variable compution of
+# varb = 1 / var. If true varb = 1 / (var + 1)
+inv_null <- c(sgdd = FALSE, wai = TRUE)
 
 exp_clim <- vector("list", n)
 for(i in 1:n){
-    exp_clim[[i]] <- c(expand_clim(sim_clim[i, -3]), t = i)
+    exp_clim[[i]] <- c(expand_clim(sim_clim[i, -3], inv_null), t = i)
 }
 exp_clim <- do.call("rbind", exp_clim)
 dim(exp_clim)
-head(exp_clim)
+exp_clim[c(1:3, 997:1000),]
 ```
 
-Once the climate is set, we can simulate a species.
+Once the climate is set, we can simulate a species. I recreate the species to start with a size distribution closer to the equilibrium reached in previous simulations. Don't forget to modify this distribution with the surface sampled (`SurfEch`).
 
 ```{r clim_sim}
-# I recreate the species to start with a BA closer to the equilibrium
-Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_initBA(20), 
+
+distrib <- filter(memor_mu, equil, var == "m") %>% pull(value) * 0.03
+Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_init_k(distrib), 
                            harvest_fun = def_harv)
-load_all()
 clim_forest <- new_forest(species = list(clim_Picea = Picea_abies))
 set.seed(42)
 memor_clim <- sim_deter_forest.forest(clim_forest, tlim = time, climate = exp_clim,
@@ -219,8 +227,7 @@ memor_clim %>%
     NULL
 ```
 
-
-
+I think this fast decay at start is because the distribution comes from an equilibrium for the "optimal" climate and not the the cold edge, but past this point an increase in *sgdd* and *wai* seems to increase basal area along with a decrease of population size. However, the climate variation is relatively quick and we may need to test more hypothesis. Lastly, the evolution of metrics is not smooth, so the random effect on climate may be effective.
 
 ## Testing effect of stepMu
 
@@ -266,4 +273,8 @@ res %>% group_by(stepMu) %>%
     summarise(min = min(value), max = max(value), d = max - min)
 ```
 
+## Future steps in dev
 
+* Testing before simulation if all species are `IPM` or `mu` and if climate evolve.
+
+* Test `climate` dimensions with `equil.time`.

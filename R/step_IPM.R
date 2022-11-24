@@ -91,6 +91,7 @@ get_step_IPM.mu_gr <- function(x, ...){
         P_sv <- rep(1, m)
     }
     ## Functions ####
+    # browser()
     grFun <- exp_sizeFun(mu_gr$gr$params_m, list_covs)
     svFun <- exp_sizeFun(mu_gr$sv$params_m, list_covs)
     mu_growth <- grFun(mesh_x)

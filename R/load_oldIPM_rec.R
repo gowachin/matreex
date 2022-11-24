@@ -67,7 +67,7 @@ multi <- function(x, df){
         foo <- ""
         yvar <- y
     }
-    if(!is.na(y) && df$value.y[selec] != 1){
+    if(!is.na(y) && df$true.y[selec]){
         yvar <- df$value.y[selec]
     } else {
         yvar <- ensym(yvar)
@@ -115,15 +115,16 @@ format_fit <- function(params, list_covs){
 
     vx <- unname(lc[x])
     vy <- unname(lc[y])
-    vy[is.na(vy)] <- 1
+    fy <- is.na(vy)
+    vy[fy] <- 1
     K <- unparams * vx * vy
 
     # HACK List is Fast and Furious. Graou !
     res <- list(var1 = x, var2 = y, params = unparams,
-                value.x = vx, value.y = vy, K = K
+                value.x = vx, value.y = vy, true.y = !fy, K = K
     )
     class(res) <- "data.frame"
-    attributes(res)$row.names <- 1:5
+    attributes(res)$row.names <- 1:length(x)
 
     return(res)
 }
