@@ -18,7 +18,7 @@ This package relies on very few packages listed below, that you can install with
 
 ```
 deps <- c('checkmate', 'Matrix', 'here', 'dplyr', 
-          'rlang', 'tidyr', 'purrr', 'tibble')
+          'rlang', 'tidyr', 'purrr', 'tibble', 'statmod', 'magick', 'pdftools')
 for (i in deps ){
   if(!require(i,character.only = TRUE))
     install.packages(i)
