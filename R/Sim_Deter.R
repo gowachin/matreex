@@ -53,8 +53,14 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' equilibrium is assumed. single real.
 #' @param equil_time Total maximum time simulation allowed in equilibrium
 #' research. Must be higher or equal to tlim and equil_dist. single int.
+#' @param harvest Choice of harvest rules between default, Uneven and Even.
+#' This indicate what settings will be used. See Details.
 #' @param targetBA BA value that is targetted by the Harvest module.
 #' Single numeric in \eqn{m^2}.
+#' @param climate Optional, climate matrix if climate variation along time is
+#' needed. Climate variation rely on species created with mu_gr class objects.
+#' This matrix require as many rows as time steps until equil_time.
+#' If the climate does not variate, a single row can given and will be reused.
 #' @param correction Choice of correction of the IPM between \code{"none"}
 #' (default) and \code{"cut"}. The second option set the last column to 0 in the
 #' IPM so that no individual can grow outside of the defines classes.
