@@ -46,7 +46,7 @@ test_that("validate_forest works", {
     tmp$info$clim_lab <- c(Yggdrasil = 1, Yggdrasil = 2)
     expect_error(
         validate_forest(tmp),
-        "All species are not defined for the same climatic."
+        "Some ipm species are not defined with the same climatic name"
     )
 })
 

@@ -45,19 +45,13 @@ validate_forest <- function(x){
     map(values$species, validate_species)
     # TODO check forest harv rules
 
-    # Get forest clim_lab !
-    if(all(clim_lab == "mu_gr")){
-        clim_lab <- "mu_gr" # B
-    }
-    if(length(unique(clim_lab)) == 1){
-        clim_lab <- clim_lab[[1]] # A
-    } else {
+    clim_lab <- values$info$clim_lab
+    if(length(unique(clim_lab)) > 1){
         clim_ipm <- clim_lab[clim_lab != "mu_gr"]
         if(length(clim_ipm) > 1){ # D & F
             stop(paste0("Some ipm species are not defined with the same climatic name.",
                         "Check it with : map_chr(species, climatic)"))
         }
-        clim_lab <- "mixed" # C & E
     }
 
 
