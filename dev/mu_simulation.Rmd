@@ -83,8 +83,7 @@ memor_mu %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) +
-    geom_point(size = .4) +
+    geom_line(size = .4) + geom_point(size = .4) +
     NULL
 ```
 
@@ -112,11 +111,9 @@ Below is a plot that combine both simulations and compute the difference along t
 e_memor <- dplyr::bind_rows(ipm = memor_ipm, mu = memor_mu, .id = "meth")
 e_memor %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
-    # dplyr::na_if(0) %>%
     ggplot(aes(x = time, y = value, color = meth)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4, linetype = "dotted") +
-    geom_point(size = .4) +
+    geom_line(size = .4, linetype = "dotted") + geom_point(size = .4) +
     NULL
 
 e_memor %>%
@@ -124,8 +121,7 @@ e_memor %>%
     group_by(time) %>% summarise(value = diff(value)) %>%
     ggplot(aes(x = time, y = value)) +
     ylab("BA difference") +
-    geom_line(size = .4, linetype = "dotted") +
-    geom_point(size = .4) +
+    geom_line(size = .4, linetype = "dotted") + geom_point(size = .4) +
     NULL
 ```
 
@@ -207,7 +203,6 @@ exp_clim[c(1:3, 997:1000),]
 Once the climate is set, we can simulate a species. I recreate the species to start with a size distribution closer to the equilibrium reached in previous simulations. Don't forget to modify this distribution with the surface sampled (`SurfEch`).
 
 ```{r clim_sim}
-
 distrib <- filter(memor_mu, equil, var == "m") %>% pull(value) * 0.03
 Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_init_k(distrib), 
                            harvest_fun = def_harv)
@@ -222,8 +217,7 @@ memor_clim %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) +
-    geom_point(size = .4) +
+    geom_line(size = .4) + geom_point(size = .4) +
     NULL
 ```
 
@@ -273,8 +267,66 @@ res %>% group_by(stepMu) %>%
     summarise(min = min(value), max = max(value), d = max - min)
 ```
 
-## Future steps in dev
 
-* Testing before simulation if all species are `IPM` or `mu` and if climate evolve.
+## Multiple species simulations
 
-* Test `climate` dimensions with `equil.time`.
+We had a second species with mu values. This is just so we can have a distribution from species equilibrium at the climate given at very start of this document.
+
+```{r Abies_alba}
+mu_Abies_alba <- make_mu_gr(
+    species = "Abies_alba", fit = fit_Abies_alba,
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    verbose = TRUE, stepMu = 0.001)
+
+Abies_alba <- new_species(IPM = mu_Abies_alba, init_pop = def_initBA(20), 
+                           harvest_fun = def_harv)
+
+forest <- new_forest(species = list(mu_Abies = Abies_alba))
+set.seed(42)
+memor_abies <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+distrib_abies <- filter(memor_abies, equil, var == "m") %>% pull(value) * 0.03
+Abies_alba <- new_species(IPM = mu_Abies_alba, 
+                           init_pop = def_init_k(distrib_abies), 
+                           harvest_fun = def_harv)
+```
+
+We create a forest with 2 species integrated with mu values. From this, we just need to run the simulation. Please note that the climate can be modified along time as before because all species use mu values. Another thing to note is the simulation time that is correlated with the number of mu species used.
+
+```{r}
+nsp_forest <- new_forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
+set.seed(42)
+memor_nsp <- sim_deter_forest.forest(nsp_forest, tlim = time, climate = exp_clim,
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor_nsp %>%
+    filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) + geom_point(size = .4) +
+    NULL
+```
+
+If we want to simulate with species defined from mu and ipm, we can mix them but the climate used to integrate the ipm will be used. Providing a climate is thus useless in this case. 
+
+```{r}
+Picea_abies_ipm$init_pop <- def_init_k(distrib)
+msp_forest <- new_forest(species = list(Picea = Picea_abies_ipm, Abies = Abies_alba))
+set.seed(42)
+memor_msp <- sim_deter_forest.forest(msp_forest, tlim = time, climate = exp_clim,
+                                    equil_dist = time, equil_time = time,
+                                    verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor_msp %>%
+    filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) + geom_point(size = .4) +
+    NULL
+```

@@ -82,7 +82,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' @import Matrix
 #' @import checkmate
 #' @import purrr
-#' @importFrom dplyr between
+#' @importFrom dplyr between bind_cols
 #'
 #' @name sim_deter_forest
 #' @export
@@ -188,10 +188,35 @@ sim_deter_forest.forest  <- function(Forest,
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
-
-    ipms <- map_lgl(Forest$species, ~ inherits(.x$IPM, "mutrix"))
-    if(any(ipms & missing(climate))){
-        stop("Mutrix species require climatic vector.")
+    IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
+    if(all(IPM_cl == "ipm") && !is.null(climate)) {
+        # no climate needed
+        warning(paste0("Because all species are fully integrated on a climate, ",
+                       "providing one now is unnecessary"))
+    } else {
+        if(any(IPM_cl == "ipm")){
+            if(!is.null(climate)){
+                warning(
+                    paste0("At least one species is fully integrated on a ",
+                           "climate, so this climate will be used for simulation"))
+            }
+            clim_i <- which(IPM_cl == "ipm")[[1]]
+            climate <- t(Forest$species[[clim_i]]$IPM$climatic)
+        }
+        if(inherits(climate, "data.frame")){
+            climate <- as.matrix(climate)
+        } else if(inherits(climate, "numeric")){
+            climate <- t(climate)
+        }
+        assertMatrix(climate)
+        if(nrow(climate) != 1 & nrow(climate) < equil_time){
+            stop(paste0("climate matrix is not defined for each time until",
+                        " equil_time. This matrix require a row per time or ",
+                        "single one."))
+        }
+        if(nrow(climate) == 1){
+            climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
+        }
     }
 
     start <- Sys.time()
@@ -263,11 +288,7 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
-    if(inherits(climate, "matrix")){
-        start_clim <- climate[1, ]
-    } else {
-        start_clim <- climate
-    }
+    start_clim <- climate[1, , drop = TRUE]
 
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
         x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction
@@ -353,11 +374,7 @@ sim_deter_forest.forest  <- function(Forest,
 
         ### Recruitment ####
         # browser() # TODO change climate along time here
-        if(inherits(climate, "matrix")){
-            sim_clim <- climate[t, , drop = TRUE]
-        } else {
-            sim_clim <- climate
-        }
+        sim_clim <- climate[t, , drop = TRUE]
         rec <- map(Forest$species, sp_rec.species, sim_clim)
 
         recrues <- imap(
