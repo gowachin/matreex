@@ -15,7 +15,7 @@ test_that("new_species works", {
                          IPM = IPM, init_pop = def_init, harvest_fun = def_harv,
                          harv_lim = c(dth = 175, dha = 575, hmax = 1),
                          rdi_coef = NULL,
-                         recruit_fun = exp_recFun(params = IPM$rec$params_m,
+                         recruit_fun = exp_recFun(params = IPM$fit$rec$params_m,
                                                   list_covs = IPM$climatic),
                          info = c(species = "Yggdrasil", clim_lab = "1")),
                          class = "species"))

@@ -22,17 +22,17 @@ report(x)
 
 # df_cov[df_cov$functions=='tank',]
 
-x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
 x <- file_coverage('R/class_fit_sgr.R', 'tests/testthat/test-class_fit_sgr.R')
 x <- file_coverage('R/class_ipm.R', 'tests/testthat/test-class_ipm.R')
+x <- file_coverage('R/class_mu_gr.R', 'tests/testthat/test-class_mu_gr.R')
 x <- file_coverage('R/class_species.R', 'tests/testthat/test-class_species.R')
 x <- file_coverage('R/class_forest.R', 'tests/testthat/test-class_forest.R')
-x <- file_coverage('R/class_mu_gr.R', 'tests/testthat/test-class_mu_gr.R')
 x <- file_coverage('R/generic_methods.R', 'tests/testthat/test-gen_meth.R')
 x <- file_coverage('R/load_oldIPM_rec.R', 'tests/testthat/test-oldIPM_rec.R')
 x <- file_coverage('R/harvest.R', 'tests/testthat/test-harvest.R')
 x <- file_coverage('R/make_ipm.R', 'tests/testthat/test-make_ipm.R')
 x <- file_coverage('R/step_IPM.R', 'tests/testthat/test-step_IPM.R')
+x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
 report(x)
 # zero_coverage() shows only uncovered lines.
 # If run within RStudio, `zero_coverage()` will open a marker pane with the

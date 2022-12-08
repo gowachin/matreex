@@ -11,7 +11,7 @@ new_ipm(
   species,
   climatic,
   clim_lab,
-  rec_params,
+  fit,
   compress = FALSE,
   delay = 0,
   int_log
@@ -34,9 +34,6 @@ the number of size class in the IPM. num.}
 \item{clim_lab}{Label for climatic used. This values will be matched when
 simulating multiple species together.}
 
-\item{rec_params}{Named vector of growth parameters fitted for this species and
-climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
-
 \item{compress}{Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 Help to limit  size when saved on disc. FALSE by default. lgl.}
 
@@ -47,6 +44,15 @@ values of 1. See \code{\link[treeforce]{delay}}.}
 \item{int_log}{Internal vector used to store logs about integratio process
 that register year delta, maximum integration error on the first half of
 the mesh, minimal gauss-legendre value and maximal midbin error.}
+
+\item{sv_params}{Named vector of survival parameters fitted for this species and
+climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
+
+\item{gr_params}{Named vector of growth parameters fitted for this species and
+climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
+
+\item{rec_params}{Named vector of recruitment parameters fitted for this species and
+climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
 }
 \description{
 Constructor for IPM class

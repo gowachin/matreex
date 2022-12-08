@@ -260,7 +260,15 @@ sp_rec <- function(x, climatic){
 #' @export
 sp_rec.mu_gr <- function(x, climatic){
 
-    res <- exp_recFun(params = x$rec$params_m, list_covs = climatic)
+    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic)
+    return(res)
+}
+
+#' @method sp_rec ipm
+#' @export
+sp_rec.ipm <- function(x, climatic){
+
+    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic)
     return(res)
 }
 
@@ -268,11 +276,7 @@ sp_rec.mu_gr <- function(x, climatic){
 #' @export
 sp_rec.species <- function(x, climatic){
 
-    if(inherits(x$IPM, "ipm")){
-        res <- x$recruit_fun
-    } else {
-        res <- sp_rec(x$IPM, climatic)
-    }
+    res <- sp_rec(x = x$IPM, climatic)
     return(res)
 }
 

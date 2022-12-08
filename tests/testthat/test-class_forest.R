@@ -5,7 +5,8 @@ test_that("new_forest works", {
 
     Yggdrasil <- old_ipm2species("Yggdrasil", climatic = 1,
                                  path = path, replicat = 1)
-
+    # browser()
+    map_chr(list(Yggdrasil), climatic)
     expect_identical(new_forest(list(Yggdrasil)),
                      structure(list(
                          species = list(Yggdrasil = Yggdrasil),

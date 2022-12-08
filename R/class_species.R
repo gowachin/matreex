@@ -31,7 +31,7 @@ new_species <- function(IPM, init_pop,
                         ){
 
     if(inherits(IPM, "ipm")){
-        rec <- exp_recFun(params = IPM$rec$params_m,
+        rec <- exp_recFun(params = IPM$fit$rec$params_m,
                           list_covs = IPM$climatic)
     } else if(inherits(IPM, "mu_gr")){
         rec <- "to define"
@@ -196,7 +196,7 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
     res_ipm <- new_ipm(
         IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
         species = species, climatic = drop(as.matrix(raw_IPM$list_m)),
-        rec_params = raw_IPM$rec$params_m,
+        fit = old_fit2fit(species, path = path, replicat = replicat, mean = FALSE),
         clim_lab = climatic, compress = TRUE, delay = 0
     )
 

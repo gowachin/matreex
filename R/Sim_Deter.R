@@ -460,6 +460,8 @@ sim_deter_forest.forest  <- function(Forest,
     }
     sim_X <- new_deter_sim(sim_X, mesh = meshs)
 
+    # sim_X <- tree_format(sim_X)
+
     # Return ####
     return(sim_X)
 }
@@ -491,6 +493,16 @@ new_deter_sim <- function(x = matrix(), mesh = NULL){
 #' @export
 tree_format <- function(x){
     UseMethod("tree_format")
+}
+
+
+#' @rdname tree_format
+#' @keywords internal
+#' @export
+tree_format.default <- function(x){
+    warning(paste0("tree_format is now deprecated. It is already integrated to",
+                   " sim_deter_forest function to simplify the simulation pipeline"))
+    x
 }
 
 

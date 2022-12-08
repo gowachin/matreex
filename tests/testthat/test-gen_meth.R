@@ -28,7 +28,17 @@ test_that("climatic works", {
     expect_identical(climatic(x), "mu_gr")
 })
 
+sv_params <- gr_params <- c(intercept = 2, size = .5)
+rec_params <- c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
+sv_family <- list(linkinv = function(eta){
+    pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
+})
+gr_sigma = .6
+max_dbh <- 42
 
+fit <- new_fit_sgr(sv_params, sv_family,
+                   gr_params, gr_sigma, rec_params,
+                   "Yggdrasil", 42)
 
 # delay ####
 test_that("delay dtCMatrix works", {
@@ -58,16 +68,16 @@ test_that("delay numeric works", {
 
 test_that("delay ipm works", {
 
-    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
+    rec <-  fit
     mat<- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec,
+                 species = "darwin", climatic = 1, clim_lab = "1", fit = rec,
                  compress = FALSE)
 
     exp <- new_ipm(IPM = list( delay(mat, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec,
+                   species = "darwin", climatic = 1, clim_lab = "1", fit = rec,
                    compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
@@ -76,11 +86,11 @@ test_that("delay ipm works", {
     expect_identical( delay(x, 0), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec,
+                 species = "darwin", climatic = 1, clim_lab = "1", fit = rec,
                  compress = TRUE)
 
     exp <- new_ipm(IPM = list( delay(mat * 1e-7, 2) ), BA = 1, mesh = c(0,0,1:3),
-                   species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec,
+                   species = "darwin", climatic = 1, clim_lab = "1", fit = rec,
                    compress = FALSE, delay = 2)
     # validate_ipm(x)
     # validate_ipm(exp)
@@ -97,7 +107,7 @@ test_that("delay species works", {
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
     species = "darwin", climatic = 1, clim_lab = "1",
-    rec_params = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1),
+    fit = fit,
     compress = FALSE)
     validate_ipm(IPM)
 
@@ -123,7 +133,7 @@ test_that("delay forest works", {
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
     species = "darwin", climatic = c(sgdd = 1), clim_lab = "1",
-    rec_params = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1),
+    fit = fit,
     compress = FALSE)
     validate_ipm(IPM)
 
@@ -146,7 +156,7 @@ test_that("delay forest works", {
 # correction ####
 test_that("correction ipm works", {
 
-    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
+    rec <-  fit
     mat<- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
               p = c(0L, 3L,  5L, 6L),
               Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
@@ -154,10 +164,10 @@ test_that("correction ipm works", {
                   p = c(0L, 2L,  3L, 3L),
                   Dim = c(3L, 3L), x = c(1, 2, 1), uplo = "L", diag = "N")
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
+                 species = "darwin", climatic = 1, clim_lab = "1", fit = rec, compress = FALSE)
 
     exp <- new_ipm(IPM = list( new_mat  ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", fit = rec, compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -165,10 +175,10 @@ test_that("correction ipm works", {
     expect_identical( correction(x), x )
 
     x <- new_ipm(IPM = list(mat), BA = 1, mesh = 1:3,
-                 species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = TRUE)
+                 species = "darwin", climatic = 1, clim_lab = "1", fit = rec, compress = TRUE)
 
     exp <- new_ipm(IPM = list( new_mat * 1e-7 ), BA = 1, mesh = 1:3,
-                   species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
+                   species = "darwin", climatic = 1, clim_lab = "1", fit = rec, compress = FALSE)
     # validate_ipm(x)
     # validate_ipm(exp)
 
@@ -192,7 +202,7 @@ test_that("correction species works", {
             p = c(0L, 3L,  5L, 6L),
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
+    species = "darwin", climatic = 1, clim_lab = "1", fit = fit, compress = FALSE)
     validate_ipm(IPM)
 
 
@@ -218,7 +228,7 @@ test_that("correction forest works", {
             Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     ), BA = 1, mesh = 1:3,
     species = "darwin", climatic = 1, clim_lab = "1",
-    rec_params = c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1), compress = FALSE)
+    fit = fit, compress = FALSE)
     validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
@@ -234,6 +244,7 @@ test_that("correction forest works", {
 })
 
 
+# sp_rec ####
 test_that("sp_rec mu_gr works", {
 
     x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
@@ -245,29 +256,39 @@ test_that("sp_rec mu_gr works", {
     )
 
     expect_identical(
-        exp_recFun(params = x$rec$params_m, list_covs = climate),
+        exp_recFun(params = x$fit$rec$params_m, list_covs = climate),
         sp_rec(x, climate)
     )
 
 })
 
 
-test_that("sp_rec species works", {
+sv_params <- gr_params <- c(intercept = 2, size = .5)
+rec_params <- c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
+sv_family <- list(linkinv = function(eta){
+    pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
+})
+gr_sigma = .6
+max_dbh <- 42
 
-    rec <-  c(intercept = 2, BATOTSP = 0, BATOTNonSP = 1)
-    IPM <- new_ipm(IPM = list(
-        new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
-            p = c(0L, 3L,  5L, 6L),
-            Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
-    ), BA = 1, mesh = 1:3,
-    species = "darwin", climatic = 1, clim_lab = "1", rec_params = rec, compress = FALSE)
-    validate_ipm(IPM)
+fit <- new_fit_sgr(sv_params, sv_family,
+                   gr_params, gr_sigma, rec_params,
+                   "Yggdrasil", 42)
+
+test_that("sp_rec species works", {
 
     climate <- c(sgdd = 1444.66662815716, wai = 0.451938692369727, sgddb = 0.000692201218266957,
                  waib = 0.688734314510131, wai2 = 0.204248581660859, sgdd2 = 2087061.66651097,
                  PC1 = 1.67149830316836, PC2 = 0.0260206360117464, N = 2, SDM = 0.676055555555556
     )
 
+    IPM <- new_ipm(IPM = list(
+        new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
+            p = c(0L, 3L,  5L, 6L),
+            Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
+    ), BA = 1, mesh = 1:3,
+    species = "darwin", climatic = climate, clim_lab = "1", fit = fit, compress = FALSE)
+    validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
                       harvest_fun = def_harv)

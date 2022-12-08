@@ -13,6 +13,8 @@
 #'  \item{BA}{Total basal area to get the IPM for during simulation.}
 #'  \item{climate}{Climate for which the IPM is needed. Only used for mu_gr.}
 #'  \item{sim_corr}{Simulation correction applied to the IPM. "cut" or "none"}
+#'  \item{IsSurv}{Does this step IPM require survival. If missing or NULL,
+#'  the value will be taken from x$info object}
 #' }
 #'
 #' @export
@@ -27,6 +29,11 @@ get_step_IPM.ipm <- function(x, ...){
     dots <- list(...)
     ipm <- x
     BA <- dots$BA
+    climate <- dots$climate
+    IsSurv <- dots$IsSurv
+    if(is.null(IsSurv)){
+        IsSurv <- TRUE
+    }
 
     # Idiot Proof ####
     assertClass(ipm, "ipm")
@@ -34,6 +41,26 @@ get_step_IPM.ipm <- function(x, ...){
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     BAsp <- ipm$BA
+
+    if(! IsSurv && as.logical(x$info["surv"])){ # TODO also if surv was done in make_ipm
+        m <- length(x$mesh)
+        U <- x$mesh[[m]]
+        L <- x$mesh[[1]]
+        h <- (U - L) / m
+        x_level <-x$int_log["gl1"] # TODO modify IPM for this information is needed !
+        year_delta <- x$int_log["year_delta"]
+        # build weight for GL integration on the two dim
+        out1 <- gaussQuadInt(-h / 2, h / 2, x_level) # For x integration
+        weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
+        mesh_sv <- outer(mesh_x, out1$nodes, "+")
+
+        list_covs <- c(climate)
+        P_sv <- svlink(svFun(mesh_sv))
+        P_sv <- colSums(t(P_sv) * weights1) # alt works with integration > 3
+        P_sv <- 1 - P_sv
+        # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+        P_sv <- P_sv ^ year_delta
+    }
 
     low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
     high_id <- which(BAsp == min(BAsp[BAsp > BA]))
@@ -54,6 +81,7 @@ get_step_IPM.mu_gr <- function(x, ...){
     BA <- dots$BA
     climate <- dots$climate
     sim_corr <- dots$sim_corr
+    IsSurv <- dots$IsSurv
 
     # Idiot Proof ####
     assertClass(mu_gr, "mu_gr")
@@ -69,7 +97,9 @@ get_step_IPM.mu_gr <- function(x, ...){
     L <- mu_gr$mesh[[1]]
     h <- (U - L) / m
     N_int <- nrow(mu_gr$mu_gr)
-    IsSurv <- as.logical(mu_gr$info["surv"])
+    if(is.null(IsSurv)){
+        IsSurv <- as.logical(mu_gr$info["surv"])
+    }
     correction <- mu_gr$info["correction"]
     x_level <- mu_gr$int["gl1"]
     year_delta <- mu_gr$int["year_delta"]
@@ -84,16 +114,16 @@ get_step_IPM.mu_gr <- function(x, ...){
 
     ## Functions ####
     ### Growth
-    svlink <- mu_gr$sv$family$linkinv
-    sig_gr <- mu_gr$gr$sigma
+    svlink <- mu_gr$fit$sv$family$linkinv
+    sig_gr <- mu_gr$fit$gr$sigma
     ### Survival
     if(!IsSurv) {
         P_sv <- rep(1, m)
     }
     ## Functions ####
     # browser()
-    grFun <- exp_sizeFun(mu_gr$gr$params_m, list_covs)
-    svFun <- exp_sizeFun(mu_gr$sv$params_m, list_covs)
+    grFun <- exp_sizeFun(mu_gr$fit$gr$params_m, list_covs)
+    svFun <- exp_sizeFun(mu_gr$fit$sv$params_m, list_covs)
     mu_growth <- grFun(mesh_x)
     if (IsSurv) {
         P_sv <- svlink(svFun(mesh_sv))
@@ -114,7 +144,9 @@ get_step_IPM.mu_gr <- function(x, ...){
     if (correction == "none") { # Based on IPMpack
         P <- t(t(P) * P_sv)
     } else if (correction == "constant") { # Based on IPMpack
-        P <- P / outer( rep(1, m), colSums(P), "*") * P_sv
+        nvals <- colSums(P)
+        P <- t((t(P) / nvals))
+        P <- P * (matrix(rep(t(P_sv), m), ncol = m, nrow = m))
     } else if (correction == "sizeExtremes") { # Based on IPMpack
         selectsize_t <- (N_int + 0:(m - 1)) > m
         DiffNvals <- pmax(1 - colSums(P), 0)

@@ -33,8 +33,7 @@ test_that("make_mu_gr works", {
                                 4.68802794462808e-09), dim = c(9L, 3L)),
             BA = 0:200,
             mesh = c(145.5, 256.5, 367.5, 478.5, 589.5, 700.5, 811.5, 922.5, 1033.5, 1144.5),
-            mu_tab = c(-5, -4, -3, -2, -1, 0, 1, 2, 3),
-            sv = f$sv, gr = f$gr, rec = f$rec,
+            mu_tab = c(-5, -4, -3, -2, -1, 0, 1, 2, 3), fit = f,
             info = c(species = "Picea_abies", correction = "constant",
                      clim_lab = "mu_gr", step = "1", surv = "TRUE"),
             int = c(gl1 = 3, gl2 = 10, gl_tresh.U = 1, mb_tresh = 2, mid_level = 5, year_delta = 1)
@@ -75,11 +74,11 @@ test_that("validate_mu_gr works", {
                level = c(3, 10), midbin_tresh = 2)
     expect_identical(x, validate_mu_gr(x))
     tmp <- x
-    names(tmp) <- c("mu_gr", "BA", "mu_mesh", "mu_tab", "sv", "gr", "rec",
+    names(tmp) <- c("mu_gr", "BA", "mu_mesh", "mu_tab", "fit",
                     "info", "int")
     expect_error(
         validate_mu_gr(tmp),
-        "mu_gr class must be composed of elements mu_gr, BA, mesh, mu_tab, sv, gr, rec, info and int"
+        "mu_gr class must be composed of elements mu_gr, BA, mesh, mu_tab, fit, info and int"
     )
     tmp <- x
     names(tmp$info) <- c("sp", "correction", "clim_lab",

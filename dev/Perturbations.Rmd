@@ -1,0 +1,78 @@
+---
+title: "Perturbations"
+author: "Maxime Jaunatre"
+date: "2022-12-08"
+output: pdf_document
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Testing simulation with perturbations
+
+This document show how to simulate a species with perturbation occuring in time.
+For now, the package is in experimental state and use the branch *tempest*. For this example we will use the species *Picea abies* as an example.
+
+```{r constant}
+# Libraries
+library(ggplot2)
+library(dplyr)
+library(devtools)
+
+# Loading all functions of the package
+devtools::load_all()
+species <- "Picea_abies"
+data(list = paste0("fit_", species))
+fit <- eval(parse(text=paste0("fit_", species)))
+climate <- subset(climate_species, sp == species, select = -sp)
+```
+
+## Perturbation
+
+### Definition of perturbation
+
+### Impact on population
+
+## Simulations
+
+We need to remove survival during perturbation. This is done during simulation at the step where we get the IPM matrix with get_step_IPM.
+
+```{r}
+# we need the fit_sgr in IPM class to get the function during get_step_IPM
+```
+
+
+
+```{r compare_IPM}
+step_climate <- subset(climate, N ==2, select = -N)
+step_climate <- drop(as.matrix(step_climate))
+time <- 2500
+ipm_Picea <- make_IPM(
+    "Picea_abies", step_climate, "opt_Picab_clim", fit = fit_Picea_abies,
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:100, verbose = TRUE
+)
+Picea_abies <- species(IPM = ipm_Picea, init_pop = def_initBA(40),
+                           harvest_fun = def_harv)
+forest_ipm <- new_forest(species = list(Picea = Picea_abies))
+set.seed(42)
+memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
+                                     equil_dist = time, equil_time = time,
+                                     verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor %>%
+    filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) + geom_point(size = .4) +
+    NULL
+```
+
+## Targets
+
+* Multiple species simulations
+
+

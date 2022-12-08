@@ -19,8 +19,7 @@ new_mu_gr <- function(mu_gr, BA, mesh, mu_tab, mu_step,
                        fit, species, correction, surv = TRUE, int){
 
     mu_gr <- list(mu_gr = mu_gr, BA = BA, mesh = mesh,
-                   mu_tab = mu_tab,
-                   sv = fit$sv, gr = fit$gr, rec = fit$rec,
+                   mu_tab = mu_tab, fit = fit,
                    info = c(species = species, correction = correction,
                             clim_lab = "mu_gr", step = mu_step, surv = surv),
                    int = int)
@@ -46,10 +45,10 @@ validate_mu_gr <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("mu_gr", "BA", "mesh", "mu_tab", "sv", "gr", "rec",
+    if(any(names != c("mu_gr", "BA", "mesh", "mu_tab", "fit",
                       "info", "int"))){
         stop(paste0("mu_gr class must be composed of elements mu_gr, BA, mesh, ",
-                    "mu_tab, sv, gr, rec, info and int"))
+                    "mu_tab, fit, info and int"))
     }
 
     # check all values ####
@@ -57,6 +56,7 @@ validate_mu_gr <- function(x){
     assertNumeric(values$BA)
     assertNumeric(values$mesh)
     assertNumeric(values$int)
+    validate_fit_sgr(values$fit)
 
     # check infos ####
     # assertCharacter(values$info, any.missing = FALSE)

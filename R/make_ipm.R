@@ -304,7 +304,7 @@ make_IPM <- function(species,
         new_ipm(
             # IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
             IPM = IPM, BA = BA, mesh = seq(L + h / 2, U - h / 2, length.out = m), # IDEA to test diff of old and new IPM
-            climatic = climate, clim_lab = clim_lab, rec_params = fit$rec$params_m,
+            climatic = climate, clim_lab = clim_lab, fit = fit,
             species = species, compress = FALSE, int_log = int_log
         )
     )

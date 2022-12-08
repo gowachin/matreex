@@ -6,6 +6,10 @@ test_that("sim_deter_forest simple", {
     model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
                             replicat = 1)
 
+    # model$species$Yggdrasil$IPM$fit$rec
+    # sim_clim <- t(model$species[[1]]$IPM$climatic)
+    # map(model$species, sp_rec.species, sim_clim)
+
     set.seed(666)
     res <- sim_deter_forest(Forest = model, tlim = 30, equil_time = 1e3,
                             correction = "cut")

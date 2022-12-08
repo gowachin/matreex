@@ -2,10 +2,13 @@
 % Please edit documentation in R/Sim_Deter.R
 \name{tree_format}
 \alias{tree_format}
+\alias{tree_format.default}
 \alias{tree_format.deter_sim}
 \title{tree_format generic}
 \usage{
 tree_format(x)
+
+\method{tree_format}{default}(x)
 
 \method{tree_format}{deter_sim}(x)
 }
