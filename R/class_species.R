@@ -195,9 +195,10 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
 
     res_ipm <- new_ipm(
         IPM = raw_IPM$LIPM, BA = 1:length(raw_IPM$LIPM), mesh = raw_IPM$meshpts,
-        species = species, climatic = drop(as.matrix(raw_IPM$list_m)),
+        species = species, correction = "constant",
+        climatic = drop(as.matrix(raw_IPM$list_m)),
         fit = old_fit2fit(species, path = path, replicat = replicat, mean = FALSE),
-        clim_lab = climatic, compress = TRUE, delay = 0
+        clim_lab = climatic, compress = TRUE, survival = TRUE, delay = 0
     )
 
     if(delay > 0){

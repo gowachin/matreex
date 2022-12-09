@@ -39,8 +39,8 @@ climate <- subset(climate_species, sp == species, select = -sp)
 
 We need to remove survival during perturbation. This is done during simulation at the step where we get the IPM matrix with get_step_IPM.
 
-```{r}
-# we need the fit_sgr in IPM class to get the function during get_step_IPM
+```{r, eval = FALSE}
+# TODO  find a way to show this !
 ```
 
 

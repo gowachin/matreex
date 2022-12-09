@@ -42,26 +42,6 @@ get_step_IPM.ipm <- function(x, ...){
 
     BAsp <- ipm$BA
 
-    if(! IsSurv && as.logical(x$info["surv"])){ # TODO also if surv was done in make_ipm
-        m <- length(x$mesh)
-        U <- x$mesh[[m]]
-        L <- x$mesh[[1]]
-        h <- (U - L) / m
-        x_level <-x$int_log["gl1"] # TODO modify IPM for this information is needed !
-        year_delta <- x$int_log["year_delta"]
-        # build weight for GL integration on the two dim
-        out1 <- gaussQuadInt(-h / 2, h / 2, x_level) # For x integration
-        weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
-        mesh_sv <- outer(mesh_x, out1$nodes, "+")
-
-        list_covs <- c(climate)
-        P_sv <- svlink(svFun(mesh_sv))
-        P_sv <- colSums(t(P_sv) * weights1) # alt works with integration > 3
-        P_sv <- 1 - P_sv
-        # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
-        P_sv <- P_sv ^ year_delta
-    }
-
     low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
     high_id <- which(BAsp == min(BAsp[BAsp > BA]))
 
@@ -69,6 +49,32 @@ get_step_IPM.ipm <- function(x, ...){
     w <- (BA - BAsp[low_id]) / delta
 
     res <- ipm$IPM[[low_id]] * (1  - w) + ipm$IPM[[high_id]] * w
+
+    if(! IsSurv && as.logical(ipm$info["surv"])){
+        m <- length(ipm$mesh)
+        U <- ipm$mesh[[m]]
+        L <- ipm$mesh[[1]]
+        h <- (U - L) / m
+        x_level <- ipm$int["gl1"]
+        year_delta <- ipm$int["year_delta"]
+        # build weight for GL integration on the two dim
+        out1 <- gaussQuadInt(-h / 2, h / 2, x_level) # For x integration
+        weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
+        mesh_x <- ipm$mesh
+        mesh_sv <- outer(mesh_x, out1$nodes, "+")
+
+        list_covs <-  c(climate, BATOTcomp = BA)
+        svFun <- exp_sizeFun(ipm$fit$sv$params_m, list_covs)
+        svlink <- ipm$fit$sv$family$linkinv
+        P_sv <- svlink(svFun(mesh_sv))
+        P_sv <- colSums(t(P_sv) * weights1) # alt works with integration > 3
+        P_sv <- 1 - P_sv
+        # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
+        P_sv <- P_sv ^ year_delta
+
+        res <- res / (matrix(rep(t(P_sv), m), ncol = m, nrow = m))
+    }
+
     return(res)
 }
 
@@ -114,14 +120,13 @@ get_step_IPM.mu_gr <- function(x, ...){
 
     ## Functions ####
     ### Growth
-    svlink <- mu_gr$fit$sv$family$linkinv
     sig_gr <- mu_gr$fit$gr$sigma
     ### Survival
+    svlink <- mu_gr$fit$sv$family$linkinv
     if(!IsSurv) {
         P_sv <- rep(1, m)
     }
     ## Functions ####
-    # browser()
     grFun <- exp_sizeFun(mu_gr$fit$gr$params_m, list_covs)
     svFun <- exp_sizeFun(mu_gr$fit$sv$params_m, list_covs)
     mu_growth <- grFun(mesh_x)

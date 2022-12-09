@@ -77,6 +77,9 @@ class(fit) <- "fit_sgr"
 int_log <- c(year_delta = 1, MaxError = 1,
              GL_Nint = 0, GL_level = 420, GL_min = 0,
              MB_Nint = 0, MB_level = 5, MB_max = 0)
+int <- c(gl1 = 3, gl2 = 140, gl_tresh = 0, gl_min = 0,
+         mb_tresh = 0, mid_level = 5, mb_max = 0,
+         year_delta = 1, max_error = 1)
 
 test_that("make_IPM works : fonctions communes", {
 
@@ -89,7 +92,8 @@ test_that("make_IPM works : fonctions communes", {
         validate_ipm(new_ipm(
                 IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
                 climatic = climate, clim_lab = "test", fit = fit,
-                species = species, compress = FALSE, int_log = int_log
+                species = species, correction = "none",
+                compress = FALSE, int = int
             ))
     )
 
@@ -101,7 +105,8 @@ test_that("make_IPM works : fonctions communes", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test", fit = fit,
-            species = species, compress = FALSE, int_log = int_log
+            species = species, correction = "none",
+            compress = FALSE, int = int, survival = FALSE
         ))
     )
 })
@@ -137,9 +142,9 @@ test_that("make_IPM works : mid_bin", {
                     1.51303497763449e-12, 0.158131275591236, 3.0812990531071e-07,
                     3.58919090657476e-11, 0.0724572291183668, 4.65251304814939e-08,
                     0.0272823103923344), uplo = "L", diag = "N")
-    int_log["MaxError"] <- 0.98220761
-    int_log["MB_max"] <- 0.67573893
-    int_log["MB_Nint"] <- 10
+    int["max_error"] <- 0.98220761
+    int["mb_max"] <- 0.67573893
+    int["mb_tresh"] <- 10
 
     res<-evaluate_promise({
         make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
@@ -152,7 +157,8 @@ test_that("make_IPM works : mid_bin", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test", fit = fit,
-            species = species, compress = FALSE, int_log = int_log
+            species = species, correction = "none",
+            compress = FALSE, int = int
         ))
     )
 
@@ -200,11 +206,11 @@ test_that("make_IPM works : gauss-legendre", {
                     4.80576731717906e-12, 0.992316908839443, 0.00320329048782211,
                     4.28583052972224e-10, 0.993374287906479, 0.00133498605576727,
                     0.998860122517894), uplo = "L", diag = "N")
-    int_log["MaxError"] <- 4.019428970623240005011211906e-03
-    int_log["GL_min"] <- 8.7694376e-23
-    int_log["GL_Nint"] <- 10
-    int_log["MB_max"] <- 0
-    int_log["MB_Nint"] <- 0
+    int["max_error"] <- 4.019428970623240005011211906e-03
+    int["gl_min"] <- 8.7694376e-23
+    int["gl_tresh"] <- 10
+    int["mb_max"] <- 0
+    int["mb_tresh"] <- 0
 
     expect_equal(
         make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
@@ -213,7 +219,8 @@ test_that("make_IPM works : gauss-legendre", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test", fit = fit,
-            species = species, compress = FALSE, int_log = int_log
+            species = species, correction = "none",
+            compress = FALSE, int = int
         ))
     )
 
@@ -235,9 +242,9 @@ test_that("make_IPM works : gauss-legendre", {
 test_that("make_IPM works : corrections", {
 
     ex <- Matrix(matrix(0, ncol = 10, nrow = 10), sparse = TRUE)
-    int_log["MaxError"] <- 1
-    int_log["GL_min"] <- 0
-    int_log["GL_Nint"] <- 0
+    int["max_error"] <- 1
+    int["gl_min"] <- 0
+    int["gl_tresh"] <- 0
 
     # expect_equal(
     #     make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1,
@@ -257,7 +264,8 @@ test_that("make_IPM works : corrections", {
         validate_ipm(new_ipm(
             IPM = list(`1` = ex), BA = 1, mesh = seq(160.5, 1429.5, length.out = 10),
             climatic = climate, clim_lab = "test", fit = fit,
-            species = species, compress = FALSE, int_log = int_log
+            species = species, correction = "sizeExtremes",
+            compress = FALSE, int = int, surv = FALSE
         ))
     )
 

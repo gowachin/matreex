@@ -7,6 +7,8 @@
 #' (L being the smallest size and U the largest.). Length of this vector is
 #' the number of size class in the IPM. num.
 #' @param species Name of the species to run simulation on. Single char.
+#' @param correction IPM correction wanted for this species. Single char.
+#' @param survival IPM inclusion of survival function. Lgl, TRUE by default.
 #' @param climatic Vector of named climatic values used to fit the ipm on. dbl.
 #' @param clim_lab Label for climatic used. This values will be matched when
 #' simulating multiple species together.
@@ -21,25 +23,30 @@
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 #' values of 1. See \code{\link[treeforce]{delay}}.
-#' @param int_log Internal vector used to store logs about integratio process
+#' @param int Internal vector used to store logs about integratio process
 #' that register year delta, maximum integration error on the first half of
 #' the mesh, minimal gauss-legendre value and maximal midbin error.
 #'
 #' @export
-new_ipm <- function(IPM, BA, mesh, species, climatic, clim_lab,
-                    fit, compress = FALSE, delay = 0, int_log){
+new_ipm <- function(IPM, BA, mesh, species, correction, survival = TRUE,
+                    climatic, clim_lab,
+                    fit, compress = FALSE, delay = 0, int){
     # TODO change documentation
 
-    if(missing(int_log)){
-        int_log <- c(year_delta = 0, MaxError = 0,
-                                GL_Nint = 0, GL_level = 0, GL_min = 0,
-                                MB_Nint = 0, MB_level = 0, MB_max = 0)
+    if(missing(int)){
+        # int <- c(year_delta = 0, MaxError = 0,
+        #                         GL_Nint = 0, GL_level = 0, GL_min = 0,
+        #                         MB_Nint = 0, MB_level = 0, MB_max = 0)
+        int <- c(gl1 = 0, gl2 = 0, gl_tresh = 0, gl_min = 0,
+                 mb_tresh = 0, mid_level = 0, mb_max = 0,
+                 year_delta = 0, max_error = 0)
     }
 
     IPM <- list(IPM = IPM, BA = BA, mesh = mesh, climatic = climatic, fit = fit,
-                info = c(species = species, clim_lab = clim_lab,
+                info = c(species = species, correction = correction,
+                         clim_lab = clim_lab, surv = survival,
                          compress = compress, delay = delay),
-                int_log = int_log)
+                int = int)
     class(IPM) <- "ipm"
 
     return(IPM)
@@ -60,8 +67,8 @@ validate_ipm <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("IPM", "BA", "mesh", "climatic", "fit", "info", "int_log"))){
-        stop("IPM class must be composed of elements IPM, BA, mesh, climatic, fit, info and int_log")
+    if(any(names != c("IPM", "BA", "mesh", "climatic", "fit", "info", "int"))){
+        stop("IPM class must be composed of elements IPM, BA, mesh, climatic, fit, info and int")
     }
 
     # check the IPM part ####
@@ -75,10 +82,10 @@ validate_ipm <- function(x){
     validate_fit_sgr(values$fit)
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "clim_lab", "compress",
-                                   "delay"))){
-        stop(paste0("IPM class must have info of elements species,",
-                    " climatic, compress and delay"))
+    if(any(names(values$info) != c("species", "correction", "clim_lab", "surv",
+                                   "compress", "delay"))){
+        stop(paste0("IPM class must have info of elements species, correction,",
+                    " clim_lab, surv, compress and delay"))
     }
 
     invisible(x)
@@ -116,9 +123,10 @@ old_ipm2ipm <- function(species, climatic = 1, delay = 0, path = here(),
 
     res <- validate_ipm(new_ipm(
         IPM = IPM$LIPM, BA = 1:length(IPM$LIPM), mesh = IPM$meshpts,
-        species = species, climatic = drop(as.matrix(IPM$list_m)),
+        species = species, correction = "constant",
+        climatic = drop(as.matrix(IPM$list_m)),
         old_fit2fit(species, path = path, replicat = replicat, mean = FALSE),
-        clim_lab = climatic, delay = 0, compress = TRUE
+        clim_lab = climatic, delay = 0, compress = TRUE, survival = TRUE
     ))
 
     if(delay > 0){

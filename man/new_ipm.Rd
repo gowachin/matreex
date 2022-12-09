@@ -9,12 +9,14 @@ new_ipm(
   BA,
   mesh,
   species,
+  correction,
+  survival = TRUE,
   climatic,
   clim_lab,
   fit,
   compress = FALSE,
   delay = 0,
-  int_log
+  int
 )
 }
 \arguments{
@@ -29,6 +31,10 @@ the number of size class in the IPM. num.}
 
 \item{species}{Name of the species to run simulation on. Single char.}
 
+\item{correction}{IPM correction wanted for this species. Single char.}
+
+\item{survival}{IPM inclusion of survival function. Lgl, TRUE by default.}
+
 \item{climatic}{Vector of named climatic values used to fit the ipm on. dbl.}
 
 \item{clim_lab}{Label for climatic used. This values will be matched when
@@ -41,7 +47,7 @@ Help to limit  size when saved on disc. FALSE by default. lgl.}
 and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
 values of 1. See \code{\link[treeforce]{delay}}.}
 
-\item{int_log}{Internal vector used to store logs about integratio process
+\item{int}{Internal vector used to store logs about integratio process
 that register year delta, maximum integration error on the first half of
 the mesh, minimal gauss-legendre value and maximal midbin error.}
 

@@ -179,9 +179,9 @@ make_IPM <- function(species,
     }
 
     ## loggin ####
-    int_log <- c(year_delta = year_delta, MaxError = 0,
-                 GL_Nint = N_int, GL_level = level, GL_min = 0,
-                 MB_Nint = midbin_tresh, MB_level = mid_level, MB_max = 0)
+    int <- c(gl1 = 3, gl2 = inlevel, gl_tresh = N_int, gl_min = 0,
+             mb_tresh = midbin_tresh, mid_level = mid_level, mb_max = 0,
+             year_delta = year_delta, max_error = 0)
     MaxError <- numeric(length(BA))
     GL_min <- numeric(length(BA))
     MB_max <- numeric(length(BA))
@@ -284,11 +284,11 @@ make_IPM <- function(species,
     }
     # Format ####
 
-    int_log["MaxError"] <- max(MaxError)
-    int_log["MB_max"] <- max(MB_max)
-    int_log["GL_min"] <- min(GL_min)
+    int["max_error"] <- max(MaxError)
+    int["mb_max"] <- max(MB_max)
+    int["gl_min"] <- min(GL_min)
 
-    if(int_log["MB_max"] > 1e-2){
+    if(int["mb_max"] > 1e-2){
         warning(paste(
             "At least one mid_bin integration has values above 1e-2.",
             "This is linked with insufficient Gauss-Legendre",
@@ -302,10 +302,10 @@ make_IPM <- function(species,
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
-            # IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
-            IPM = IPM, BA = BA, mesh = seq(L + h / 2, U - h / 2, length.out = m), # IDEA to test diff of old and new IPM
+            IPM = IPM, BA = BA, mesh = seq(L + h / 2, U - h / 2, length.out = m),
             climatic = climate, clim_lab = clim_lab, fit = fit,
-            species = species, compress = FALSE, int_log = int_log
+            species = species, correction = correction,
+            compress = FALSE, int = int, survival = IsSurv
         )
     )
     return(res)
