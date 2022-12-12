@@ -29,11 +29,53 @@ fit <- eval(parse(text=paste0("fit_", species)))
 climate <- subset(climate_species, sp == species, select = -sp)
 ```
 
-## Perturbation
+## Disturbance
 
-### Definition of perturbation
+### Definition of disturbance
 
 ### Impact on population
+
+The disturbance impact on a population result from parameters computed by Julien. They compose a function that takes the size distribution, quadratic diameter of the species, intensity and duration of the disturbance. A set of parameters was made for each type of disturbance and species
+
+$$
+dqm = \sqrt{\frac{\sum_{i=1}^m size_i^2 \times value_i}{\sum_{i=1}^m value_i}} \\
+logratio = log(\frac{size}{dqm}) \\
+dbh.scaled = dbh.intercept + size \times dbh.slope \\
+logratio.scaled = logratio.intercept + logratio \times logratio.slope \\
+X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times logratio.scaled + b \times I^{c \times dbh.scaled}))^t 
+$$
+$$
+X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times (logratio.intercept + log(\frac{size}{dqm}) \times logratio.slope) + b \times I^{c \times (dbh.intercept + size \times dbh.slope)}))^t
+$$
+
+```{r data_pkg}
+disturbance_coef <- treeforce::disturb_coef
+
+filter(disturbance_coef, species == "Fagus_sylvatica")
+
+#' Default disturbance function
+#' 
+#' @param x population state distribution at time t
+#' @param species The species class object of interest to get mesh and RDIcoef
+#' values from. RDIcoef is a one line dataframe with RDI coefficient for one
+#' species.
+#' @param disturb Disturbance parameters. Highly depend on the disturbance 
+#' impact parameters given to the species.
+#' @param ... Default disturbance function does not require 
+#' 
+def_disturb_fun <- function(x, species, disturb = NULL, ...){
+    
+    if(! is.null(disturb)){
+        warning(paste0("default disturbance function does not impact populations",
+                       ". Please add your own disturbance function."))
+    }
+    Pkill <- numeric(lenght(x))
+    
+    return(x* Pkill)
+}
+
+```
+
 
 ## Simulations
 

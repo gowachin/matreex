@@ -102,6 +102,7 @@ sim_deter_forest  <- function(Forest,
                              targetRDI = 0.9,
                              targetKg = 0.9,
                              climate = NULL,
+                             disturbance = NULL,
                              correction = "none",
                              SurfEch = 0.03,
                              verbose = FALSE) {
@@ -120,6 +121,7 @@ sim_deter_forest.species  <- function(Forest,
                               targetRDI = 0.9,
                               targetKg = 0.9,
                               climate = NULL,
+                              disturbance = NULL,
                               correction = "none",
                               SurfEch = 0.03,
                               verbose = FALSE) {
@@ -136,6 +138,7 @@ sim_deter_forest.species  <- function(Forest,
         targetRDI = targetRDI,
         targetKg = targetKg,
         climate = climate,
+        disturbance = disturbance,
         correction = correction,
         SurfEch = SurfEch,
         verbose = verbose
@@ -154,6 +157,7 @@ sim_deter_forest.forest  <- function(Forest,
                                      targetRDI = 0.9,
                                      targetKg = 0.9,
                                      climate = NULL,
+                                     disturbance = NULL,
                                      correction = "none",
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
@@ -191,9 +195,6 @@ sim_deter_forest.forest  <- function(Forest,
     assertNumber(targetBA, lower = 0)
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
     # assertNumber(targetKg, lower = 0, upper = 1)
-    correction <- match.arg(correction, c("cut", "none"))
-    assertNumber(SurfEch, lower = 0)
-    assertLogical(verbose, any.missing = FALSE, len = 1)
     IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
     if(all(IPM_cl == "ipm") && !is.null(climate)) {
         # no climate needed
@@ -224,6 +225,9 @@ sim_deter_forest.forest  <- function(Forest,
             climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
         }
     }
+    correction <- match.arg(correction, c("cut", "none"))
+    assertNumber(SurfEch, lower = 0)
+    assertLogical(verbose, any.missing = FALSE, len = 1)
 
     start <- Sys.time()
 
@@ -244,6 +248,7 @@ sim_deter_forest.forest  <- function(Forest,
         return(res)
     }
     nsp <- length(Forest$species)
+    disturb_surv <- TRUE
 
     ## Modify IPM ####
     if (correction == "cut") {
@@ -297,7 +302,8 @@ sim_deter_forest.forest  <- function(Forest,
     start_clim <- climate[1, , drop = TRUE]
 
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
-        x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction
+        x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction,
+        IsSurv = disturb_surv
     ))
 
     if (verbose) {
@@ -319,9 +325,9 @@ sim_deter_forest.forest  <- function(Forest,
         ## t size distrib ####
         X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
 
-        ### Harvest ####
-        #### Uneven ####
+        ## Harvest ####
         if(t %% Forest$harv_rule["freq"] == 0 && harvest == "Uneven"){
+            ### Uneven ####
             BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
             BAstand <- sum(BAstandsp)
             BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
@@ -340,8 +346,8 @@ sim_deter_forest.forest  <- function(Forest,
             )
 
             X <- map2(X, Harv, `-`)
-        #### Even ####
         } else if(harvest == "Even"){
+            ### Even ####
             if(t %% FinalHarvT == 0){
                 Harv <- X
                 X <- map2(map(Forest$species, `[[`, "init_pop"),
@@ -364,8 +370,8 @@ sim_deter_forest.forest  <- function(Forest,
             } else {
                 Harv <- map(meshs, ~ rep(0, length(.x)))
             }
-        #### Nothing ####
         } else if (t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
+            ### Nothing ####
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),
                 function(f, .y, X, sp, ct){
@@ -378,8 +384,27 @@ sim_deter_forest.forest  <- function(Forest,
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
 
+
+        ## Disturbance ####
+        if(FALSE){ # TODO
+            Disturb <- imap(
+                map(Forest$species, `[[`, "disturb_fun"),
+                function(f, .y, X, sp, disturbance){
+                    exec(f, X[[.y]], sp[[.y]], ...)
+                }, X = X, sp = Forest$species, disturbance
+            )
+            if(FALSE){ # TODO
+                # If disturbance disable basic mortality
+                disturb_surv <- FALSE
+            }
+            X <- map2(X, Disturb, `-`)
+        } else {
+            disturb_surv <- TRUE
+        }
+
+
+
         ### Recruitment ####
-        # browser() # TODO change climate along time here
         sim_clim <- climate[t, , drop = TRUE]
         rec <- map(Forest$species, sp_rec.species, sim_clim)
 
@@ -419,9 +444,14 @@ sim_deter_forest.forest  <- function(Forest,
             break()
         }
 
-        # ## Get sim IPM ####
+        ## Get sim IPM ####
+
+        # Is there a disturbance ?
+
+
         sim_ipm <- map(Forest$species, ~ get_step_IPM(
-            x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction
+            x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction,
+            IsSurv = disturb_surv
         ))
 
         ## Loop Verbose ####

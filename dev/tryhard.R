@@ -27,9 +27,7 @@ targetBA <- 30
 # profvis({
 set.seed(42)
 res <- sim_deter_forest(Forest, tlim = 250, equil_time = 250,
-                 correction = "cut", targetBA = targetBA,
-                 harvest = "Even", verbose = TRUE,
-                 targetRDI = 0.6, targetKg = 0.9)
+                 correction = "cut", verbose = TRUE)
 # })
 
 memor <-  tree_format(res)

@@ -10,6 +10,7 @@ old_ipm2species(
   path = here(),
   replicat = 42,
   harvest = def_harv,
+  disturb = def_disturb,
   init_pop = def_init,
   delay = 0
 )
@@ -27,6 +28,10 @@ old_ipm2species(
 Argument must be \code{pop}.
 Should return a population state as it's take it in input, with less
 population than before. Unless you want zombie trees.}
+
+\item{disturb}{Function to impact the population with possibles
+disturbances. Extra care is needed to give this function all needed parameters/
+Default is \code{def_disturb}.}
 
 \item{init_pop}{Function to initiate the population at simulation start.
 Arguments must be \code{mesh} and \code{SurfEch}.

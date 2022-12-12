@@ -8,8 +8,10 @@ new_species(
   IPM,
   init_pop,
   harvest_fun,
+  disturb_fun,
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
-  rdi_coef = NULL
+  rdi_coef = NULL,
+  disturb_coef = NULL
 )
 }
 \arguments{
@@ -21,7 +23,11 @@ Using the arguments is not mandatory, it's most useful when creating random
 population.}
 
 \item{harvest_fun}{Function to impact the population with harvest rule.
-Argument must be \code{x}, \code{species},  \code{harv_rule},
+Argument must be \code{x}, \code{species},  \code{...},}
+
+\item{disturb_fun}{Function to impact the population with possibles
+disturbances. Extra care is needed to give this function all needed parameters/
+Default is \code{def_disturb}.
 \code{BAtarget}, \code{ct} and \code{t}.
 Should return a population state as it's take it in input, with less
 population than before. Unless you want zombie trees. It represent the

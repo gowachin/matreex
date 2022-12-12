@@ -15,6 +15,7 @@ sim_deter_forest(
   targetRDI = 0.9,
   targetKg = 0.9,
   climate = NULL,
+  disturbance = NULL,
   correction = "none",
   SurfEch = 0.03,
   verbose = FALSE

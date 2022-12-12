@@ -8,7 +8,10 @@
 #' Using the arguments is not mandatory, it's most useful when creating random
 #' population.
 #' @param harvest_fun Function to impact the population with harvest rule.
-#' Argument must be \code{x}, \code{species},  \code{harv_rule},
+#' Argument must be \code{x}, \code{species},  \code{...},
+#' @param disturb_fun Function to impact the population with possibles
+#' disturbances. Extra care is needed to give this function all needed parameters/
+#' Default is \code{def_disturb}.
 #' \code{BAtarget}, \code{ct} and \code{t}.
 #' Should return a population state as it's take it in input, with less
 #' population than before. Unless you want zombie trees. It represent the
@@ -25,9 +28,10 @@
 #' @keywords internal
 #' @export
 new_species <- function(IPM, init_pop,
-                        harvest_fun,
+                        harvest_fun, disturb_fun,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                        rdi_coef = NULL
+                        rdi_coef = NULL,
+                        disturb_coef = NULL
                         ){
 
     if(inherits(IPM, "ipm")){
@@ -42,7 +46,8 @@ new_species <- function(IPM, init_pop,
     species <- list(
         IPM = IPM, init_pop = init_pop,
         harvest_fun = harvest_fun, harv_lim = harv_lim,
-        rdi_coef = rdi_coef,
+        disturb_fun = disturb_fun,
+        rdi_coef = rdi_coef, disturb_coef = disturb_coef,
         recruit_fun = rec,
         info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
     )
@@ -67,10 +72,12 @@ validate_species <- function(x){
 
     # check names of the object ####
     assertCharacter(names)
-    if(any(names != c("IPM", "init_pop", "harvest_fun", "harv_lim", "rdi_coef",
+    if(any(names != c("IPM", "init_pop", "harvest_fun", "harv_lim",
+                      "disturb_fun", "rdi_coef", "disturb_coef",
                       "recruit_fun", "info"))){
         stop(paste0("species class must be composed of elements IPM, init_pop,",
-                    " harvest_fun, harv_lim, rdi_coef, recruit_fun and info"))
+                    " harvest_fun, harv_lim, disturb_fun, rdi_coef, disturb_coef, ",
+                    "recruit_fun and info"))
     }
 
     # check all values ####
@@ -85,6 +92,8 @@ validate_species <- function(x){
     assertFunction(values$init_pop, args = c("mesh", "SurfEch"))
     assertFunction(values$harvest_fun,
                    args = c("x", "species", "..."))
+    assertFunction(values$disturb_fun,
+                   args = c("x", "species", "disturb", "..."))
     # assertNumeric(values$harv_lim[1:2], lower = 0)
     # assertNumber(values$harv_lim[3], lower = 0, upper = 1)
     # TODO : check that X return >= 0 values of same length
@@ -144,13 +153,14 @@ validate_species <- function(x){
 #' @aliases harvest_fun init_pop recruit_fun
 #'
 #' @export
-species <- function(IPM, init_pop, harvest_fun,
+species <- function(IPM, init_pop, harvest_fun, disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                    rdi_coef = NULL){
+                    rdi_coef = NULL, disturb_coef = NULL){
 
     res <- validate_species(new_species(
         IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun,
-        harv_lim = harv_lim, rdi_coef = rdi_coef
+        disturb_fun = disturb_fun,
+        harv_lim = harv_lim, rdi_coef = rdi_coef, disturb_coef = disturb_coef
     ))
 
     return(res)
@@ -168,6 +178,9 @@ species <- function(IPM, init_pop, harvest_fun,
 #' Argument must be \code{pop}.
 #' Should return a population state as it's take it in input, with less
 #' population than before. Unless you want zombie trees.
+#' @param disturb Function to impact the population with possibles
+#' disturbances. Extra care is needed to give this function all needed parameters/
+#' Default is \code{def_disturb}.
 #' @param init_pop Function to initiate the population at simulation start.
 #' Arguments must be \code{mesh} and \code{SurfEch}.
 #' Using the arguments is not mandatory, it's most usefull when creating random
@@ -180,8 +193,12 @@ species <- function(IPM, init_pop, harvest_fun,
 #' @import here
 #'
 #' @export
-old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
-                            harvest = def_harv, init_pop = def_init, delay = 0){
+old_ipm2species <- function(species, climatic = 1,
+                            path = here(), replicat = 42,
+                            harvest = def_harv,
+                            disturb = def_disturb,
+                            init_pop = def_init,
+                            delay = 0){
 
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
@@ -208,9 +225,12 @@ old_ipm2species <- function(species, climatic = 1, path = here(), replicat = 42,
     rdi <- treeforce::rdi_coef
     rdi <- drop(as.matrix(rdi[rdi$species == species,c("intercept", "slope")]))
 
+    disturb_c <- treeforce::disturb_coef
+    disturb_c <- disturb_c[disturb_c$species == species,]
+
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        rdi_coef = rdi
+        disturb_fun  = disturb, rdi_coef = rdi, disturb_coef = disturb_c
     )
 
     return(res)
@@ -381,3 +401,25 @@ def_harv <- function(x, species, ...){
     return(x * rate)
 }
 
+
+#' Default disturbance function
+#'
+#' @param x population state distribution at time t
+#' @param species The species class object of interest to get mesh and RDIcoef
+#' values from. RDIcoef is a one line dataframe with RDI coefficient for one
+#' species.
+#' @param disturb Disturbance parameters. Highly depend on the disturbance
+#' impact parameters given to the species.
+#' @param ... Default disturbance function does not require
+#'
+#' @export
+def_disturb <- function(x, species, disturb = NULL, ...){
+
+    if(! is.null(disturb)){
+        warning(paste0("default disturbance function does not impact populations",
+                       ". Please add your own disturbance function."))
+    }
+    Pkill <- numeric(lenght(x))
+
+    return(x* Pkill)
+}

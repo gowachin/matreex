@@ -117,10 +117,12 @@ test_that("delay species works", {
     validate_ipm(IPM)
 
     x <- new_species(IPM = IPM, init_pop = def_init,
-                     harvest_fun = def_harv)
+                     harvest_fun = def_harv,
+                     disturb_fun = def_disturb)
 
     exp <- new_species(delay(IPM, 2), init_pop = def_init,
-                       harvest_fun = def_harv)
+                       harvest_fun = def_harv,
+                       disturb_fun = def_disturb)
     # validate_species(x)
     # validate_species(exp)
 
@@ -144,7 +146,8 @@ test_that("delay forest works", {
     validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv)
+                      harvest_fun = def_harv,
+                      disturb_fun = def_disturb)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = delay(sp, 2)))
@@ -218,10 +221,12 @@ test_that("correction species works", {
 
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv)
+                      harvest_fun = def_harv,
+                      disturb_fun = def_disturb)
 
     exp <- new_species(correction(IPM, "cut"), init_pop = def_init,
-                       harvest_fun = def_harv)
+                       harvest_fun = def_harv,
+                       disturb_fun = def_disturb)
     # validate_species(sp)
     # validate_species(exp)
 
@@ -244,7 +249,8 @@ test_that("correction forest works", {
     validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv)
+                      harvest_fun = def_harv,
+                      disturb_fun = def_disturb)
 
     x <- new_forest(list(darwin = sp))
     exp <- new_forest(list(darwin = correction(sp, "cut")))
@@ -304,7 +310,8 @@ test_that("sp_rec species works", {
     validate_ipm(IPM)
 
     sp <- new_species(IPM = IPM, init_pop = def_init,
-                      harvest_fun = def_harv)
+                      harvest_fun = def_harv,
+                      disturb_fun = def_disturb)
 
     expect_identical(
         sp$recruit_fun,
@@ -315,7 +322,8 @@ test_that("sp_rec species works", {
                     mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
                     level = c(3, 10), midbin_tresh = 2)
     sp <- new_species(IPM = x, init_pop = def_init,
-                      harvest_fun = def_harv)
+                      harvest_fun = def_harv,
+                      disturb_fun = def_disturb)
 
     expect_identical(
         sp_rec(x, climate),
