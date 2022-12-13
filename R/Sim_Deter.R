@@ -225,6 +225,10 @@ sim_deter_forest.forest  <- function(Forest,
             climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
         }
     }
+    run_disturb <- !is.null(disturbance)
+    if(run_disturb){
+        # TODO idiot proff disturbance
+    }
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
@@ -386,20 +390,28 @@ sim_deter_forest.forest  <- function(Forest,
 
 
         ## Disturbance ####
-        if(FALSE){ # TODO
+        if(run_disturb && disturbance[t, "dist"]){
+            if (verbose) {
+                message(sprintf(
+                    "time %i | Disturbance : %s I = %.2f",
+                    t, disturbance[t, "type"], disturbance[t, "intensity"]
+                    )
+                )
+            }
+
             Disturb <- imap(
                 map(Forest$species, `[[`, "disturb_fun"),
-                function(f, .y, X, sp, disturbance){
-                    exec(f, X[[.y]], sp[[.y]], ...)
-                }, X = X, sp = Forest$species, disturbance
+                function(f, .y, X, sp, disturb, ...){
+                    exec(f, X[[.y]], sp[[.y]], disturb, ...)
+                }, X = X, sp = Forest$species, disturb = disturbance[t,]
             )
-            if(FALSE){ # TODO
+            # if(FALSE){ # TODO
                 # If disturbance disable basic mortality
-                disturb_surv <- FALSE
-            }
+                # disturb_surv <- FALSE
+            # }
             X <- map2(X, Disturb, `-`)
-        } else {
-            disturb_surv <- TRUE
+        # } else {
+            # disturb_surv <- TRUE
         }
 
 
@@ -445,8 +457,14 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         ## Get sim IPM ####
-
         # Is there a disturbance ?
+        if(run_disturb && t < equil_time){ # IDEA rewrite this ?
+            if(!disturbance[t+1, "dist"]){
+                disturb_surv <- disturbance[t+1, "IsSurv"]
+            } else {
+                disturb_surv <- TRUE
+            }
+        }
 
 
         sim_ipm <- map(Forest$species, ~ get_step_IPM(

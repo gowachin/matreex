@@ -15,7 +15,9 @@ knitr::opts_chunk$set(echo = TRUE)
 This document show how to simulate a species with perturbation occuring in time.
 For now, the package is in experimental state and use the branch *tempest*. For this example we will use the species *Picea abies* as an example.
 
-```{r constant}
+Only the Julien disturbance model is explained in this case.
+
+```{r constant make ipm}
 # Libraries
 library(ggplot2)
 library(dplyr)
@@ -26,16 +28,63 @@ devtools::load_all()
 species <- "Picea_abies"
 data(list = paste0("fit_", species))
 fit <- eval(parse(text=paste0("fit_", species)))
-climate <- subset(climate_species, sp == species, select = -sp)
+climate <- subset(climate_species, sp == species & N == 2, select = -c(N, sp))
+climate <- drop(as.matrix(climate))
+ipm_Picea <- make_IPM(
+    "Picea_abies", climate, "opt_Picab_clim", fit = fit_Picea_abies,
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:100, verbose = TRUE
+)
+Picea_abies <- species(IPM = ipm_Picea, init_pop = def_initBA(40),
+                       harvest_fun = def_harv)
 ```
+
+We want to start our simulations with an equilibrium size distribution so we compute here first
+
+```{r equilibrium}
+forest_ipm <- new_forest(species = list(Picea = Picea_abies))
+time <- 3000
+set.seed(42)
+memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
+                                     equil_dist = 250, equil_time = time,
+                                     verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor %>%
+    filter(var %in% c("BAsp"), ! equil, value != 0) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) + geom_point(size = .4) +
+    NULL
+
+equil <- memor %>%
+    filter(var == "m", equil) %>% pull(value)
+```
+
 
 ## Disturbance
 
 ### Definition of disturbance
 
+We define a disturbance by few parameters used later in the formula.
+
+* $I$ its intensity
+
+* $t$ the duration of the disturbance. Here we need to set it to 5 because it's the time between two census.
+
+* $type$ the class of disturbance. This is often a label in `"storm"`, `"fire"` and `"biotic"`.
+This is not used in the formula but to filter species parameters fitted.
+
+We can set all of this in a data.frame object. We had a last column named **IsSurv**. It's used to tell the simulation if the survival part of the IPM is needed during a disturbance. In this case, the data do not allow differentiation between disturbance mortality and background mortality. Therefore, we need to deactivate baseline mortality so that it is not double counted.
+
+```{r}
+ex_disturb <- data.frame(type = "storm", intensity = 0.5, duration = 5, IsSurv = FALSE)
+```
+
+
 ### Impact on population
 
-The disturbance impact on a population result from parameters computed by Julien. They compose a function that takes the size distribution, quadratic diameter of the species, intensity and duration of the disturbance. A set of parameters was made for each type of disturbance and species
+The disturbance impact on the population result from parameters computed by Julien. They compose a function that takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance. A set of parameters was made for each type of disturbance and species.
 
 $$
 dqm = \sqrt{\frac{\sum_{i=1}^m size_i^2 \times value_i}{\sum_{i=1}^m value_i}} \\
@@ -44,16 +93,17 @@ dbh.scaled = dbh.intercept + size \times dbh.slope \\
 logratio.scaled = logratio.intercept + logratio \times logratio.slope \\
 X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times logratio.scaled + b \times I^{c \times dbh.scaled}))^t 
 $$
-$$
-X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times (logratio.intercept + log(\frac{size}{dqm}) \times logratio.slope) + b \times I^{c \times (dbh.intercept + size \times dbh.slope)}))^t
-$$
+The parameters are estimated with Bayesian computations. The mean of all estimations are stored inside the package for each combination of species and disturbance type.
 
 ```{r data_pkg}
-disturbance_coef <- treeforce::disturb_coef
+(coefs <- filter(treeforce::disturb_coef, species == "Picea_abies"))
+Picea_abies$disturb_coef <- coefs
+```
 
-filter(disturbance_coef, species == "Fagus_sylvatica")
+Linked with this set of parameters, we need to provide a disturbance function to the species we want to simulate. *The species is initiated with an empty function that will throw warnings.*
 
-#' Default disturbance function
+```{r disturb_fun}
+#' Disturbance function
 #' 
 #' @param x population state distribution at time t
 #' @param species The species class object of interest to get mesh and RDIcoef
@@ -61,48 +111,70 @@ filter(disturbance_coef, species == "Fagus_sylvatica")
 #' species.
 #' @param disturb Disturbance parameters. Highly depend on the disturbance 
 #' impact parameters given to the species.
-#' @param ... Default disturbance function does not require 
+#' @param ... Not used in this case.
 #' 
-def_disturb_fun <- function(x, species, disturb = NULL, ...){
+disturb_fun <- function(x, species, disturb = NULL, ...){
     
-    if(! is.null(disturb)){
-        warning(paste0("default disturbance function does not impact populations",
-                       ". Please add your own disturbance function."))
+    size <- species$IPM$mesh
+    coef <- species$disturb_coef
+    if(any(disturb$type %in% coef$disturbance)){
+        coef <- subset(coef, disturbance == disturb$type)
+    } else {
+        stop(sprintf("The species %s miss this disturbance type (%s) parameters",
+                     sp_name(species), disturb$type))
     }
-    Pkill <- numeric(lenght(x))
     
-    return(x* Pkill)
+    
+    qmd <- treeforce::QMD(size = size, n = x)
+    logratio <-  log(size / qmd)
+    dbh.scaled = coef$dbh.intercept + size * coef$dbh.slope
+    logratio.scaled = coef$logratio.intercept + logratio * coef$logratio.slope
+    Pkill <- plogis(coef$a0 + coef$a1 * logratio.scaled + 
+                        coef$b * disturb$intensity^(coef$c * dbh.scaled)) ^ disturb$duration 
+    
+    return(x* Pkill) # always return the mortality distribution
 }
 
-```
+Picea_abies$disturb_fun <- disturb_fun
 
+plot(equil, type= "l", xlab = "size index", ylab = "n")
+lines(1:700, equil - disturb_fun(equil, Picea_abies, ex_disturb), col = "red")
+legend("topright", c("Distribution", "After Disturbance"), 
+       lty = c(1, 1), col = c(1, 2))
+```
 
 ## Simulations
 
-We need to remove survival during perturbation. This is done during simulation at the step where we get the IPM matrix with get_step_IPM.
-
-```{r, eval = FALSE}
+```{r note, echo = FALSE}
+# We need to remove survival during perturbation. 
+# This is done during simulation at the step where we 
+# get the IPM matrix with get_step_IPM.
 # TODO  find a way to show this !
+```
+
+Running a simulation takes the same parameters as usual, with an added data.frame with disturbance along time. *We need to think about a clean way to build this table...*
+
+```{r disturbance table}
+time <- 2500
+disturb <- data.frame(dist =  FALSE, type = "none", intensity = 0, 
+                            duration = 1, IsSurv = TRUE, t = 1:time)
+
+disturb[100, ] <- data.frame(dist = TRUE, type = "storm", intensity = 0.5, 
+                             duration = 5, IsSurv = FALSE, t = 100)
+disturb[98:102, ]
 ```
 
 
 
-```{r compare_IPM}
-step_climate <- subset(climate, N ==2, select = -N)
-step_climate <- drop(as.matrix(step_climate))
-time <- 2500
-ipm_Picea <- make_IPM(
-    "Picea_abies", step_climate, "opt_Picab_clim", fit = fit_Picea_abies,
-    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:100, verbose = TRUE
-)
-Picea_abies <- species(IPM = ipm_Picea, init_pop = def_initBA(40),
-                           harvest_fun = def_harv)
+```{r sim}
+load_all()
+Picea_abies$init_pop <- def_init_k(equil * 0.03)
 forest_ipm <- new_forest(species = list(Picea = Picea_abies))
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
-                                     equil_dist = time, equil_time = time,
-                                     verbose = TRUE, correction = "cut") %>%
+                                 equil_dist = time, equil_time = time,
+                                 disturbance  = disturb,
+                                 verbose = TRUE, correction = "cut") %>%
     tree_format()
 
 memor %>%
