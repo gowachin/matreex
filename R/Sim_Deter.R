@@ -228,6 +228,13 @@ sim_deter_forest.forest  <- function(Forest,
     run_disturb <- !is.null(disturbance)
     if(run_disturb){
         # TODO idiot proff disturbance
+        t_disturb <- logical(equil_time)
+        t_disturb[disturbance$t] <- TRUE
+        if(any(disturbance$intensity <= 0 | disturbance$intensity > 1)){
+            warning("Disturbances with intensity outside ]0;1] have been removed")
+            disturbance <- disturbance[disturbance$intensity > 0 &
+                                           disturbance$intensity < 1,]
+        }
     }
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
@@ -390,28 +397,31 @@ sim_deter_forest.forest  <- function(Forest,
 
 
         ## Disturbance ####
-        if(run_disturb && disturbance[t, "dist"]){
+        if(run_disturb && t_disturb[t]){
             if (verbose) {
                 message(sprintf(
                     "time %i | Disturbance : %s I = %.2f",
-                    t, disturbance[t, "type"], disturbance[t, "intensity"]
+                    t, disturbance[disturbance$t == t, "type"],
+                    disturbance[disturbance$t == t, "intensity"]
                     )
                 )
             }
+
+            qmd <- QMD(size = unlist(meshs), n = unlist(X))
+            # TODO remove unborn size from X before computations
 
             Disturb <- imap(
                 map(Forest$species, `[[`, "disturb_fun"),
                 function(f, .y, X, sp, disturb, ...){
                     exec(f, X[[.y]], sp[[.y]], disturb, ...)
-                }, X = X, sp = Forest$species, disturb = disturbance[t,]
+                }, X = X, sp = Forest$species,
+                disturb = disturbance[disturbance$t == t, ],
+                qmd = qmd
             )
-            # if(FALSE){ # TODO
-                # If disturbance disable basic mortality
-                # disturb_surv <- FALSE
-            # }
+            # browser()
+
             X <- map2(X, Disturb, `-`)
-        # } else {
-            # disturb_surv <- TRUE
+
         }
 
 
@@ -459,8 +469,8 @@ sim_deter_forest.forest  <- function(Forest,
         ## Get sim IPM ####
         # Is there a disturbance ?
         if(run_disturb && t < equil_time){ # IDEA rewrite this ?
-            if(!disturbance[t+1, "dist"]){
-                disturb_surv <- disturbance[t+1, "IsSurv"]
+            if(t_disturb[t+1]){
+                disturb_surv <- disturbance[disturbance$t == t+1, "IsSurv"]
             } else {
                 disturb_surv <- TRUE
             }
