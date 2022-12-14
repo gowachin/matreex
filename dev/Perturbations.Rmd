@@ -170,7 +170,7 @@ Picea_abies$init_pop <- def_init_k(equil * 0.03)
 forest_ipm <- new_forest(species = list(Picea = Picea_abies))
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
-                                 equil_dist = time, equil_time = time,
+                                 equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
                                  verbose = TRUE, correction = "cut") %>%
     tree_format()
@@ -199,7 +199,7 @@ ipm_Abies <- make_IPM(
 Abies_alba <- species(
     IPM = ipm_Abies, init_pop = def_initBA(40),
     harvest_fun = def_harv, disturb_fun = disturb_fun, 
-    disturb_coef <- filter(treeforce::disturb_coef, species == "Abies_alba")
+    disturb_coef = filter(treeforce::disturb_coef, species == "Abies_alba")
 )
 ```
 
@@ -210,7 +210,7 @@ time <- 5000
 forest_nsp <- new_forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
 set.seed(42)
 memor_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
-                                 equil_dist = time, equil_time = time,
+                                 equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
                                  verbose = TRUE, correction = "cut") %>%
     tree_format()
