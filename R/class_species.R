@@ -153,7 +153,8 @@ validate_species <- function(x){
 #' @aliases harvest_fun init_pop recruit_fun
 #'
 #' @export
-species <- function(IPM, init_pop, harvest_fun, disturb_fun = def_disturb,
+species <- function(IPM, init_pop, harvest_fun = def_harv,
+                    disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
                     rdi_coef = NULL, disturb_coef = NULL){
 
