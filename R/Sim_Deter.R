@@ -395,9 +395,9 @@ sim_deter_forest.forest  <- function(Forest,
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
 
-
         ## Disturbance ####
         if(run_disturb && t_disturb[t]){
+
             if (verbose) {
                 message(sprintf(
                     "time %i | Disturbance : %s I = %.2f",
@@ -418,13 +418,10 @@ sim_deter_forest.forest  <- function(Forest,
                 disturb = disturbance[disturbance$t == t, ],
                 qmd = qmd
             )
-            # browser()
 
             X <- map2(X, Disturb, `-`)
 
         }
-
-
 
         ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
@@ -475,7 +472,6 @@ sim_deter_forest.forest  <- function(Forest,
                 disturb_surv <- TRUE
             }
         }
-
 
         sim_ipm <- map(Forest$species, ~ get_step_IPM(
             x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction,

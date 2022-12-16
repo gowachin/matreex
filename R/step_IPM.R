@@ -51,6 +51,9 @@ get_step_IPM.ipm <- function(x, ...){
     res <- ipm$IPM[[low_id]] * (1  - w) + ipm$IPM[[high_id]] * w
 
     if(! IsSurv && as.logical(ipm$info["surv"])){
+
+        delay <- as.numeric(ipm$info["delay"])
+
         m <- length(ipm$mesh)
         U <- ipm$mesh[[m]]
         L <- ipm$mesh[[1]]
@@ -62,6 +65,9 @@ get_step_IPM.ipm <- function(x, ...){
         weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
         mesh_x <- ipm$mesh
         mesh_sv <- outer(mesh_x, out1$nodes, "+")
+        if(delay > 0){
+            mesh_sv[1:delay,] <- 1
+        }
 
         list_covs <-  c(climate, BATOTcomp = BA)
         svFun <- exp_sizeFun(ipm$fit$sv$params_m, list_covs)
@@ -71,6 +77,10 @@ get_step_IPM.ipm <- function(x, ...){
         P_sv <- 1 - P_sv
         # NOTE reu 3/10 pour le cas ou year_delta est superieur a 1
         P_sv <- P_sv ^ year_delta
+
+        if(delay > 0){
+            P_sv[1:delay] <- 1
+        }
 
         res <- res / (matrix(rep(t(P_sv), m), ncol = m, nrow = m))
     }

@@ -224,8 +224,30 @@ memor_nsp %>%
 ```
 
 
-## Targets
+## Delay
 
-* Delay is taken into account ?
+I test delay here just to be sure. And there was a bug in get_step_IPM so I was right. 
+
+```{r delay}
+load_all()
+time <- 3000
+(disturb <- data.frame(type = "storm", intensity = 0.2, 
+                       IsSurv = FALSE, t = 2500))
+forest_d <- new_forest(species = list(Abies = delay(Abies_alba, 5)))
+set.seed(42)
+memor_d <- sim_deter_forest.forest(forest_d, tlim = time,
+                                 equil_dist = 250, equil_time = time,
+                                 disturbance  = disturb,
+                                 verbose = TRUE, correction = "cut") %>%
+    tree_format()
+
+memor_d %>%
+    filter(var %in% c("BAsp", "N"), ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4) + geom_point(size = .4) +
+    NULL
+```
+
 
 
