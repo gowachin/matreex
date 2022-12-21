@@ -1,14 +1,16 @@
-# Treeforce
+# maTreex
 
 <!-- badges: start -->
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-blue.svg)](https://gitlab.com/gowachin/treeforce)
+[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-blue.svg)](https://gitlab.com/gowachin/matreex)
 
 <!-- badges: end -->
 
-Creation of the package for IPM and european forest. Based on Georges and Arnaud work !
+The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.
+
+Main methods have been developped for [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533) as well as european treee species growth/survival/recruitment models.
 
 ## Installation
 
@@ -18,7 +20,8 @@ This package relies on very few packages listed below, that you can install with
 
 ```
 deps <- c('checkmate', 'Matrix', 'here', 'dplyr', 
-          'rlang', 'tidyr', 'purrr', 'tibble')
+          'rlang', 'tidyr', 'purrr', 'cli', 
+          'statmod')
 for (i in deps ){
   if(!require(i,character.only = TRUE))
     install.packages(i)
@@ -26,34 +29,36 @@ for (i in deps ){
 
 ### Development version
 
-You can install the development version of `{treeforce}` from [gitlab](https://gitlab.com/gowachin/treeforce) with:
+You can install the development version of `{matreex}` from [gitlab](https://gitlab.com/gowachin/matreex) with :
 
 ```
 # install.packages("remotes")
-remotes::install_gitlab("gowachin/treeforce")
+remotes::install_gitlab("gowachin/matreex")
 # or
 # install.packages("devtools")
-# devtools::install_gitlab('https://gitlab.com/gowachin/treeforce')
+# devtools::install_gitlab('https://gitlab.com/gowachin/matreex')
 ```
+
+**Note : You need to have your gitlab/github account logged on your local computer because the current repository is in private. See [these answers](https://stackoverflow.com/questions/21171142/how-to-install-r-package-from-private-repo-using-devtools-install-github) for more information.**
 
 *Github repository is only a mirror from gitlab. If you are added in the github private repo, the code below will do it !*
 
 ```
 # install.packages("remotes")
-remotes::install_github("gowachin/treeforce")
+remotes::install_github("gowachin/matreex")
 # or
 # install.packages("devtools")
-# devtools::install_github('https://github.com/gowachin/treeforce')
+# devtools::install_github('https://github.com/gowachin/matreex')
 ```
 
 ## Support
 
-Issues are centralized on [the gitlab project.](https://gitlab.com/gowachin/treeforce/-/issues). 
+Issues are centralized on [the gitlab project.](https://gitlab.com/gowachin/matreex/-/issues). 
 
 ## Roadmap
 
 Future dev is listed on the github repository project to keep tracks of what we are working on.
-Link is [here](https://github.com/gowachin/treeforce/projects/1)
+Link is [here](https://github.com/gowachin/matreex/projects/1)
 
 ## License
 
