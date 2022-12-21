@@ -162,7 +162,6 @@ sim_deter_forest.forest  <- function(Forest,
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
     # browser()
-    # Forest <- forest
     # tlim = 500
     # equil_dist = 500
     # equil_diff = 500
@@ -200,6 +199,9 @@ sim_deter_forest.forest  <- function(Forest,
         # no climate needed
         warning(paste0("Because all species are fully integrated on a climate, ",
                        "providing one now is unnecessary"))
+        clim_i <- which(IPM_cl == "ipm")[[1]]
+        climate <- t(Forest$species[[clim_i]]$IPM$climatic)
+        climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
     } else {
         if(any(IPM_cl == "ipm")){
             if(!is.null(climate)){
@@ -212,9 +214,9 @@ sim_deter_forest.forest  <- function(Forest,
         }
         if(inherits(climate, "data.frame")){
             climate <- as.matrix(climate)
-        } else if(inherits(climate, "numeric")){
-            climate <- t(climate)
-        }
+        } # else if(inherits(climate, "numeric")){
+            # climate <- t(climate)
+        # }
         assertMatrix(climate)
         if(nrow(climate) != 1 & nrow(climate) < equil_time){
             stop(paste0("climate matrix is not defined for each time until",
@@ -234,6 +236,11 @@ sim_deter_forest.forest  <- function(Forest,
             warning("Disturbances with intensity outside ]0;1] have been removed")
             disturbance <- disturbance[disturbance$intensity > 0 &
                                            disturbance$intensity < 1,]
+            if(nrow(disturbance) == 0){
+                warning("There is no disturbances left with correct intensity.")
+                disturbance <- NULL
+                run_disturb <- FALSE
+            }
         }
     }
     correction <- match.arg(correction, c("cut", "none"))

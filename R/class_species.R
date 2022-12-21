@@ -10,8 +10,10 @@
 #' @param harvest_fun Function to impact the population with harvest rule.
 #' Argument must be \code{x}, \code{species},  \code{...},
 #' @param disturb_fun Function to impact the population with possibles
-#' disturbances. Extra care is needed to give this function all needed parameters/
-#' Default is \code{def_disturb}.
+#' disturbances. Extra care is needed to give this function all needed
+#' parameters. Default is \code{def_disturb}.
+#' @param disturb_coef Species coefficient  for disturbance reaction. These
+#' values and names are highly dependent on the disturbance function.
 #' \code{BAtarget}, \code{ct} and \code{t}.
 #' Should return a population state as it's take it in input, with less
 #' population than before. Unless you want zombie trees. It represent the
@@ -97,15 +99,11 @@ validate_species <- function(x){
     # assertNumeric(values$harv_lim[1:2], lower = 0)
     # assertNumber(values$harv_lim[3], lower = 0, upper = 1)
     # TODO : check that X return >= 0 values of same length
-    assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
-                                                "mesh", "SurfEch"))
     if(inherits(values$IPM, "ipm")){
         assertFunction(values$recruit_fun, args = c("BATOTSP", "BATOTNonSP",
                                                     "mesh", "SurfEch"))
     } else if(inherits(values$IPM, "mu_gr")){
         assertString(values$recruit_fun)
-    } else {
-        stop("IPM must either be an ipm or mu_gr object.")
     }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
@@ -153,7 +151,7 @@ validate_species <- function(x){
 #' @aliases harvest_fun init_pop recruit_fun
 #'
 #' @export
-species <- function(IPM, init_pop, harvest_fun = def_harv,
+species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
                     disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
                     rdi_coef = NULL, disturb_coef = NULL){
@@ -420,7 +418,7 @@ def_disturb <- function(x, species, disturb = NULL, ...){
         warning(paste0("default disturbance function does not impact populations",
                        ". Please add your own disturbance function."))
     }
-    Pkill <- numeric(lenght(x))
+    Pkill <- numeric(length(x))
 
     return(x* Pkill)
 }

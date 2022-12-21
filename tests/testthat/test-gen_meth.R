@@ -332,3 +332,13 @@ test_that("sp_rec species works", {
 
 })
 
+
+# Max dbh ####
+test_that("sp_rec species works", {
+
+    expect_identical(
+        get_maxdbh(fit_Abies_alba),
+        1420
+    )
+
+})

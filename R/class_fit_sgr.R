@@ -168,7 +168,7 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 #' @noRd
 mean_oldfit <- function(fit, species, max_dbh){
 
-    assertList(fit, len = 100, any.missing = FALSE)
+    assertList(fit, any.missing = FALSE)
     assertCharacter(species, len = 1)
     assertNumber(max_dbh, lower = 0)
 

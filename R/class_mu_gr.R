@@ -250,16 +250,16 @@ make_mu_gr <- function(species,
 
     if (verbose) {
         message("Launching mu computation loop")
-        if(N_int == 0){
-            message("GL integration won't occur because of negative treshold")
-        } else {
+        # if(N_int == 0){
+            # message("GL integration won't occur because of negative treshold")
+        # } else {
             message("GL integration occur on ", N_int, " cells")
-        }
-        if(midbin_tresh == 0){
-            message("midbin integration won't occur because of treshold at 0")
-        } else {
+        # }
+        # if(midbin_tresh == 0){
+            # message("midbin integration won't occur because of treshold at 0")
+        # } else {
             message("midbin integration occur on ", midbin_tresh, " cells")
-        }
+        # }
         cli_progress_bar("Integration", total = length(mu_tab))
     }
 

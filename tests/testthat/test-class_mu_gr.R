@@ -67,6 +67,24 @@ Missing : temp"
 })
 
 
+test_that( "verbose make mu_gr", {
+
+    res<-evaluate_promise({
+        make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                   mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                   level = c(3, 10), midbin_tresh = 10, verbose = TRUE)
+    })
+
+    expect_equal(res$messages[1], "Mu range done\n")
+    expect_equal(res$messages[2], "Launching mu computation loop\n")
+    expect_equal(res$messages[3], "GL integration occur on 1 cells\n")
+    expect_equal(res$messages[4], "midbin integration occur on 9 cells\n")
+    expect_equal(res$messages[5], "Loop done.\n")
+}
+
+)
+
+
 test_that("validate_mu_gr works", {
 
     x <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,

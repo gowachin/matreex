@@ -133,6 +133,51 @@ test_that("sim_deter_forest error equil_time", {
                   , err)
 })
 
+test_that("sim_deter_forest warning climate", {
+
+    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+                 "testthat", "testdata")
+
+    ygg <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
+                            replicat = 1)
+    model <- forest(species = list(Yggdrasil = ygg))
+    warn <- "Because all species are fully integrated on a climate, providing one now is unnecessary"
+    expect_warning( sim_deter_forest(Forest = model, tlim = 1, equil_time = 2, equil_dist = 1,
+                                   correction = "cut", climate = 42)
+                  , warn)
+
+    mu <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+               mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+               level = c(3, 10), midbin_tresh = 2)
+    pice <- species(mu, init_pop = def_init)
+
+    ipm_mu <- forest(species = list(tygg = ygg, mu = pice))
+
+    warn <- "At least one species is fully integrated on a climate, so this climate will be used for simulation"
+    expect_warning( sim_deter_forest(Forest = ipm_mu, tlim = 1, equil_time = 2, equil_dist = 1,
+                                     correction = "cut", climate = 42)
+                    , warn)
+
+    fmu <- forest(species = list(mu = pice))
+    clim <- data.frame(
+      sgdd = c(489.2361, 465.4413),
+      sgdd2 = c(239351.9, 216635.6),
+      sgddb = c(0.0020440030, 0.0021484987),
+      wai = c(0.97465608, 1.00000000),
+      wai2 = c(0.9499544712, 1.0000000000),
+      waib = c(0.5064173, 0.5000000)
+    )
+
+    err <- paste0("climate matrix is not defined for each time until",
+    " equil_time. This matrix require a row per time or ",
+    "single one.")
+    expect_error( sim_deter_forest(Forest = fmu, tlim = 3, equil_time = 3, equil_dist = 1,
+                                     correction = "cut", climate = clim)
+                    , err)
+
+})
+
+
 
 test_that("sim_deter format work", {
 

@@ -46,7 +46,7 @@ test_that("new_species works", {
 })
 
 
-test_that("validate_species works", {
+test_that("validate_species ipm works", {
 
     path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
                  "testthat", "testdata")
@@ -79,6 +79,26 @@ test_that("validate_species works", {
         validate_species(x),
         "IPM must either be an ipm or mu_gr object."
     )
+
+
+})
+
+
+
+test_that("validate_species mu works", {
+
+    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+                 "testthat", "testdata")
+
+    mu <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
+                     mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
+                     level = c(3, 10), midbin_tresh = 2)
+    x <- species(mu, init_pop = def_init)
+
+
+    expect_identical(x, validate_species(x))
+
+
 })
 
 
@@ -185,6 +205,22 @@ test_that("def_harv works", {
     expect_identical(
         def_harv(x, ct = ct),
         x *( 0.006 * (ct > 0))
+    )
+
+})
+
+
+test_that("def_disturb works", {
+
+    x <- 1:10
+
+    expect_identical(
+        def_disturb(x),
+        x * 0
+    )
+    expect_warning(
+        def_disturb(x, disturb = "highway to hell"),
+        "default disturbance function does not impact populations. Please add your own disturbance function."
     )
 
 })

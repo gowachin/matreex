@@ -148,9 +148,9 @@ dev_make_IPM <- function(species,
     }
 
     ## loggin ####
-    int_log <- c(year_delta = year_delta, MaxError = 0,
-                 GL_Nint = N_int, GL_level1 = level[[1]],  GL_level2 = level[[2]], GL_min = 0,
-                 MB_Nint = midbin_tresh, MB_level = mid_level, MB_max = 0)
+    int <- c(gl1 = level[[1]], gl2 = level[[2]], gl_tresh = N_int, gl_min = 0,
+             mb_tresh = midbin_tresh, mid_level = mid_level, mb_max = 0,
+             year_delta = year_delta, max_error = 0)
     MaxError <- numeric(length(BA))
     GL_min <- numeric(length(BA))
     MB_max <- numeric(length(BA))
@@ -203,7 +203,7 @@ dev_make_IPM <- function(species,
                                   outer(mesh[[.y]], mu[, .y], "temp", sig_gr, year_delta) * .x
                                }, mesh = mesh_x1, mu = mu_gr,
                                sig_gr = sig_gr, year_delta = year_delta) %>%
-                reduce(`+`)
+                purrr::reduce(`+`)
 
             P_LG <- WMat %*% P_LG
             P <- sub_diag(P, P_LG, dist = 0)
@@ -266,23 +266,28 @@ dev_make_IPM <- function(species,
     }
     # Format ####
 
-    int_log["MaxError"] <- max(MaxError)
-    int_log["MB_max"] <- max(MB_max)
-    int_log["GL_min"] <- min(GL_min)
+    int["max_error"] <- max(MaxError)
+    int["mb_max"] <- max(MB_max)
+    int["gl_min"] <- min(GL_min)
 
-    if(int_log["MB_max"] > 1e-2){
+    if(int["mb_max"] > 1e-2){
         warning(paste(
             "At least one mid_bin integration has values above 1e-2.",
             "This is linked with insufficient Gauss-Legendre",
             "integration treshold. value :", diag_tresh, "mm."))
     }
 
+    if(correction == "ceiling"){
+        out_mesh <- c(out_mesh, U)
+    }
+
     names(IPM) <- BA
     res <- validate_ipm(
         new_ipm(
-            IPM = IPM, BA = BA, mesh = seq(L, U, length.out = m),
-            climatic = climate, clim_lab = clim_lab, rec_params = fit$rec$params_m,
-            species = species, compress = FALSE, int_log = int_log
+            IPM = IPM, BA = BA, mesh = seq(L + h / 2, U - h / 2, length.out = m),
+            climatic = climate, clim_lab = clim_lab, fit = fit,
+            species = species, correction = correction,
+            compress = FALSE, int = int, survival = IsSurv
         )
     )
     return(res)

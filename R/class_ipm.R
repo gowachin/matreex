@@ -12,12 +12,8 @@
 #' @param climatic Vector of named climatic values used to fit the ipm on. dbl.
 #' @param clim_lab Label for climatic used. This values will be matched when
 #' simulating multiple species together.
-#' @param sv_params Named vector of survival parameters fitted for this species and
-#' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
-#' @param gr_params Named vector of growth parameters fitted for this species and
-#' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
-#' @param rec_params Named vector of recruitment parameters fitted for this species and
-#' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
+#' @param fit fit_sgr class object that contains parameters for survival,
+#' growth and recruitment.
 #' @param compress Is the IPM matrix compressed as integer (via \code{x * 1e7}).
 #' Help to limit  size when saved on disc. FALSE by default. lgl.
 #' @param delay Number of year delay between the recruitment of an individual

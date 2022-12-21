@@ -6,6 +6,14 @@
 \usage{
 QMD(size, n)
 }
+\arguments{
+\item{size}{Size class vector of the following distribution. dbl vector}
+
+\item{n}{population state distribution at time t. dbl vector.}
+}
 \description{
 Compute the quadratic mean diameter for a given size distribution.
+}
+\details{
+Both input share the same length.
 }

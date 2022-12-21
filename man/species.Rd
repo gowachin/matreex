@@ -10,7 +10,7 @@
 species(
   IPM,
   init_pop,
-  harvest_fun,
+  harvest_fun = def_harv,
   disturb_fun = def_disturb,
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
   rdi_coef = NULL,
@@ -29,12 +29,8 @@ population.}
 Argument must be \code{x}, \code{species},  \code{...},}
 
 \item{disturb_fun}{Function to impact the population with possibles
-disturbances. Extra care is needed to give this function all needed parameters/
-Default is \code{def_disturb}.
-\code{BAtarget}, \code{ct} and \code{t}.
-Should return a population state as it's take it in input, with less
-population than before. Unless you want zombie trees. It represent the
-distribution of the population to harvest}
+disturbances. Extra care is needed to give this function all needed
+parameters. Default is \code{def_disturb}.}
 
 \item{harv_lim}{Limits of harvest for a population size distribution.
 \describe{
@@ -45,6 +41,13 @@ distribution of the population to harvest}
 
 \item{rdi_coef}{Coefficient for RDI curve used in even harvest.
 The model require the intercept and slope.}
+
+\item{disturb_coef}{Species coefficient  for disturbance reaction. These
+values and names are highly dependent on the disturbance function.
+\code{BAtarget}, \code{ct} and \code{t}.
+Should return a population state as it's take it in input, with less
+population than before. Unless you want zombie trees. It represent the
+distribution of the population to harvest}
 }
 \description{
 Species are defined by an IPM which is a transition matrix from size between
