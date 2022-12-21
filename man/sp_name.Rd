@@ -2,13 +2,13 @@
 % Please edit documentation in R/generic_methods.R
 \name{sp_name}
 \alias{sp_name}
-\title{List the species in treeforce class object}
+\title{List the species in matreex class object}
 \usage{
 sp_name(x)
 }
 \arguments{
-\item{x}{treeforce class object. Used on ipm and species at this time.}
+\item{x}{matreex class object. Used on ipm and species at this time.}
 }
 \description{
-List the species in treeforce class object
+List the species in matreex class object
 }

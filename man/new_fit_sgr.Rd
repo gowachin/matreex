@@ -36,6 +36,6 @@ climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
 \item{max_dbh}{Maximum diameter of the fitted dataset. Single dbh.}
 }
 \description{
-Only used in the treeforce package
+Only used in the matreex package
 }
 \keyword{internal}

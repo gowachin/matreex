@@ -2,7 +2,7 @@
 test_that("getRangemu works", {
 
     species<- "Abies_alba"
-    climate <- subset(treeforce::climate_species,
+    climate <- subset(matreex::climate_species,
                       sp == species, select = -sp)
     fit <- fit_Abies_alba
 
@@ -44,7 +44,7 @@ test_that("make_mu_gr works", {
         make_mu_gr(species = "Pseudotsuga_menziesii", fit = fit_Picea_abies,
                    mesh = c(m = 10, L = 90, U = 1200), stepMu = 1,
                    level = c(3, 10), midbin_tresh = 2),
-        "This species is not listed in species for which treeforce package has climate."
+        "This species is not listed in species for which matreex package has climate."
     )
 
     false_fit <- fit_Picea_abies

@@ -1,8 +1,8 @@
 #' Constructor for forest class
 #'
-#' Only used in the treeforce package
+#' Only used in the matreex package
 #'
-#' @param species List of species created with treeforce package.
+#' @param species List of species created with matreex package.
 #' @param harv_rules Vector for harvest rules at the scale of the forest.
 #' \describe{
 #'   \item{Pmax}{maximum proportion of BAcut / BA}

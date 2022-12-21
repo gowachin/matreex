@@ -13,7 +13,7 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
                      sp_name(species), disturb$type))
     }
 
-    # qmd <- treeforce::QMD(size = size, n = x)
+    # qmd <- matreex::QMD(size = size, n = x)
     logratio <-  log(size / qmd)
     dbh.scaled = coef$dbh.intercept + size * coef$dbh.slope
     logratio.scaled = coef$logratio.intercept + logratio * coef$logratio.slope

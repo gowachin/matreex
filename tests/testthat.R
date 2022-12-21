@@ -7,6 +7,6 @@
 # * https://testthat.r-lib.org/reference/test_package.html#special-files
 
 library(testthat)
-library(treeforce)
+library(matreex)
 
-test_check("treeforce")
+test_check("matreex")

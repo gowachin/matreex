@@ -1,6 +1,6 @@
 #' Constructor for fit_sgr class
 #'
-#' Only used in the treeforce package
+#' Only used in the matreex package
 #'
 #' @param sv_params Named vector of survival parameters fitted for this species
 #' and climatic condition. Minimal parameters are intercept and size.

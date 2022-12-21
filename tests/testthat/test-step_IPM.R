@@ -1,7 +1,7 @@
 test_that("get_step_IPM.mu_gr works", {
 
     species<- "Picea_abies"
-    climate <- subset(treeforce::climate_species,
+    climate <- subset(matreex::climate_species,
                       sp == species & N == 2, select = -sp)
     climate <- drop(as.matrix(climate))
 
@@ -22,7 +22,7 @@ test_that("get_step_IPM.mu_gr works", {
 test_that("get_step_IPM.ipm works", {
 
     species<- "Picea_abies"
-    climate <- subset(treeforce::climate_species,
+    climate <- subset(matreex::climate_species,
                       sp == species & N == 2, select = -sp)
     climate <- drop(as.matrix(climate))
     mesh = c(m = 10, L = 90, U = 1500)

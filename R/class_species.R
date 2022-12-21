@@ -1,8 +1,8 @@
 #' Constructor for species class
 #'
-#' Only used in the treeforce package
+#' Only used in the matreex package
 #'
-#' @param IPM ipm class object from the treeforce package.
+#' @param IPM ipm class object from the matreex package.
 #' @param init_pop Function to initiate the population at simulation start.
 #' Arguments must be \code{mesh} and \code{SurfEch}.
 #' Using the arguments is not mandatory, it's most useful when creating random
@@ -133,7 +133,7 @@ validate_species <- function(x){
 #' functions defined, they are accessible and editable.
 #'  \describe{
 #'   \item{\code{init_pop}}{Function to initiate a new population. Default is
-#'   \code{\link[treeforce]{def_init}}.
+#'   \code{\link[matreex]{def_init}}.
 #'   }
 #'   \item{\code{recruit_fun}}{Function that give a distribution for recruits.
 #'   The default is defined from models associated with the IPM
@@ -142,9 +142,9 @@ validate_species <- function(x){
 #'   }
 #'   \item{\code{harvest_fun}}{Function that give harvest density distribution
 #'   when an harvest event occurs (this frequence is set at the forest scale.).
-#'   The default function is \code{\link[treeforce]{def_harv}} with a constant
+#'   The default function is \code{\link[matreex]{def_harv}} with a constant
 #'   harvest rate of 0.6 percent. Other functions are
-#'   \code{\link[treeforce]{Uneven_harv}} and \code{\link[treeforce]{Even_harv}}.
+#'   \code{\link[matreex]{Uneven_harv}} and \code{\link[matreex]{Even_harv}}.
 #'   }
 #' }
 #'
@@ -186,7 +186,7 @@ species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
 #' population.
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-#' values of 1. See \code{\link[treeforce]{delay}}.
+#' values of 1. See \code{\link[matreex]{delay}}.
 #'
 #' @import checkmate
 #' @import here
@@ -221,10 +221,10 @@ old_ipm2species <- function(species, climatic = 1,
         res_ipm <- delay(res_ipm, delay)
     }
 
-    rdi <- treeforce::rdi_coef
+    rdi <- matreex::rdi_coef
     rdi <- drop(as.matrix(rdi[rdi$species == species,c("intercept", "slope")]))
 
-    disturb_c <- treeforce::disturb_coef
+    disturb_c <- matreex::disturb_coef
     disturb_c <- disturb_c[disturb_c$species == species,]
 
     res <- species(

@@ -116,7 +116,7 @@ res %>%
 
 old_time <- 1000
 
-dev_species <- treeforce::new_species(
+dev_species <- matreex::new_species(
     delay(dev_IPM, delay = 10), harvest_fun = def_harv, init_pop = def_init)
 set.seed(42)
 dev_sim <- sim_deter_forest(
@@ -124,7 +124,7 @@ dev_sim <- sim_deter_forest(
         equil_dist = 2, verbose = TRUE, correction = "cut") %>%
     tree_format() %>% dplyr::filter(var == "BAsp")
 
-o_species <- treeforce::new_species(
+o_species <- matreex::new_species(
     delay(IPM, delay = 10), harvest_fun = def_harv, init_pop = def_init)
 set.seed(42)
 sim <- sim_deter_forest(

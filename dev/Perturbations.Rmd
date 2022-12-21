@@ -93,7 +93,7 @@ $$
 The parameters are estimated with Bayesian computations. The mean of all estimations are stored inside the package for each combination of species and disturbance type.
 
 ```{r data_pkg}
-(coefs <- filter(treeforce::disturb_coef, species == "Picea_abies"))
+(coefs <- filter(matreex::disturb_coef, species == "Picea_abies"))
 Picea_abies$disturb_coef <- coefs
 ```
 
@@ -199,7 +199,7 @@ ipm_Abies <- make_IPM(
 Abies_alba <- species(
     IPM = ipm_Abies, init_pop = def_initBA(40),
     harvest_fun = def_harv, disturb_fun = disturb_fun, 
-    disturb_coef = filter(treeforce::disturb_coef, species == "Abies_alba")
+    disturb_coef = filter(matreex::disturb_coef, species == "Abies_alba")
 )
 ```
 

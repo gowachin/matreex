@@ -1,4 +1,4 @@
-Package: treeforce
+Package: matreex
 Title: LESSEM internal package for simulation of forest dynamic depending on climatic variables
 Version: 0.0.0.9000
 Authors@R: c(

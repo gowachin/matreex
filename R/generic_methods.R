@@ -1,8 +1,8 @@
 
 # sp_name ####
-#' List the species in treeforce class object
+#' List the species in matreex class object
 #'
-#' @param x treeforce class object. Used on ipm and species at this time.
+#' @param x matreex class object. Used on ipm and species at this time.
 #' @name sp_name
 #'
 #' @export
@@ -39,9 +39,9 @@ sp_name.deter_sim <- function(x){
 }
 
 # Climatic ####
-#' Get climatic values in treeforce class object
+#' Get climatic values in matreex class object
 #'
-#' @param x treeforce class object. Used on ipm and species at this time.
+#' @param x matreex class object. Used on ipm and species at this time.
 #' @name climatic
 #'
 #' @export
@@ -284,7 +284,7 @@ sp_rec.species <- function(x, climatic){
 # get_maxdbh ####
 #' Get the max_dbh of a fitted species
 #'
-#' @param x treeforce class object. Used on fit_sgr for now.
+#' @param x matreex class object. Used on fit_sgr for now.
 #' @name get_maxdbh
 #'
 #' @export

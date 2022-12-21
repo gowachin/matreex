@@ -148,12 +148,12 @@ make_mu_gr <- function(species,
     # Idiot Proof ####
     assertCharacter(species, len = 1)
     if(is.null(climate)){
-        if(! species %in% treeforce::fit_species && missing(climate)){
+        if(! species %in% matreex::fit_species && missing(climate)){
             stop(paste0("This species is not listed in species for which ",
-                        "treeforce package has climate."))
+                        "matreex package has climate."))
         }
         sp <- NULL # hack to bind value.
-        climate <- subset(treeforce::climate_species,
+        climate <- subset(matreex::climate_species,
                           sp == species,
                           select = -sp
         )

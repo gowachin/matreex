@@ -2,7 +2,7 @@ Running multi species deterministic simulations
 ================
 
 ``` r
-library(treeforce)
+library(matreex)
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -43,7 +43,7 @@ spe <- "Yggdrasil" # Example dataset given with the package
 # Warning, loading an old IPM takes around 10s
 Yggdrasil <- old_ipm2species(
     spe, climatic = 1, replicat = 1,
-    path = system.file("extdata", package = "treeforce", mustWork = TRUE),
+    path = system.file("extdata", package = "matreex", mustWork = TRUE),
 )
 def_init
 #> function(mesh, SurfEch = 0.03) {
@@ -60,7 +60,7 @@ def_init
 #>                       # also line to add BA later if needed
 #>     return(res)
 #> }
-#> <environment: namespace:treeforce>
+#> <environment: namespace:matreex>
 ```
 
 A forest is just a list of the species. **Later it will also require
@@ -91,7 +91,7 @@ sim1sp <- sim_deter_forest(Forest, tlim = 60, equil_time = 1e3,
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 63
 #> BA stabilized at 2.38 with diff of 0.98 at time 63
-#> Time difference of 0.136 secs
+#> Time difference of 0.241 secs
 ```
 
 The output is a single table with time in column and different variables
@@ -153,7 +153,7 @@ sim2sp <- sim_deter_forest(Forest2, tlim = 30, equil_time = 1e3,
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 66
 #> BA stabilized at 4.65 with diff of 0.87 at time 66
-#> Time difference of 0.245 secs
+#> Time difference of 0.376 secs
 ```
 
 The result is the same table with each species tables grouped one under
@@ -209,7 +209,7 @@ Yggdrasil$harvest_fun
 #>     rate <- 0.006 * (ct > 0)
 #>     return(x * rate)
 #> }
-#> <environment: namespace:treeforce>
+#> <environment: namespace:matreex>
 ```
 
 We can use another function that set an Uneven harvest a specified
@@ -233,7 +233,7 @@ sim1harv <- sim_deter_forest(Forest_harv, tlim = 60,
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
 #> BA stabilized at 2.19 with diff of 0.32 at time 60
-#> Time difference of 0.172 secs
+#> Time difference of 0.219 secs
 ```
 
     #>                          t1        t2        t3        t30        t31
@@ -289,7 +289,7 @@ sim2harv <- sim_deter_forest(Forest_harv2, tlim = 60,
 #> Starting while loop. Maximum t = 60
 #> Simulation ended after time 60
 #> BA stabilized at 2.36 with diff of 1.36 at time 60
-#> Time difference of 0.482 secs
+#> Time difference of 0.331 secs
 ```
 
 ``` r
@@ -332,7 +332,7 @@ sim5d <- sim_deter_forest(Forest_delay, tlim = 60, equil_time = 1e3,
 #> Starting while loop. Maximum t = 1000
 #> Simulation ended after time 69
 #> BA stabilized at 2.39 with diff of 0.93 at time 69
-#> Time difference of 0.179 secs
+#> Time difference of 0.236 secs
 ```
 
 Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected

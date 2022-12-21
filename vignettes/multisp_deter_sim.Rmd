@@ -19,7 +19,7 @@ knitr::opts_chunk$set(
 ```
 
 ```{r setup, message=FALSE}
-library(treeforce)
+library(matreex)
 library(ggplot2)
 library(dplyr)
 library(magrittr)
@@ -51,7 +51,7 @@ spe <- "Yggdrasil" # Example dataset given with the package
 # Warning, loading an old IPM takes around 10s
 Yggdrasil <- old_ipm2species(
     spe, climatic = 1, replicat = 1,
-    path = system.file("extdata", package = "treeforce", mustWork = TRUE),
+    path = system.file("extdata", package = "matreex", mustWork = TRUE),
 )
 def_init
 ```

@@ -9,7 +9,7 @@
 \usage{
 species(
   IPM,
-  init_pop,
+  init_pop = def_init,
   harvest_fun = def_harv,
   disturb_fun = def_disturb,
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
@@ -18,7 +18,7 @@ species(
 )
 }
 \arguments{
-\item{IPM}{ipm class object from the treeforce package.}
+\item{IPM}{ipm class object from the matreex package.}
 
 \item{init_pop}{Function to initiate the population at simulation start.
 Arguments must be \code{mesh} and \code{SurfEch}.
@@ -62,7 +62,7 @@ for growth and survival functions of the species. Since the species has other
 functions defined, they are accessible and editable.
 \describe{
 \item{\code{init_pop}}{Function to initiate a new population. Default is
-\code{\link[treeforce]{def_init}}.
+\code{\link[matreex]{def_init}}.
 }
 \item{\code{recruit_fun}}{Function that give a distribution for recruits.
 The default is defined from models associated with the IPM
@@ -71,9 +71,9 @@ nullify the recruitment to simulate extinction.
 }
 \item{\code{harvest_fun}}{Function that give harvest density distribution
 when an harvest event occurs (this frequence is set at the forest scale.).
-The default function is \code{\link[treeforce]{def_harv}} with a constant
+The default function is \code{\link[matreex]{def_harv}} with a constant
 harvest rate of 0.6 percent. Other functions are
-\code{\link[treeforce]{Uneven_harv}} and \code{\link[treeforce]{Even_harv}}.
+\code{\link[matreex]{Uneven_harv}} and \code{\link[matreex]{Even_harv}}.
 }
 }
 }

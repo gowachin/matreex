@@ -7,7 +7,7 @@
 get_maxdbh(x)
 }
 \arguments{
-\item{x}{treeforce class object. Used on fit_sgr for now.}
+\item{x}{matreex class object. Used on fit_sgr for now.}
 }
 \description{
 Get the max_dbh of a fitted species

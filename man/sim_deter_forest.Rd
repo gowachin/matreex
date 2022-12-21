@@ -25,7 +25,7 @@ sim_deter_forest(
 \item{Forest}{Group of species that each contains IPM for deterministic
 transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
 A species is also defined with recruitment and harvest functions, please
-see \code{\link[treeforce]{species}} for more information.}
+see \code{\link[matreex]{species}} for more information.}
 
 \item{tlim}{Number of simulation iterations (years) in the future. single int.}
 

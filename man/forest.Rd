@@ -10,7 +10,7 @@ forest(
 )
 }
 \arguments{
-\item{species}{List of species created with treeforce package.}
+\item{species}{List of species created with matreex package.}
 
 \item{harv_rules}{Vector for harvest rules at the scale of the forest.
 \describe{

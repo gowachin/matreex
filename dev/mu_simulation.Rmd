@@ -134,7 +134,7 @@ Of course we now need to define a climate at each time step of the future simula
 **This code is an example and some functions may be added to the package later.**
 
 ```{r future_in_pkg}
-# future function for the package treeforce. 
+# future function for the package matreex. 
 # I may need some help on what's needed or usefull
 
 #' @param x a named values for a climatic variable. 

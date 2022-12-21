@@ -1,6 +1,6 @@
 #' Script for development procedure.
 #'
-#' Developping treeforce as a package depend on {devtools} package.
+#' Developping matreex as a package depend on {devtools} package.
 #' It also include gitlab or github CI and {pkgdown} package
 #' for documentation presentation.
 #'
@@ -37,22 +37,22 @@ library(beepr)
 
 # Command for pkg compil ####
 
-## Reload treeforce in empty env. ####
-devtools::unload("treeforce")
+## Reload matreex in empty env. ####
+devtools::unload("matreex")
 .rs.restartR()
 devtools::load_all()
 
 ## Force C++ compil without edition ####
-devtools::unload("treeforce")
+devtools::unload("matreex")
 .rs.restartR()
 devtools::clean_dll()
 devtools::load_all()
 
 ## Reinstall package ####
 devtools::document()
-devtools::unload("treeforce")
+devtools::unload("matreex")
 .rs.restartR()
-remove.packages("treeforce")
+remove.packages("matreex")
 devtools::install(upgrade = "never",
                   build_vignettes = TRUE)
 
@@ -83,8 +83,8 @@ beepr::beep(5)
 ## Compile the full notice ####
 build_vignettes_to_inst() # This will recompile all vignettes to pdf and move them int/doc/
 setwd("inst/notice")
-tinytex::pdflatex("Notice_treeforce.tex")
-tinytex::pdflatex("Notice_treeforce.tex")
+tinytex::pdflatex("Notice_matreex.tex")
+tinytex::pdflatex("Notice_matreex.tex")
 setwd("../../")
 
 ## Pre compile intensive compu vignettes ##
@@ -94,7 +94,7 @@ setwd("../../")
 
 #' I tested using some options but it's poorly used in the package.
 # options(dev = TRUE)
-# options(treeforce.dev = TRUE) # TRUE show verbose, FALSE not. NULL equal FALSE
+# options(matreex.dev = TRUE) # TRUE show verbose, FALSE not. NULL equal FALSE
 
 # Index of files ####
 

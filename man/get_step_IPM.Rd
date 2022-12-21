@@ -12,7 +12,7 @@ get_step_IPM(x, ...)
 \item{...}{Variables used depending on the class of x.
 \describe{
 \item{BA}{Total basal area to get the IPM for during simulation.}
-\item{climate}{Climate for which the IPM is needed. Only used for mu_gr.}
+\item{climate}{Climate for which the IPM is needed.}
 \item{sim_corr}{Simulation correction applied to the IPM. "cut" or "none"}
 \item{IsSurv}{Does this step IPM require survival. If missing or NULL,
 the value will be taken from x$info object}

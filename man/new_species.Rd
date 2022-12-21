@@ -15,7 +15,7 @@ new_species(
 )
 }
 \arguments{
-\item{IPM}{ipm class object from the treeforce package.}
+\item{IPM}{ipm class object from the matreex package.}
 
 \item{init_pop}{Function to initiate the population at simulation start.
 Arguments must be \code{mesh} and \code{SurfEch}.
@@ -47,6 +47,6 @@ population than before. Unless you want zombie trees. It represent the
 distribution of the population to harvest}
 }
 \description{
-Only used in the treeforce package
+Only used in the matreex package
 }
 \keyword{internal}

@@ -2,13 +2,13 @@
 % Please edit documentation in R/generic_methods.R
 \name{climatic}
 \alias{climatic}
-\title{Get climatic values in treeforce class object}
+\title{Get climatic values in matreex class object}
 \usage{
 climatic(x)
 }
 \arguments{
-\item{x}{treeforce class object. Used on ipm and species at this time.}
+\item{x}{matreex class object. Used on ipm and species at this time.}
 }
 \description{
-Get climatic values in treeforce class object
+Get climatic values in matreex class object
 }

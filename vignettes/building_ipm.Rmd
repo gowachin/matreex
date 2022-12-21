@@ -20,7 +20,7 @@ knitr::opts_chunk$set(
 
 # Introduction
 
-The `{treeforce}` package use Integral Projection Model (IPM here after) for tree growth and survival models. Each IPM is defined for a given climate (*sggd* and *wai* variables) and competition (*BA* variable).
+The `{matreex}` package use Integral Projection Model (IPM here after) for tree growth and survival models. Each IPM is defined for a given climate (*sggd* and *wai* variables) and competition (*BA* variable).
 
 This vignette expose how the different IPM are built and some mathematical explanations of the integration. It's composed of chapter about default function call, methods for Gauss Legendre and Midbin integration and finally more code examples for specific calls.
 
@@ -30,7 +30,7 @@ Below is a simple script to show default function calls. To build an IPM for a s
 
 
 ```{r, example code}
-library(treeforce)
+library(matreex)
 species <- "Pinus_pinea"
 # You can choose any species in the dataset.
 data("fit_species") # available species

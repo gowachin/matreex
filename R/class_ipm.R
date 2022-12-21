@@ -18,7 +18,7 @@
 #' Help to limit  size when saved on disc. FALSE by default. lgl.
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-#' values of 1. See \code{\link[treeforce]{delay}}.
+#' values of 1. See \code{\link[matreex]{delay}}.
 #' @param int Internal vector used to store logs about integratio process
 #' that register year delta, maximum integration error on the first half of
 #' the mesh, minimal gauss-legendre value and maximal midbin error.
@@ -98,7 +98,7 @@ validate_ipm <- function(x){
 #' @param replicat Numeric for the simulation to select. By default, the 42th.
 #' @param delay Number of year delay between the recruitment of an individual
 #' and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-#' values of 1. See \code{\link[treeforce]{delay}}.
+#' values of 1. See \code{\link[matreex]{delay}}.
 #'
 #' @import checkmate
 #' @import here

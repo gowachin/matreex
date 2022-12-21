@@ -44,7 +44,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' @param Forest Group of species that each contains IPM for deterministic
 #' transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
 #' A species is also defined with recruitment and harvest functions, please
-#' see \code{\link[treeforce]{species}} for more information.
+#' see \code{\link[matreex]{species}} for more information.
 #' @param tlim Number of simulation iterations (years) in the future. single int.
 #' @param equil_dist Number of last n time for which the range difference
 #' should not exceed \code{equil_diff} during the equilibrium research.
@@ -533,7 +533,7 @@ sim_deter_forest.forest  <- function(Forest,
 #' @param x a matrix.
 #' @param mesh mesh size values to be set as attributes.
 #'
-#' @details Format is specified in \code{\link[treeforce]{sim_deter_forest}}
+#' @details Format is specified in \code{\link[matreex]{sim_deter_forest}}
 #'
 #' @noRd
 new_deter_sim <- function(x = matrix(), mesh = NULL){

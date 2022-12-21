@@ -39,7 +39,7 @@
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 rm(list = ls())
-packages <- c("dplyr", "ggplot2", "treeforce", "tidyr")
+packages <- c("dplyr", "ggplot2", "matreex", "tidyr")
 lapply(packages, require, character.only = TRUE)
 
 #%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%

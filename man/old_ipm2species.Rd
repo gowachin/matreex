@@ -40,7 +40,7 @@ population.}
 
 \item{delay}{Number of year delay between the recruitment of an individual
 and it's inclusion in the IPM. This will enlarge the IPM and add sub diagonal
-values of 1. See \code{\link[treeforce]{delay}}.}
+values of 1. See \code{\link[matreex]{delay}}.}
 }
 \description{
 Read old ipm and put them in the new species class format.

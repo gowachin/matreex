@@ -7,10 +7,10 @@ devtools::check()
 
 
 # change name
-# grep "treeforce" -r ./*
+# grep "matreex" -r ./*
 
-library(treeforce)
-?treeforce
+library(matreex)
+?matreex
 
 # library(covr, testthat)
 # get a shiny to find which line is not yet tested. Very helpfull
@@ -55,7 +55,7 @@ report(x)
 
 # Link between functions
 library(mvbutils)
-foodweb(where = asNamespace( "treeforce"), cex = 0.8, color.lines = F)
+foodweb(where = asNamespace( "matreex"), cex = 0.8, color.lines = F)
 
 # Update the coverage to codecov, don't forget the token
 # covr::codecov()
