@@ -4,7 +4,7 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![](https://img.shields.io/badge/devel%20version-0.0.0.9000-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 
 <!-- badges: end -->
 
