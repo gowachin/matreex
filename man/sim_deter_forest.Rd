@@ -59,9 +59,22 @@ IPM so that no individual can grow outside of the defines classes.}
 \item{verbose}{Print message. FALSE by default}
 }
 \value{
-Matrix of the population states for time in \eqn{[1, t_{lim}]} in a specific
-format plus a last column that is the state at equilibrium.
-In row are :
+Data.frame with long tidyverse format : a row for each observation and a
+column per variable. Columns are listed below, some may contains NA values,
+as for example species when there is a non-specific variable (BA).
+\describe{
+\item{species}{ Name of the species.}
+\item{var}{Variable of interest}
+\item{time}{Time step of the simulation. If the equilibrium is the last
+time in \code{tlim} input, this time will occur twice in the table.}
+\item{mesh}{Mesh class number, from 1 to n class.}
+\item{size}{Size corresponding to the mesh class.}
+\item{equil}{Logical if this time step is the equilibrium or last step of
+simulation}
+\item{value}{Numeric values of the variables.}
+}
+
+The variables are :
 \describe{
 \item{m}{Distribution of density by mesh along time per ha.}
 \item{N}{Sum of density per ha. (colSums for m)}
@@ -69,10 +82,6 @@ In row are :
 \item{h}{Distribution of harvest density by mesh along time per ha.}
 \item{H}{Sum of density per ha. (colSums for h)}
 }
-\code{colnames} are set as tn with n the time of simulation. The last column
-is the equilibrium state if it's simulated after tlim (equil_time > tlim)
-\code{rownames} are labelled mi or hi with i the different state of the
-population.
 }
 \description{
 Simulate a population size state during \eqn{[1, t_{lim}]} times.

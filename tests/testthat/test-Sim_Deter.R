@@ -14,8 +14,9 @@ test_that("sim_deter_forest simple", {
     res <- sim_deter_forest(Forest = model, tlim = 30, equil_time = 1e3,
                             correction = "cut")
 
-    expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
+    expect_equal(dim(res), c(1953, 7))
+    expect_equal(colnames(res),
+                 c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
 
 
@@ -31,8 +32,9 @@ test_that("sim_deter_species simple", {
     res <- sim_deter_forest(Forest = model, tlim = 30, equil_time = 1e3,
                             correction = "cut")
 
-    expect_equal(dim(res), c(63, 31))
-    expect_equal(colnames(res), c(paste0("t", 1:30), "eqt260"))
+    expect_equal(dim(res), c(1953, 7))
+    expect_equal(colnames(res),
+                 c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
 
 
@@ -56,8 +58,9 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[4], "Simulation ended after time 500\n")
     expect_equal(res$messages[5], "BA stabilized at 2.39 with diff of 0.00 at time 500\n")
 
-    expect_equal(dim(new), c(65, 501))
-    expect_equal(colnames(new), c(paste0("t", 1:500), "eqt500"))
+    expect_equal(dim(new), c(32565, 7))
+    expect_equal(colnames(new),
+                 c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
 
 
@@ -81,8 +84,9 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[4], "BA stabilized at 1.07 with diff of 0.08 at time 3\n")
     expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
-    expect_equal(dim(new), c(73, 11))
-    expect_equal(colnames(new), c(paste0("t", 1:10), "eqt3"))
+    expect_equal(dim(new), c(803, 7))
+    expect_equal(colnames(new),
+                 c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
 
 
@@ -180,6 +184,10 @@ test_that("sim_deter_forest warning climate", {
 
 
 test_that("sim_deter format work", {
+
+    warn <- "tree_format is now deprecated. It is already integrated to sim_deter_forest function to simplify the simulation pipeline"
+
+    expect_warning(tree_format(42), warn)
 
     res <- structure(
         c(0.26, 0.00, 0.00, 0.27, 0.27, 1.00, 2.57, 0, 0, 0, 0, 0, 0.00,

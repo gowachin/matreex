@@ -80,12 +80,12 @@ beepr::beep(5)
 # we can push releases to gitlab with curl. See this SO post:
 # https://stackoverflow.com/questions/29013457/how-to-store-releases-binaries-in-gitlab
 
-## Compile the full notice ####
-build_vignettes_to_inst() # This will recompile all vignettes to pdf and move them int/doc/
-setwd("inst/notice")
-tinytex::pdflatex("Notice_matreex.tex")
-tinytex::pdflatex("Notice_matreex.tex")
-setwd("../../")
+# ## Compile the full notice ####
+# build_vignettes_to_inst() # This will recompile all vignettes to pdf and move them int/doc/
+# setwd("inst/notice")
+# tinytex::pdflatex("Notice_matreex.tex")
+# tinytex::pdflatex("Notice_matreex.tex")
+# setwd("../../")
 
 ## Pre compile intensive compu vignettes ##
 # sourcing this script will kill R, but running it interactively work.

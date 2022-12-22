@@ -69,15 +69,14 @@ Once the mu matrix is created, creating species and simulating is really close t
 ```{r simulation}
 time <- 1000
 
-Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_initBA(20), 
-                           harvest_fun = def_harv)
+Picea_abies <- species(IPM = mu_Picea_abies, init_pop = def_initBA(20), 
+                       harvest_fun = def_harv)
 
-forest <- new_forest(species = list(mu_Picea = Picea_abies))
+forest <- forest(species = list(mu_Picea = Picea_abies))
 set.seed(42)
 memor_mu <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
                                     equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                    verbose = TRUE, correction = "cut")
 
 memor_mu %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
@@ -96,13 +95,12 @@ ipm_Picea <- make_IPM(
     BA = 0:100, verbose = TRUE
 )
 Picea_abies_ipm <- species(IPM = ipm_Picea, init_pop = def_initBA(20), 
-                          harvest_fun = def_harv)
-forest_ipm <- new_forest(species = list(ipm_Picea = Picea_abies_ipm))
+                           harvest_fun = def_harv)
+forest_ipm <- forest(species = list(ipm_Picea = Picea_abies_ipm))
 set.seed(42)
 memor_ipm <- sim_deter_forest.forest(forest_ipm, tlim = time, 
-                                    equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                     equil_dist = time, equil_time = time,
+                                     verbose = TRUE, correction = "cut")
 ```
 
 Below is a plot that combine both simulations and compute the difference along time.
@@ -142,7 +140,7 @@ Of course we now need to define a climate at each time step of the future simula
 #' case of var can take 0 for value.
 #' Example : \code{x = c(sgdd = 2000)}
 value2sqb <- function(x, inv_null = FALSE){
-
+    
     nms <- names(x)
     res <- numeric(3)
     names(res) <- c(nms, paste0(nms, c("2", "b")))
@@ -168,7 +166,7 @@ expand_clim <- function(climate, inv_null){
         res[[x]] <- value2sqb(climate[nms[x]], inv_null[nms[x]])
     }
     res <- unlist(res)
-
+    
     return(res)
 }
 # May be usefull to create the same function but to work on data.frame 
@@ -204,14 +202,13 @@ Once the climate is set, we can simulate a species. I recreate the species to st
 
 ```{r clim_sim}
 distrib <- filter(memor_mu, equil, var == "m") %>% pull(value) * 0.03
-Picea_abies <- new_species(IPM = mu_Picea_abies, init_pop = def_init_k(distrib), 
-                           harvest_fun = def_harv)
-clim_forest <- new_forest(species = list(clim_Picea = Picea_abies))
+Picea_abies <- species(IPM = mu_Picea_abies, init_pop = def_init_k(distrib), 
+                       harvest_fun = def_harv)
+clim_forest <- forest(species = list(clim_Picea = Picea_abies))
 set.seed(42)
 memor_clim <- sim_deter_forest.forest(clim_forest, tlim = time, climate = exp_clim,
-                                    equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                      equil_dist = time, equil_time = time,
+                                      verbose = TRUE, correction = "cut")
 
 memor_clim %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
@@ -238,21 +235,20 @@ for(s in seq_along(steps)){
         mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
         stepMu = steps[s])
     
-    Picea <- new_species(IPM = mu_Picea, init_pop = def_initBA(20), 
-                               harvest_fun = def_harv)
+    Picea <- species(IPM = mu_Picea, init_pop = def_initBA(20), 
+                     harvest_fun = def_harv)
     
-    forest <- new_forest(species = list(Picea = Picea))
+    forest <- forest(species = list(Picea = Picea))
     set.seed(42)
     memor <- sim_deter_forest.forest(forest, tlim = time, 
-                                        climate = step_climate,
-                                        equil_dist = time, equil_time = time,
-                                        correction = "cut") %>%
-        tree_format()
+                                     climate = step_climate,
+                                     equil_dist = time, equil_time = time,
+                                     correction = "cut") 
     
     diff_list[[s]] <- dplyr::bind_rows(ipm = memor_ipm, mu = memor, 
                                        .id = "meth") %>%
-    filter(var %in% c("BAsp"), ! equil) %>%
-    group_by(time) %>% summarise(value = diff(value))
+        filter(var %in% c("BAsp"), ! equil) %>%
+        group_by(time) %>% summarise(value = diff(value))
 }
 
 names(diff_list) <- c("a: 5e-2", "b: 1e-2", "c: 5e-3", "d: 1e-3", "e: 5e-4")
@@ -278,31 +274,29 @@ mu_Abies_alba <- make_mu_gr(
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
     verbose = TRUE, stepMu = 0.001)
 
-Abies_alba <- new_species(IPM = mu_Abies_alba, init_pop = def_initBA(20), 
-                           harvest_fun = def_harv)
+Abies_alba <- species(IPM = mu_Abies_alba, init_pop = def_initBA(20), 
+                      harvest_fun = def_harv)
 
-forest <- new_forest(species = list(mu_Abies = Abies_alba))
+forest <- forest(species = list(mu_Abies = Abies_alba))
 set.seed(42)
 memor_abies <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
-                                    equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                       equil_dist = time, equil_time = time,
+                                       verbose = TRUE, correction = "cut")
 
 distrib_abies <- filter(memor_abies, equil, var == "m") %>% pull(value) * 0.03
-Abies_alba <- new_species(IPM = mu_Abies_alba, 
-                           init_pop = def_init_k(distrib_abies), 
-                           harvest_fun = def_harv)
+Abies_alba <- species(IPM = mu_Abies_alba, 
+                      init_pop = def_init_k(distrib_abies), 
+                      harvest_fun = def_harv)
 ```
 
 We create a forest with 2 species integrated with mu values. From this, we just need to run the simulation. Please note that the climate can be modified along time as before because all species use mu values. Another thing to note is the simulation time that is correlated with the number of mu species used.
 
 ```{r}
-nsp_forest <- new_forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
+nsp_forest <- forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
 set.seed(42)
 memor_nsp <- sim_deter_forest.forest(nsp_forest, tlim = time, climate = exp_clim,
-                                    equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                     equil_dist = time, equil_time = time,
+                                     verbose = TRUE, correction = "cut") 
 
 memor_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
@@ -316,12 +310,11 @@ If we want to simulate with species defined from mu and ipm, we can mix them but
 
 ```{r}
 Picea_abies_ipm$init_pop <- def_init_k(distrib)
-msp_forest <- new_forest(species = list(Picea = Picea_abies_ipm, Abies = Abies_alba))
+msp_forest <- forest(species = list(Picea = Picea_abies_ipm, Abies = Abies_alba))
 set.seed(42)
 memor_msp <- sim_deter_forest.forest(msp_forest, tlim = time, climate = exp_clim,
-                                    equil_dist = time, equil_time = time,
-                                    verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                     equil_dist = time, equil_time = time,
+                                     verbose = TRUE, correction = "cut")
 
 memor_msp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%

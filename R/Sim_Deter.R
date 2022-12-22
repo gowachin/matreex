@@ -70,9 +70,22 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #'
 #'
 #' @return
-#' Matrix of the population states for time in \eqn{[1, t_{lim}]} in a specific
-#' format plus a last column that is the state at equilibrium.
-#' In row are :
+#' Data.frame with long tidyverse format : a row for each observation and a
+#'  column per variable. Columns are listed below, some may contains NA values,
+#'  as for example species when there is a non-specific variable (BA).
+#'  \describe{
+#'   \item{species}{ Name of the species.}
+#'   \item{var}{Variable of interest}
+#'   \item{time}{Time step of the simulation. If the equilibrium is the last
+#'   time in \code{tlim} input, this time will occur twice in the table.}
+#'   \item{mesh}{Mesh class number, from 1 to n class.}
+#'   \item{size}{Size corresponding to the mesh class.}
+#'   \item{equil}{Logical if this time step is the equilibrium or last step of
+#'   simulation}
+#'   \item{value}{Numeric values of the variables.}
+#'  }
+#'
+#' The variables are :
 #' \describe{
 #'  \item{m}{Distribution of density by mesh along time per ha.}
 #'  \item{N}{Sum of density per ha. (colSums for m)}
@@ -80,10 +93,6 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #'  \item{h}{Distribution of harvest density by mesh along time per ha.}
 #'  \item{H}{Sum of density per ha. (colSums for h)}
 #' }
-#' \code{colnames} are set as tn with n the time of simulation. The last column
-#' is the equilibrium state if it's simulated after tlim (equil_time > tlim)
-#' \code{rownames} are labelled mi or hi with i the different state of the
-#' population.
 #'
 #' @import Matrix
 #' @import checkmate
@@ -214,9 +223,9 @@ sim_deter_forest.forest  <- function(Forest,
         }
         if(inherits(climate, "data.frame")){
             climate <- as.matrix(climate)
-        } # else if(inherits(climate, "numeric")){
-            # climate <- t(climate)
-        # }
+        } else if(inherits(climate, "numeric")){
+            climate <- t(climate)
+        }
         assertMatrix(climate)
         if(nrow(climate) != 1 & nrow(climate) < equil_time){
             stop(paste0("climate matrix is not defined for each time until",
@@ -521,7 +530,7 @@ sim_deter_forest.forest  <- function(Forest,
     }
     sim_X <- new_deter_sim(sim_X, mesh = meshs)
 
-    # sim_X <- tree_format(sim_X)
+    sim_X <- tree_format(sim_X)
 
     # Return ####
     return(sim_X)
@@ -551,6 +560,7 @@ new_deter_sim <- function(x = matrix(), mesh = NULL){
 #' @param x Simulations created with sim_deter_forest
 #'
 #' @name tree_format
+#' @keywords internal
 #' @export
 tree_format <- function(x){
     UseMethod("tree_format")

@@ -41,7 +41,7 @@ Picea_abies <- species(IPM = ipm_Picea, init_pop = def_initBA(40),
 We want to start our simulations with an equilibrium size distribution so we compute here first
 
 ```{r equilibrium}
-forest_ipm <- new_forest(species = list(Picea = Picea_abies))
+forest_ipm <- forest(species = list(Picea = Picea_abies))
 time <- 3000
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
@@ -167,13 +167,12 @@ Running a simulation takes the same parameters as usual, with an added data.fram
 ```{r sim}
 time <- 2500
 Picea_abies$init_pop <- def_init_k(equil * 0.03)
-forest_ipm <- new_forest(species = list(Picea = Picea_abies))
+forest_ipm <- forest(species = list(Picea = Picea_abies))
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
-                                 verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                 verbose = TRUE, correction = "cut")
 
 memor %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
@@ -207,13 +206,12 @@ Abies_alba <- species(
 time <- 5000
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 2500))
-forest_nsp <- new_forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
+forest_nsp <- forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
 set.seed(42)
 memor_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
-                                 verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                 verbose = TRUE, correction = "cut")
 
 memor_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%
@@ -233,13 +231,12 @@ load_all()
 time <- 3000
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 2500))
-forest_d <- new_forest(species = list(Abies = delay(Abies_alba, 5)))
+forest_d <- forest(species = list(Abies = delay(Abies_alba, 5)))
 set.seed(42)
 memor_d <- sim_deter_forest.forest(forest_d, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
-                                 verbose = TRUE, correction = "cut") %>%
-    tree_format()
+                                 verbose = TRUE, correction = "cut")
 
 memor_d %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%

@@ -1,3 +1,9 @@
+# matreex (development version)
+
+* `tree_format()` will get deprecated and fully integrated in `sim_deter_forest()`.
+
+* `species()` class constructor has now default values and should be preferred to `new_species()`.
+
 # matreex 0.1.0
 
 * Added a `NEWS.md` file to track changes to the package.
