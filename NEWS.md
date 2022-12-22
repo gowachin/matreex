@@ -1,5 +1,11 @@
 # matreex (development version)
 
+* New vignette `Basic_functions.Rmd`.
+
+* `make_IPM()` is more flexible for climate input to simplify scripts. 
+Single rows matrix and data.frame are now accepted. 
+This replace `climate <- drop(as.matrix(subset(climate_species, ...)`.
+
 * `tree_format()` will get deprecated and fully integrated in `sim_deter_forest()`.
 
 * `species()` class constructor has now default values and should be preferred to `new_species()`.

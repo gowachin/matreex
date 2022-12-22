@@ -67,6 +67,12 @@ make_IPM <- function(species,
 
     # Idiot Proof ####
     assertCharacter(species, len = 1)
+    if(inherits(climate, "data.frame")){
+        climate <- as.matrix(climate)
+    }
+    if(inherits(climate, "matrix") & nrow(climate == 1)){
+        climate <- drop(climate)
+    }
     assertNumeric(climate, any.missing = FALSE)
     assertCharacter(clim_lab, len = 1)
     # assert fit and all required climate in fit
