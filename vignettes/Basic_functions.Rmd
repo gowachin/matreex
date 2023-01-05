@@ -1,8 +1,9 @@
 ---
 title: "Basic functions and examples"
-author: "Maxime Jaunatre"
 package: matreex
-output: rmarkdown::html_vignette
+output: 
+    github_document:
+    rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Basic functions and examples}
   %\VignetteEngine{knitr::rmarkdown}
@@ -38,8 +39,7 @@ An IPM is mostly defined by it's mesh dimension, that are here $700 \times 700$ 
 **Please keep in mind this computation is intensive and may take few minutes !**
 
 ```{r make IPM}
-load_all()
-# TODO library(matreex)
+library(matreex)
 library(dplyr)
 library(ggplot2)
 
@@ -118,11 +118,13 @@ If size distributions needs to be extracted, it can be easily done with `{dplyr}
 
 ```{r sp1head}
 head(Picea_sim)
+
 # get the maximum time
 max_t <- max(Picea_sim$time)
+
 # Filter example to extract the size distribution
 Picea_sim %>% 
     dplyr::filter(grepl("m", var), time == max_t) %>% 
-    select(size, value)
+    dplyr::select(size, value)
 ```
 

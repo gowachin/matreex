@@ -62,6 +62,7 @@ devtools::check() # takes few minutes
 ## Compile documentation site ####
 devtools::load_all()
 rmarkdown::render("vignettes/multisp_deter_sim.Rmd")
+rmarkdown::render("vignettes/Basic_functions.Rmd")
 rmarkdown::render("README.rmd", clean = TRUE, quiet = TRUE)
 fs::file_delete("README.html")
 pkgdown::build_site(preview = TRUE, devel = TRUE) # will open website

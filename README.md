@@ -29,6 +29,11 @@ for (i in deps ){
 
 ### Development version
 
+<!-- 
+Be aware that anyone who installs directly from GitHub will need to explicitly request vignettes, e.g. with devtools::install_github(dependencies = TRUE, build_vignettes = TRUE).
+
+-->
+
 You can install the development version of `{matreex}` from [gitlab](https://gitlab.com/gowachin/matreex) with :
 
 ```

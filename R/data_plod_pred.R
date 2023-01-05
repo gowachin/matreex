@@ -5,7 +5,8 @@
 #' \describe{
 #' \item{1}{hot edge}
 #' \item{2}{optimum climate for the species}
-#' \itme{3}{cold edge}
+#' \item{3}{cold edge}
+#' }
 #'
 #' Climate was defined from sgdd and wai variables.
 #'

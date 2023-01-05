@@ -70,7 +70,7 @@ make_IPM <- function(species,
     if(inherits(climate, "data.frame")){
         climate <- as.matrix(climate)
     }
-    if(inherits(climate, "matrix") & nrow(climate == 1)){
+    if(inherits(climate, "matrix") && nrow(climate == 1)){
         climate <- drop(climate)
     }
     assertNumeric(climate, any.missing = FALSE)
