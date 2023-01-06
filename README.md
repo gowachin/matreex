@@ -25,24 +25,30 @@ deps <- c('checkmate', 'Matrix', 'here', 'dplyr',
 for (i in deps ){
   if(!require(i,character.only = TRUE))
     install.packages(i)
+}
 ```
 
-### Development version
+### Stable version
 
 <!-- 
 Be aware that anyone who installs directly from GitHub will need to explicitly request vignettes, e.g. with devtools::install_github(dependencies = TRUE, build_vignettes = TRUE).
 
 -->
 
-You can install the development version of `{matreex}` from [gitlab](https://gitlab.com/gowachin/matreex) with :
+You can install the `{matreex}` package from [gitlab](https://gitlab.com/gowachin/matreex) with :
 
 ```
 # install.packages("remotes")
 remotes::install_gitlab("gowachin/matreex")
+```
+
+<!--
+```
 # or
 # install.packages("devtools")
 # devtools::install_gitlab('https://gitlab.com/gowachin/matreex')
 ```
+-->
 
 **Note : You need to have your gitlab/github account logged on your local computer because the current repository is in private. See [these answers](https://stackoverflow.com/questions/21171142/how-to-install-r-package-from-private-repo-using-devtools-install-github) for more information.**
 
@@ -51,10 +57,34 @@ remotes::install_gitlab("gowachin/matreex")
 ```
 # install.packages("remotes")
 remotes::install_github("gowachin/matreex")
+```
+
+<!--
+```
 # or
 # install.packages("devtools")
-# devtools::install_github('https://github.com/gowachin/matreex')
+# devtools::install_github('https://gitlab.com/gowachin/matreex')
 ```
+-->
+
+### Development version
+
+You can install the development version of {matreex} from gitlab with :
+
+```
+# install.packages("remotes")
+remotes::install_gitlab("gowachin/matreex", ref = "dev")
+# or
+# remotes::install_github("gowachin/matreex", ref = "dev")
+```
+
+<!--
+```
+# or
+# install.packages("devtools")
+# devtools::install_gitlab('https://gitlab.com/gowachin/matreex', ref = "dev")
+```
+-->
 
 ## Support
 
