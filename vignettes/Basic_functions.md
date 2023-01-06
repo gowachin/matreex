@@ -1,6 +1,5 @@
 Basic functions and examples
 ================
-Maxime Jaunatre
 
 This vignette illustrate the basic pipeline used to run simulations with
 `{matreex}` package. The user can define different species of interest
@@ -35,17 +34,6 @@ minutes !**
 ``` r
 library(matreex)
 library(dplyr)
-#> 
-#> Attachement du package : 'dplyr'
-#> Les objets suivants sont masqués depuis 'package:stats':
-#> 
-#>     filter, lag
-#> L'objet suivant est masqué depuis 'package:testthat':
-#> 
-#>     matches
-#> Les objets suivants sont masqués depuis 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 library(ggplot2)
 
 # Load fitted model for a species
@@ -65,14 +53,14 @@ Picea_ipm <- make_IPM(
     fit = fit_Picea_abies,
     clim_lab = "optimum clim",
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:70, # Default values are 0:200, smaller values speed up this vignette.
+    BA = 0:50, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
 #> Launching integration loop
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 56.3 secs
+#> Time difference of 31.8 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -135,14 +123,14 @@ set.seed(42) # The seed is here for initial population random functions.
 Picea_sim <- sim_deter_forest(
     Picea_for, 
     tlim = 200, 
-    equil_time = 300, equil_dist = 50,
+    equil_time = 300, equil_dist = 50, equil_diff = 1,
     SurfEch = 0.03,
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.4 secs
+#> Time difference of 0.989 secs
 ```
 
 The output of a simulation is a data.frame in long format (according to
@@ -152,9 +140,9 @@ with `{ggplot2}`.
 ``` r
 Picea_sim  %>%
     dplyr::filter(var %in% c("BAsp", "H"), ! equil) %>%
-    ggplot2::ggplot(aes(x = time, y = value)) +
-    ggplot2::facet_wrap(~ var, scales = "free_y") +
-    ggplot2::geom_line(size = .4)
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(size = .4)
 ```
 
 ![](Basic_functions_files/figure-gfm/sp1plot-1.png)<!-- -->
@@ -174,12 +162,14 @@ head(Picea_sim)
 #> 4 Picea_abies m         4     1  90.8 FALSE  2.78
 #> 5 Picea_abies m         5     1  90.8 FALSE  2.82
 #> 6 Picea_abies m         6     1  90.8 FALSE  2.84
+
 # get the maximum time
 max_t <- max(Picea_sim$time)
+
 # Filter example to extract the size distribution
 Picea_sim %>% 
     dplyr::filter(grepl("m", var), time == max_t) %>% 
-    select(size, value)
+    dplyr::select(size, value)
 #> # A tibble: 700 × 2
 #>     size value
 #>    <dbl> <dbl>
@@ -195,3 +185,60 @@ Picea_sim %>%
 #> 10 105.   1.53
 #> # … with 690 more rows
 ```
+
+# Customizing the simulations
+
+The above simulation is one of the simplest we can produce with this
+package. This chapter will describe some basic customization we can add
+before running a simulation.
+
+## Initialisation step
+
+By default, the initialization of the population run random process to
+draw a size distribution for each species. We already show a function
+(`def_initBA()`) that scale this distribution to a given basal area.
+However, for a basal area value, multiple distribution are possible. To
+control the exact distribution at start, we use `def_init_k()`. This
+choice of starting distribution can be used to reproduce simulations,
+starting from an equilibrium or a post disturbance state.
+
+Here is an example where we start from $t = 150$ of the previous
+simulation. This will illustrate that despite the simulation said it
+reached equilibrium at time $t = 244$, our parameters have introduce a
+bias. The previous equilibrium is highlighted in blue rectangle.
+
+``` r
+distrib_t150 <- Picea_sim %>% 
+    dplyr::filter(grepl("m", var), time == 150) %>%
+    dplyr::pull(value)
+# NOTE : this distribution is given per ha and we need it for SurfEch = 0.03.
+distrib_t150 <- distrib_t150 * 0.03
+
+Picea_sp$init_pop <- def_init_k(distrib_t150)
+
+Picea_sim_k <- sim_deter_forest(
+    forest(species = list(Picea = Picea_sp)), 
+    tlim = 200, 
+    equil_time = 300, equil_dist = 50,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+#> Starting while loop. Maximum t = 300
+#> Simulation ended after time 282
+#> BA stabilized at 34.10 with diff of 0.96 at time 282
+#> Time difference of 1.54 secs
+
+Picea_sim_k  %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
+    # below, we keep the time reference of the previous simulation 
+    # to simplify the understanding of the full document.
+    dplyr::mutate(time = time + 150) %>% 
+    ggplot(aes(x = time, y = value)) +
+    geom_line(size = .4) +
+    geom_rect(mapping = aes(xmin = 194, xmax = 244, 
+                                     ymin = max(value-1), ymax = max(value)),
+                       alpha = 0.002, fill = "blue") +
+    geom_text(aes(label = "Wrong equilibrium", x = 219, y = 44.5), size = 4) 
+```
+
+![](Basic_functions_files/figure-gfm/sp1initk-1.png)<!-- -->
