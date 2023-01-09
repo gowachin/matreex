@@ -8,6 +8,8 @@ vignette: >
   %\VignetteIndexEntry{Basic functions and examples}
   %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+bibliography: references.bib 
+link-citations: true
 ---
 
 ```{r, include = FALSE}
@@ -27,18 +29,18 @@ This vignette illustrate the basic pipeline used to run simulations with `{matre
 
 Before simulating forest, we need first to define tree species in R. Species regroups basic dynamic functions : growth, recruitment and survival. To speed up computation, this package rely on **integrated projection models** (later named IPM). To explain this principle quickly, it is a matter of discretizing the dynamic functions into a kernel that allows us to go from a size distribution at time t to the distribution at time t+1. 
 
-To build this IPM for a species, we start from the fitted functions. Theses functions depend on the size variable and climatic variables. The data provided with the package comes from [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533), and climatic variable are *sgdd* and *wai*. 
+To build this IPM for a species, we start from the fitted functions. Theses functions depend on the size variable and climatic variables. The data provided with the package comes from @kunstler2021, and climatic variable are *sgdd* and *wai*. .
 
 ```{r hide library, echo = FALSE}
 library(matreex)
 data("fit_Picea_abies")
 ```
 
-An IPM is mostly defined by it's mesh dimension, that are here $700 \times 700$ between 90mm and `get_maxdbh(fit_Picea_abies) * 1.1` = `r get_maxdbh(fit_Picea_abies) * 1.1`mm.
+An IPM is mostly defined by it's mesh dimension, that are here $700 \times 700$ between 90mm and `get_maxdbh(fit_Picea_abies) * 1.1` = `r get_maxdbh(fit_Picea_abies) * 1.1`mm. This method is the same as in @kunstler2021 and is used to limit eviction during simulations.
 
 **Please keep in mind this computation is intensive and may take few minutes !**
 
-```{r make IPM}
+```{r make IPM Picea}
 library(matreex)
 library(dplyr)
 library(ggplot2)
@@ -50,15 +52,16 @@ data("fit_Picea_abies")
 # Load associated climate
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
+# see ?climate_species to understand the filtering of N.
 climate
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
     climate = climate, 
     fit = fit_Picea_abies,
-    clim_lab = "optimum clim",
+    clim_lab = "optimum clim", 
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:50, # Default values are 0:200, smaller values speed up this vignette.
+    BA = 0:60, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
 ```
@@ -91,7 +94,59 @@ Picea_for <- forest(species = list(Picea = Picea_sp))
 
 Simulations will run until a given time limit is reached and can continue further if an equilibrium is not reached. Another parameters is the used surface `SurfEch`, and it's define the surface of the studied forest. This parameter is mainly here for historical purpose as models were fitted on $300m^2$ plot, and output is scaled to an hectare.
 
-To explain the time limit, below we simulate for 200 years and past this time we continue the simulation until we reach an equilibrium on the last 50 years. This search for equilibrium will run until the 300th year. If we want to register the full dynamic, we can set `tlim = equil_time` with `equil_dist < tlim`. **The equilibrium is always the last size distribution**, and the simulation will detect it if the total variation of the BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
+To explain the time limit, below we simulate for 200 years and past this time we continue the simulation until we reach an equilibrium on the last 50 years (see figure A). This search for equilibrium will run until the 300th year. If we want to register the full dynamic, we can set `tlim = equil_time` with `equil_dist < tlim` (see figure B). **The equilibrium is always the last size distribution** (shown in orange in figure), and the simulation will detect it if the total variation of the BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
+
+```{r timeline_explain, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+\begin{tikzpicture}
+        \draw[ultra thick] (0,0) node[above= 25pt] {\textbf{A}};
+
+    \draw[ultra thick] (0,0) -- (12,0);
+    \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+    \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+    \draw[ultra thick] (6,0) node[below=3pt, thick] {$t_{lim}$};
+    \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{equil\_dist}$};
+    \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
+
+    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(6,0) 
+       node [black,midway,above=4pt, font=\scriptsize] {Mandatory simulation};
+    \draw[green, line width=8pt](0,.5) -- +(6,0);
+
+    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,0.7)  -- +(3,0) 
+       node [black,midway,above=4pt, font=\scriptsize] {equil\_dist};
+    \draw[lightgray, line width=8pt](7,.5) -- +(2.9,0);
+    \draw[orange, line width=8pt](9.9,.5) -- +(.1,0);
+
+    \foreach \x in {0, 2,4,6,8,10, 12}
+    \draw (\x cm,3pt) -- (\x cm,-3pt);
+
+   \begin{scope}[yshift=-2.5cm]
+
+      \draw[ultra thick] (0,0) node[above= 25pt] {\textbf{B}};
+
+      \draw[ultra thick] (0,0) -- (12,0);
+      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{lim}$};
+      \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_dist}$};
+  
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(12,0) 
+         node [black,midway,above=4pt, font=\scriptsize] {Mandatory simulation};
+      \draw[green, line width=8pt](0,.5) -- +(12,0);
+  
+      \begin{scope}
+         \clip(9.5, 1.5) rectangle (12, -0.5);
+         \draw [gray, decorate,decoration={brace,amplitude=12pt}] (9,0.7) -- +(3,0)
+            node [gray,midway,above=8pt, font=\scriptsize] {equil\_dist};
+      \end{scope}
+      \draw[gray, dotted] ([yshift=6pt]9, 0.7) -- ([yshift=6pt]9.5,0.7);
+      \draw[orange, line width=4pt](11.9,.5) -- +(.1,0);
+  
+      \foreach \x in {0, 2,4,6,8,10, 12}
+      \draw (\x cm,3pt) -- (\x cm,-3pt);
+  
+     \end{scope}
+\end{tikzpicture}
+```
 
 ```{r sp1sim}
 set.seed(42) # The seed is here for initial population random functions.
@@ -108,9 +163,8 @@ The output of a simulation is a data.frame in long format (according to tidyvers
 
 ```{r sp1plot}
 Picea_sim  %>%
-    dplyr::filter(var %in% c("BAsp", "H"), ! equil) %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    facet_wrap(~ var, scales = "free_y") +
     geom_line(size = .4)
 ```
 
@@ -136,7 +190,7 @@ The above simulation is one of the simplest we can produce with this package. Th
 
 By default, the initialization of the population run random process to draw a size distribution for each species. We already show a function (`def_initBA()`) that scale this distribution to a given basal area. However, for a basal area value, multiple distribution are possible. To control the exact distribution at start, we use `def_init_k()`. This choice of starting distribution can be used to reproduce simulations, starting from an equilibrium or a post disturbance state.
 
-Here is an example where we start from $t = 150$ of the previous simulation. This will illustrate that despite the simulation said it reached equilibrium at time $t = 244$, our parameters have introduce a bias. The previous equilibrium is highlighted in blue rectangle.
+Here is an example where we start from $t = 150$ of the previous simulation. This will illustrate that despite the simulation said it reached equilibrium at time $t = 244$, our parameters have introduced a bias. The previous equilibrium is highlighted in blue rectangle.
 
 ```{r sp1initk}
 distrib_t150 <- Picea_sim %>% 
@@ -165,8 +219,56 @@ Picea_sim_k  %>%
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
-    geom_text(aes(label = "Wrong equilibrium", x = 219, y = 44.5), size = 4) 
+    geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
+```
+
+## Multiple species
+
+Multi-specific simulations are performed like the simulations previously illustrated. The only difference is in the construction of the forest object. This explain why the `species` argument for `forest()` function require a list for input. 
+
+We need to modelise a second species. Be careful to select the same climate as the first species.
+
+```{r second species}
+data("fit_Abies_alba")
+
+Abies_ipm <- make_IPM(
+    species = "Abies_alba", 
+    climate = climate, # this variable is defined at the top of the doc.
+    fit = fit_Abies_alba,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:60, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
 
 
+```{r nsp forest}
+# We edit back the init_fun for Picea
+Picea_sp$init_pop <- def_initBA(15)
+Picea_Abies_for <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp))
+
+set.seed(42)
+Picea_Abies_sim <- sim_deter_forest(
+    Picea_Abies_for, 
+    tlim = 500, 
+    equil_time = 500, equil_dist = 50,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+
+Picea_Abies_sim  %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(size = .4)
+```
+```{r}
+
+```
+
+
+# References
+
+<div id="refs"></div>

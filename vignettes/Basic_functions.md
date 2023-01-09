@@ -20,13 +20,15 @@ distribution at time t+1.
 
 To build this IPM for a species, we start from the fitted functions.
 Theses functions depend on the size variable and climatic variables. The
-data provided with the package comes from [Kunstler *et al*
-(2020)](https://doi.org/10.1111/1365-2745.13533), and climatic variable
-are *sgdd* and *wai*.
+data provided with the package comes from Kunstler et al.
+([2021](#ref-kunstler2021)), and climatic variable are *sgdd* and *wai*.
+.
 
 An IPM is mostly defined by it’s mesh dimension, that are here
 $700 \times 700$ between 90mm and `get_maxdbh(fit_Picea_abies) * 1.1` =
-1204.5mm.
+1204.5mm. This method is the same as in Kunstler et al.
+([2021](#ref-kunstler2021)) and is used to limit eviction during
+simulations.
 
 **Please keep in mind this computation is intensive and may take few
 minutes !**
@@ -43,6 +45,7 @@ data("fit_Picea_abies")
 # Load associated climate
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
+# see ?climate_species to understand the filtering of N.
 climate
 #>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N       SDM
 #> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2 0.6760556
@@ -51,16 +54,16 @@ Picea_ipm <- make_IPM(
     species = "Picea_abies", 
     climate = climate, 
     fit = fit_Picea_abies,
-    clim_lab = "optimum clim",
+    clim_lab = "optimum clim", 
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:50, # Default values are 0:200, smaller values speed up this vignette.
+    BA = 0:60, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
 #> Launching integration loop
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 31.8 secs
+#> Time difference of 32.5 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -111,12 +114,14 @@ were fitted on $300m^2$ plot, and output is scaled to an hectare.
 
 To explain the time limit, below we simulate for 200 years and past this
 time we continue the simulation until we reach an equilibrium on the
-last 50 years. This search for equilibrium will run until the 300th
-year. If we want to register the full dynamic, we can set
-`tlim = equil_time` with `equil_dist < tlim`. **The equilibrium is
-always the last size distribution**, and the simulation will detect it
-if the total variation of the BA on `equil_dist` is inferior to 1
-(parameter `equil_diff`).
+last 50 years (see figure A). This search for equilibrium will run until
+the 300th year. If we want to register the full dynamic, we can set
+`tlim = equil_time` with `equil_dist < tlim` (see figure B). **The
+equilibrium is always the last size distribution** (shown in orange in
+figure), and the simulation will detect it if the total variation of the
+BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
+
+![](Basic_functions_files/figure-gfm/timeline_explain-1.png)<!-- -->
 
 ``` r
 set.seed(42) # The seed is here for initial population random functions.
@@ -130,7 +135,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 0.989 secs
+#> Time difference of 1.28 secs
 ```
 
 The output of a simulation is a data.frame in long format (according to
@@ -139,9 +144,8 @@ with `{ggplot2}`.
 
 ``` r
 Picea_sim  %>%
-    dplyr::filter(var %in% c("BAsp", "H"), ! equil) %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    facet_wrap(~ var, scales = "free_y") +
     geom_line(size = .4)
 ```
 
@@ -204,7 +208,7 @@ starting from an equilibrium or a post disturbance state.
 
 Here is an example where we start from $t = 150$ of the previous
 simulation. This will illustrate that despite the simulation said it
-reached equilibrium at time $t = 244$, our parameters have introduce a
+reached equilibrium at time $t = 244$, our parameters have introduced a
 bias. The previous equilibrium is highlighted in blue rectangle.
 
 ``` r
@@ -226,7 +230,7 @@ Picea_sim_k <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 282
 #> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.54 secs
+#> Time difference of 1.43 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -238,7 +242,80 @@ Picea_sim_k  %>%
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
-    geom_text(aes(label = "Wrong equilibrium", x = 219, y = 44.5), size = 4) 
+    geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
 ```
 
 ![](Basic_functions_files/figure-gfm/sp1initk-1.png)<!-- -->
+
+## Multiple species
+
+Multi-specific simulations are performed like the simulations previously
+illustrated. The only difference is in the construction of the forest
+object. This explain why the `species` argument for `forest()` function
+require a list for input.
+
+We need to modelise a second species. Be careful to select the same
+climate as the first species.
+
+``` r
+data("fit_Abies_alba")
+
+Abies_ipm <- make_IPM(
+    species = "Abies_alba", 
+    climate = climate, # this variable is defined at the top of the doc.
+    fit = fit_Abies_alba,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:60, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+#> Launching integration loop
+#> GL integration occur on 24 cells
+#> midbin integration occur on 25 cells
+#> Loop done.
+#> Time difference of 22.2 secs
+Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
+```
+
+``` r
+# We edit back the init_fun for Picea
+Picea_sp$init_pop <- def_initBA(15)
+Picea_Abies_for <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp))
+
+set.seed(42)
+Picea_Abies_sim <- sim_deter_forest(
+    Picea_Abies_for, 
+    tlim = 500, 
+    equil_time = 500, equil_dist = 50,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+#> Starting while loop. Maximum t = 500
+#> time 500 | BA diff : 0.08
+#> Simulation ended after time 500
+#> BA stabilized at 50.79 with diff of 0.08 at time 500
+#> Time difference of 4.33 secs
+
+Picea_Abies_sim  %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(size = .4)
+```
+
+![](Basic_functions_files/figure-gfm/nsp%20forest-1.png)<!-- -->
+
+# References
+
+<div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-kunstler2021" class="csl-entry">
+
+Kunstler, Georges, Arnaud Guyennon, Sophia Ratcliffe, Nadja Rüger,
+Paloma Ruiz-Benito, Dylan Z. Childs, Jonas Dahlgren, et al. 2021.
+“Demographic Performance of European Tree Species at Their Hot and Cold
+Climatic Edges.” *Journal of Ecology* 109 (2): 1041–54.
+<https://doi.org/10.1111/1365-2745.13533>.
+
+</div>
+
+</div>
