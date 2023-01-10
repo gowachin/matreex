@@ -29,9 +29,10 @@ This vignette illustrate the basic pipeline used to run simulations with `{matre
 
 Before simulating forest, we need first to define tree species in R. Species regroups basic dynamic functions : growth, recruitment and survival. To speed up computation, this package rely on **integrated projection models** (later named IPM). To explain this principle quickly, it is a matter of discretizing the dynamic functions into a kernel that allows us to go from a size distribution at time t to the distribution at time t+1. 
 
-To build this IPM for a species, we start from the fitted functions. Theses functions depend on the size variable and climatic variables. The data provided with the package comes from @kunstler2021, and climatic variable are *sgdd* and *wai*. .
+To build this IPM for a species, we start from the fitted functions. Theses functions depend on the size variable and climatic variables. The data provided with the package comes from @kunstler2021, and climatic variable are *sgdd* and *wai*.
 
 ```{r hide library, echo = FALSE}
+# I do this before to show data inline
 library(matreex)
 data("fit_Picea_abies")
 ```
@@ -108,7 +109,7 @@ To explain the time limit, below we simulate for 200 years and past this time we
     \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
 
     \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(6,0) 
-       node [black,midway,above=4pt, font=\scriptsize] {Mandatory simulation};
+       node [black,midway,above=4pt, font=\scriptsize] {Registered simulation};
     \draw[green, line width=8pt](0,.5) -- +(6,0);
 
     \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,0.7)  -- +(3,0) 
@@ -130,7 +131,7 @@ To explain the time limit, below we simulate for 200 years and past this time we
       \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_dist}$};
   
       \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(12,0) 
-         node [black,midway,above=4pt, font=\scriptsize] {Mandatory simulation};
+         node [black,midway,above=4pt, font=\scriptsize] {Registered simulation};
       \draw[green, line width=8pt](0,.5) -- +(12,0);
   
       \begin{scope}
@@ -165,7 +166,7 @@ The output of a simulation is a data.frame in long format (according to tidyvers
 Picea_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4)
+    geom_line(size = .4) + ylab("BA")
 ```
 
 If size distributions needs to be extracted, it can be easily done with `{dplyr}` functions. The equilibrium step is associated with a logical to extract it.
@@ -215,7 +216,7 @@ Picea_sim_k  %>%
     # to simplify the understanding of the full document.
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) +
+    geom_line(size = .4) + ylab("BA") +
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
@@ -262,8 +263,12 @@ Picea_Abies_sim <- sim_deter_forest(
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(size = .4)
+    geom_line(size = .4) + ylab("BA") +
+    stat_summary(fun = "sum",  aes(col="Total"),
+                 geom ='line', linetype = "dashed", size = .3)
 ```
+
+
 ```{r}
 
 ```

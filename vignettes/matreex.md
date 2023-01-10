@@ -22,7 +22,6 @@ To build this IPM for a species, we start from the fitted functions.
 Theses functions depend on the size variable and climatic variables. The
 data provided with the package comes from Kunstler et al.
 ([2021](#ref-kunstler2021)), and climatic variable are *sgdd* and *wai*.
-.
 
 An IPM is mostly defined by it’s mesh dimension, that are here
 $700 \times 700$ between 90mm and `get_maxdbh(fit_Picea_abies) * 1.1` =
@@ -63,7 +62,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 32.5 secs
+#> Time difference of 31.4 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -121,7 +120,7 @@ equilibrium is always the last size distribution** (shown in orange in
 figure), and the simulation will detect it if the total variation of the
 BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
 
-![](Basic_functions_files/figure-gfm/timeline_explain-1.png)<!-- -->
+![](matreex_files/figure-gfm/timeline_explain-1.png)<!-- -->
 
 ``` r
 set.seed(42) # The seed is here for initial population random functions.
@@ -135,7 +134,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.28 secs
+#> Time difference of 1.5 secs
 ```
 
 The output of a simulation is a data.frame in long format (according to
@@ -146,10 +145,10 @@ with `{ggplot2}`.
 Picea_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4)
+    geom_line(size = .4) + ylab("BA")
 ```
 
-![](Basic_functions_files/figure-gfm/sp1plot-1.png)<!-- -->
+![](matreex_files/figure-gfm/sp1plot-1.png)<!-- -->
 
 If size distributions needs to be extracted, it can be easily done with
 `{dplyr}` functions. The equilibrium step is associated with a logical
@@ -230,7 +229,7 @@ Picea_sim_k <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 282
 #> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.43 secs
+#> Time difference of 1.39 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -238,14 +237,14 @@ Picea_sim_k  %>%
     # to simplify the understanding of the full document.
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) +
+    geom_line(size = .4) + ylab("BA") +
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
     geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
 ```
 
-![](Basic_functions_files/figure-gfm/sp1initk-1.png)<!-- -->
+![](matreex_files/figure-gfm/sp1initk-1.png)<!-- -->
 
 ## Multiple species
 
@@ -273,7 +272,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 22.2 secs
+#> Time difference of 20.2 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -294,15 +293,17 @@ Picea_Abies_sim <- sim_deter_forest(
 #> time 500 | BA diff : 0.08
 #> Simulation ended after time 500
 #> BA stabilized at 50.79 with diff of 0.08 at time 500
-#> Time difference of 4.33 secs
+#> Time difference of 3.85 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(size = .4)
+    geom_line(size = .4) + ylab("BA") +
+    stat_summary(fun = "sum",  aes(col="Total"),
+                 geom ='line', linetype = "dashed", size = .3)
 ```
 
-![](Basic_functions_files/figure-gfm/nsp%20forest-1.png)<!-- -->
+![](matreex_files/figure-gfm/nsp%20forest-1.png)<!-- -->
 
 # References
 

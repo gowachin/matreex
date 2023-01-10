@@ -1,6 +1,8 @@
 # matreex (development version)
 
-* New vignette `Basic_functions.Rmd`.
+* New vignette `Harvesting.Rmd`.
+
+* New vignette `matreex.Rmd`.
 
 * `make_IPM()` is more flexible for climate input to simplify scripts. 
 Single rows matrix and data.frame are now accepted. 

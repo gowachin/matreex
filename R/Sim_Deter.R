@@ -318,7 +318,7 @@ sim_deter_forest.forest  <- function(Forest,
     tmp <- do.call("c", tmp)
     sim_X[, 1] <- tmp
 
-    if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
+    if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y -1))))) {
         stop(paste(
             "Border Basal Area reached for this simulation.",
             "This maximum is reached before iteration, check init_pop functions"

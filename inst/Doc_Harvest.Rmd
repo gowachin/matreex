@@ -15,7 +15,7 @@ knitr::opts_chunk$set(
 
 ## Monospecific case
 ### Harvest rate
-We note H the global harvest rate wich will determine the amount of basal area to be harvested.
+We note H the global harvest rate which will determine the amount of basal area to be harvested.
 This rate is defined according to the following rule
 $$
 H = \left\{
@@ -56,12 +56,16 @@ For example, $d_{th} = 17.5cm$, $d_{ha}=57.5cm$, $p=0.99$, $n=2$.
 
 Parameter $k$ defines how much the harvest preferentially selects large trees.
 
-```{r, echo = FALSE}
-require(ggplot2)
+```{r}
+library(latex2exp)
+library(ggplot2)
 dth <- 17.5
 dha <- 57.5
 hmax <- 0.8
 k <- 2
+```
+
+```{r, echo = FALSE, fig.cap = sprintf("Example, $d_{th} = %.1fcm$, $d_{ha}=%.1fcm$, $h_{max}=%.1f$, $k=%.0f$.", dth, dha, hmax, k), warning=FALSE}
 d <- seq(0, 100, length.out=100)
 h <- function(d){
    harvecurve <- hmax * ((d - dth)/(dha-dth))^k
@@ -70,10 +74,10 @@ h <- function(d){
    return(harvecurve)
 }
 df <- data.frame(dbh=d, h=h(d))
-ggplot(df, aes(x=dbh, y=h)) + geom_line(col='red') + theme_bw(base_size=30) +
-	geom_label(aes(x=dth, y=0, label='dth'), size=15) +
-	geom_label(aes(x=dha, y=0, label='dha'), size=15) +
-	geom_label(aes(x=dha-10, y=0.8, label='hmax'), size=15) +
+ggplot(df, aes(x=dbh, y=h)) + geom_line(col='red') + 
+	geom_label(x=dth, y=0, label=TeX("$d_{th}$")) +
+	geom_label(x=dha, y=0, label=TeX("$d_{ha}$")) +
+	geom_label(x=dha * 0.9, y=hmax, label=TeX("$h_{max}$")) +
 	geom_vline(aes(xintercept=dha), linetype=2)
 ```
 
