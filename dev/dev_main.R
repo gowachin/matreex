@@ -61,7 +61,6 @@ devtools::check() # takes few minutes
 
 ## Compile documentation site ####
 devtools::load_all()
-rmarkdown::render("vignettes/multisp_deter_sim.Rmd")
 rmarkdown::render("vignettes/matreex.Rmd")
 rmarkdown::render("vignettes/Harvesting.Rmd")
 rmarkdown::render("README.rmd", clean = TRUE, quiet = TRUE)

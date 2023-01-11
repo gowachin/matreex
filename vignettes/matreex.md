@@ -62,7 +62,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 31.4 secs
+#> Time difference of 35.9 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -134,7 +134,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.5 secs
+#> Time difference of 1.09 secs
 ```
 
 The output of a simulation is a data.frame in long format (according to
@@ -229,7 +229,7 @@ Picea_sim_k <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 282
 #> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.39 secs
+#> Time difference of 1.29 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -245,6 +245,62 @@ Picea_sim_k  %>%
 ```
 
 ![](matreex_files/figure-gfm/sp1initk-1.png)<!-- -->
+
+## Recruitment delay
+
+We can modify a species to add more delay for recruitment of new
+individuals. By default, the recruitment is a given number of new
+individual. This number is split in half and adds to the first two class
+of size distribution. Adding delay expand the mesh on the lower size
+side, where the recruitment will be added. The new recruit will age from
+one class to another until they enter the “real” IPM.
+
+``` r
+n_delay <- 5
+Picea_sp_d5 <- delay(Picea_sp, n_delay)
+Picea_sp_d5$info["species"] <- "Picea_abies_delay" # We rename the species for easier plot.
+Picea_sp_d5$init_pop <- def_initBA(30)
+```
+
+Simulation doesn’t change anything, the delay is only defined at the IPM
+level.
+
+``` r
+set.seed(42)
+Picea_sim_d5 <- sim_deter_forest(
+    forest(species = list(Picea = Picea_sp_d5)),
+    tlim = 200, 
+    equil_time = 200, equil_dist = 50,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+#> Starting while loop. Maximum t = 200
+#> Simulation ended after time 200
+#> BA stabilized at 45.19 with diff of 7.20 at time 200
+#> Time difference of 0.9 secs
+#> Warning in data.frame(species = sub(pattern, "\\1", var, perl = TRUE), var = sub(pattern, : NAs
+#> introduits lors de la conversion automatique
+```
+
+Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected
+to increase with delay since delayed mesh cell with seeds are counted
+in.
+
+``` r
+Picea_sim_d5 %>%
+    rbind(Picea_sim) %>%
+    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    facet_wrap(~ var, scales = "free_y") +
+    NULL
+```
+
+![](matreex_files/figure-gfm/delay_plot-1.png)<!-- -->
+
+<!-- Despite a really close BA, the size distribution is different at equilibrium. -->
+<!-- *Note : Values below the redline does not count in BA computation.* -->
 
 ## Multiple species
 
@@ -272,7 +328,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 20.2 secs
+#> Time difference of 23.2 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -293,7 +349,7 @@ Picea_Abies_sim <- sim_deter_forest(
 #> time 500 | BA diff : 0.08
 #> Simulation ended after time 500
 #> BA stabilized at 50.79 with diff of 0.08 at time 500
-#> Time difference of 3.85 secs
+#> Time difference of 3.7 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%

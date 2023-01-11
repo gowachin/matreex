@@ -223,6 +223,62 @@ Picea_sim_k  %>%
     geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
 ```
 
+
+## Recruitment delay
+
+We can modify a species to add more delay for recruitment of new individuals. By default, the recruitment is a given number of new individual. This number is split in half and adds to the first two class of size distribution. Adding delay expand the mesh on the lower size side, where the recruitment will be added. The new recruit will age from one class to another until they enter the "real" IPM.
+
+```{r, Forest_delay}
+n_delay <- 5
+Picea_sp_d5 <- delay(Picea_sp, n_delay)
+Picea_sp_d5$info["species"] <- "Picea_abies_delay" # We rename the species for easier plot.
+Picea_sp_d5$init_pop <- def_initBA(30)
+```
+
+Simulation doesn't change anything, the delay is only defined at the IPM level.
+
+```{r, delay sim}
+set.seed(42)
+Picea_sim_d5 <- sim_deter_forest(
+    forest(species = list(Picea = Picea_sp_d5)),
+    tlim = 200, 
+    equil_time = 200, equil_dist = 50,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+```
+
+Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected to increase with delay since delayed mesh cell with seeds are counted in.
+
+```{r, delay_plot}
+Picea_sim_d5 %>%
+    rbind(Picea_sim) %>%
+    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linetype = "dashed", size = .3) +
+    geom_point(size = .7) + ylab("BA") +
+    facet_wrap(~ var, scales = "free_y") +
+    NULL
+```
+
+<!-- Despite a really close BA, the size distribution is different at equilibrium. -->
+
+<!-- *Note : Values below the redline does not count in BA computation.* -->
+
+```{r, delay_dist_plot, eval = FALSE, echo = FALSE}
+Picea_sim_d5 %>%
+    dplyr::mutate(mesh = mesh - n_delay) %>%
+    rbind(Picea_sim) %>%
+    dplyr::filter(var == "m", time == 200) %>%
+    ggplot(aes(x = mesh, y = value, fill = species, group = desc(species))) +
+    geom_area(color = "black", alpha = .3, size = .4, position = "identity") +
+    geom_vline(xintercept = 1, color = "red") +
+    annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
+             color = "red", angle = 90) +
+    NULL
+```
+
+
 ## Multiple species
 
 Multi-specific simulations are performed like the simulations previously illustrated. The only difference is in the construction of the forest object. This explain why the `species` argument for `forest()` function require a list for input. 
@@ -266,11 +322,6 @@ Picea_Abies_sim  %>%
     geom_line(size = .4) + ylab("BA") +
     stat_summary(fun = "sum",  aes(col="Total"),
                  geom ='line', linetype = "dashed", size = .3)
-```
-
-
-```{r}
-
 ```
 
 
