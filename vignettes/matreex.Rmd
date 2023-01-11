@@ -231,7 +231,7 @@ We can modify a species to add more delay for recruitment of new individuals. By
 ```{r, Forest_delay}
 n_delay <- 5
 Picea_sp_d5 <- delay(Picea_sp, n_delay)
-Picea_sp_d5$info["species"] <- "Picea_abies_delay" # We rename the species for easier plot.
+Picea_sp_d5$info["species"] <- "Picea_delayed" # We rename the species for easier plot.
 Picea_sp_d5$init_pop <- def_initBA(30)
 ```
 

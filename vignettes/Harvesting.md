@@ -50,7 +50,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 26.9 secs
+#> Time difference of 28.2 secs
 ```
 
 Harvesting rules have different scales : some rules are defined for each
@@ -129,7 +129,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.16 with diff of 0.69 at time 200
-#> Time difference of 0.861 secs
+#> Time difference of 1 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
@@ -173,7 +173,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
 #> BA stabilized at 30.14 with diff of 0.02 at time 50
-#> Time difference of 0.282 secs
+#> Time difference of 0.284 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -214,7 +214,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
 #> BA stabilized at 25.86 with diff of 5.25 at time 250
-#> Time difference of 1.1 secs
+#> Time difference of 1.16 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -263,13 +263,13 @@ which harvest probability is high and constant.
 
 We therefore considered the harvesting function (which associates a dbh
 to an harvesting probability) $$
-h(d) = \left\{
+h(d) = \left\lbrace
  \begin{array}{ll}
-    0 & \text{if } d<d_{th} \\
+    0 & \text{if } d < d_{th} \\
     h_{max} (\frac{d - d_{th}}{d_{ha} - d_{th}})^{k} & \text{if } d_{th}\leq d < d_{ha} \\
-    h_{max} & \text{if } d>d_{ha} \\
+    h_{max} & \text{if } d \geq d_{ha} 
  \end{array}
- \right\}
+ \right\rbrace
 $$
 
 The parameter $h_{max}$ can be tuned so that the probability for a large
@@ -407,7 +407,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 31.86 with diff of 2.71 at time 200
-#> Time difference of 0.972 secs
+#> Time difference of 0.966 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +

@@ -207,13 +207,13 @@ There is a minimum diameter of harvest ($d_{th}$), harvest probability then incr
 
 We therefore considered the harvesting function (which associates a dbh to an harvesting probability)
 $$
-h(d) = \left\{
+h(d) = \left\lbrace
  \begin{array}{ll}
-    0 & \text{if } d<d_{th} \\
+    0 & \text{if } d < d_{th} \\
     h_{max} (\frac{d - d_{th}}{d_{ha} - d_{th}})^{k} & \text{if } d_{th}\leq d < d_{ha} \\
-    h_{max} & \text{if } d>d_{ha} \\
+    h_{max} & \text{if } d \geq d_{ha} 
  \end{array}
- \right\}
+ \right\rbrace
 $$
 
 The parameter $h_{max}$ can be tuned so that the probability for a large tree to be harvested approaches  1 after several harvesting operations:
