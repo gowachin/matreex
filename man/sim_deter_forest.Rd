@@ -80,7 +80,7 @@ The variables are :
 \item{N}{Sum of density per ha. (colSums for m)}
 \item{BA}{Basal area of the population per ha}
 \item{h}{Distribution of harvest density by mesh along time per ha.}
-\item{H}{Sum of density per ha. (colSums for h)}
+\item{H}{Sum of harvested density per ha. (colSums for h)}
 }
 }
 \description{

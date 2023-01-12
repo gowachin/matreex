@@ -33,7 +33,7 @@ The first step of IPM integration. This part is common with basic usage of the p
 
 **Please keep in mind this computation is intensive and may take few minutes !**
 
-```{r make IPM Picea}
+```{r make_IPM_Picea}
 library(matreex)
 library(dplyr)
 library(ggplot2)
@@ -87,7 +87,7 @@ The default scenario is based on @kunstler2021. This mean there is a constant ha
 This rate is coded in `def_harv()` function as shown below and the frequency (each year) is given in `harv_rules["freq"]`. Note that the rate only impact all size classes except classes used in delay (with `* (ct > 0)`). 
 
 
-```{r def Picea}
+```{r def_Picea}
 def_harv
 Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
 Picea_for <- forest(species = list(Picea = Picea_sp), 
@@ -146,7 +146,7 @@ Picea_sim_f20  %>%
 
 A more advanced step consist in modification of the harvest function for more custom effects. Obviously, this kind of modification is more prone to error so don't hesitate to contact `{matreex}` maintainer. For example, this is function where we multiply a constant rate with the mesh, meaning that the larger the tree get, the more we its size class.
 
-```{r edit def_harv}
+```{r edit_def_harv}
 Picea_harv <- Picea_sp
 Picea_harv$harvest_fun <- function(x, species, ...){
 
@@ -227,7 +227,7 @@ hmax <- 0.8
 k <- 2
 ```
 
-```{r, echo = FALSE, warning = FALSE, fig.cap = sprintf("Harvest curve example, $d_{th} = %.1fcm$, $d_{ha}=%.1fcm$, $h_{max}=%.1f$, $k=%.0f$.", dth, dha, hmax, k)}
+```{r, harvest_curve_plot, echo = FALSE, warning = FALSE, fig.cap = sprintf("Harvest curve example, $d_{th} = %.1fcm$, $d_{ha}=%.1fcm$, $h_{max}=%.1f$, $k=%.0f$.", dth, dha, hmax, k)}
 d <- seq(0, 100, length.out=100)
 h <- function(d){
    harvecurve <- hmax * ((d - dth)/(dha-dth))^k
@@ -329,7 +329,7 @@ We then apply for each species $i$ the harvest rate $H_i = H_Q$ or $H_i=H_{1-Q}$
 
 All the parameters described above are input either in the `species()`, `forest()` or `sim_deter_forest()` functions. Additional parameter `dBAmin` is the difference between `BA` and `targetBA` under which an harvesting will not be triggered. 
 
-```{r Uneven Picea}
+```{r Uneven_Picea}
 Picea_Uneven <- species(IPM = Picea_ipm, init_pop = def_initBA(30), 
                         harvest_fun = Uneven_harv,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1))
@@ -340,7 +340,7 @@ Picea_for_Uneven <- forest(species = list(Picea = Picea_Uneven),
 
 
 
-```{r Uneven sim}
+```{r Uneven_sim}
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim_f20 <- sim_deter_forest(
     Picea_for_Uneven,

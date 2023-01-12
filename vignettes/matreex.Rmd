@@ -41,7 +41,7 @@ An IPM is mostly defined by it's mesh dimension, that are here $700 \times 700$ 
 
 **Please keep in mind this computation is intensive and may take few minutes !**
 
-```{r make IPM Picea}
+```{r make_IPM_Picea}
 library(matreex)
 library(dplyr)
 library(ggplot2)
@@ -237,7 +237,7 @@ Picea_sp_d5$init_pop <- def_initBA(30)
 
 Simulation doesn't change anything, the delay is only defined at the IPM level.
 
-```{r, delay sim}
+```{r, delay_sim}
 set.seed(42)
 Picea_sim_d5 <- sim_deter_forest(
     forest(species = list(Picea = Picea_sp_d5)),
@@ -285,7 +285,7 @@ Multi-specific simulations are performed like the simulations previously illustr
 
 We need to modelise a second species. Be careful to select the same climate as the first species.
 
-```{r second species}
+```{r second_species}
 data("fit_Abies_alba")
 
 Abies_ipm <- make_IPM(
@@ -302,7 +302,7 @@ Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 
 
 
-```{r nsp forest}
+```{r nsp_forest}
 # We edit back the init_fun for Picea
 Picea_sp$init_pop <- def_initBA(15)
 Picea_Abies_for <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp))

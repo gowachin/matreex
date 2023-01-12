@@ -1,5 +1,7 @@
 # matreex (development version)
 
+* New functions `summary()` for `ipm` and `species` class.
+
 * New vignette `Harvesting.Rmd`.
 
 * New vignette `matreex.Rmd`.

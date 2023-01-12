@@ -2,8 +2,9 @@
 rm(list = ls())
 devtools::load_all('.')
 devtools::document('.')
+# attachment::att_amend_desc()
 devtools::test()
-devtools::check()
+devtools::check(vignettes = FALSE)
 
 
 # change name

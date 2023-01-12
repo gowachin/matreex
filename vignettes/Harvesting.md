@@ -50,7 +50,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 28.2 secs
+#> Time difference of 25.8 secs
 ```
 
 Harvesting rules have different scales : some rules are defined for each
@@ -105,7 +105,6 @@ def_harv
 #>     rate <- 0.006 * (ct > 0)
 #>     return(x * rate)
 #> }
-#> <bytecode: 0x5569cf2e4dc8>
 #> <environment: namespace:matreex>
 Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
 Picea_for <- forest(species = list(Picea = Picea_sp), 
@@ -129,7 +128,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.16 with diff of 0.69 at time 200
-#> Time difference of 1 secs
+#> Time difference of 0.821 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
@@ -173,7 +172,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
 #> BA stabilized at 30.14 with diff of 0.02 at time 50
-#> Time difference of 0.284 secs
+#> Time difference of 0.27 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -214,7 +213,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
 #> BA stabilized at 25.86 with diff of 5.25 at time 250
-#> Time difference of 1.16 secs
+#> Time difference of 1.07 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -222,7 +221,7 @@ Picea_sim_f20  %>%
     geom_line(size = .2) + geom_point(size = 0.4) 
 ```
 
-![](Harvesting_files/figure-gfm/edit%20def_harv-1.png)<!-- -->
+![](Harvesting_files/figure-gfm/edit_def_harv-1.png)<!-- -->
 
 # Uneven scenario
 
@@ -280,7 +279,7 @@ selects large trees.
 
 ![Harvest curve example, $d_{th} = 17.5cm$, $d_{ha}=57.5cm$,
 $h_{max}=0.8$,
-$k=2$.](Harvesting_files/figure-gfm/unnamed-chunk-2-1.png)
+$k=2$.](Harvesting_files/figure-gfm/harvest_curve_plot-1.png)
 
 #### Harvesting algorithm
 
@@ -407,7 +406,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 31.86 with diff of 2.71 at time 200
-#> Time difference of 0.966 secs
+#> Time difference of 0.948 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -415,7 +414,7 @@ Picea_sim_f20  %>%
     geom_line(size = .2) + geom_point(size = 0.4) 
 ```
 
-![](Harvesting_files/figure-gfm/Uneven%20sim-1.png)<!-- -->
+![](Harvesting_files/figure-gfm/Uneven_sim-1.png)<!-- -->
 
 We notice that the basal area obtained by the simulation is higher than
 the targeted one. This can be explained by the fact that the cutting

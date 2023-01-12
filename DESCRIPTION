@@ -1,73 +1,46 @@
 Package: matreex
-Title: LESSEM internal package for simulation of forest dynamic depending on climatic variables
+Title: LESSEM internal package for simulation of forest dynamic depending
+    on climatic variables
 Version: 0.1.0
 Authors@R: c(
-             person(given = "Anne",
-                    family = "Baranger",
-                    role = "aut",
-                    email = "anne.baranger@inrae.fr"),
-             person(given = "Julien",
-                    family = "Barrere",
-                    role = "aut",
-                    email = "julien.barrere@inrae.fr"),
-             person(given = "Thomas",
-                    family = "Cordonnier",
-                    role = "aut",
-                    email = "thomas.cordonnier@inrae.fr"),
-             person(given = "Arnaud",
-                    family = "Guyennon",
-                    role = "aut",
-                    email = "arnaud.guyennon@inrae.fr"),
-             person(given = "Maxime",
-                    family = "Jaunatre",
-                    role = c("aut", "cre", "trl"),
-                    email = "maxime.jaunatre@inrae.fr"),
-             person(given = "Valentin",
-                    family = "Journe",
-                    role = "aut",
-                    email = "valentin.journe@inrae.fr"),
-             person(given = "Georges",
-                    family = "Kunstler",
-                    role = "aut",
-                    email = "georges.kunstler@inrae.fr"),
-             person(given = "Bjoern",
-                    family = "Reineking",
-                    role = "aut",
-                    email = "bjoern.reineking@inrae.fr"),
-             person(given = "Laura",
-                    family = "Touzot>",
-                    role = "aut",
-                    email = "laura.touzot@inrae.fr"),
-             person(given = "INRAE",
-                    role = c("cph"))
-              )
+    person("Anne", "Baranger", , "anne.baranger@inrae.fr", role = "aut"),
+    person("Julien", "Barrere", , "julien.barrere@inrae.fr", role = "aut"),
+    person("Thomas", "Cordonnier", , "thomas.cordonnier@inrae.fr", role = "aut"),
+    person("Arnaud", "Guyennon", , "arnaud.guyennon@inrae.fr", role = "aut"),
+    person("Maxime", "Jaunatre", , "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
+    person("Valentin", "Journe", , "valentin.journe@inrae.fr", role = "aut"),
+    person("Georges", "Kunstler", , "georges.kunstler@inrae.fr", role = "aut"),
+    person("Bjoern", "Reineking", , "bjoern.reineking@inrae.fr", role = "aut"),
+    person("Laura", "Touzot>", , "laura.touzot@inrae.fr", role = "aut"),
+    person("INRAE", role = "cph")
+  )
 Description: What the package does (one paragraph).
 License: MIT + file LICENSE
-Imports: 
-    checkmate,
-    Matrix,
-    here,
-    dplyr,
-    rlang,
-    tidyr,
-    purrr,
-    stats,
-    cli,
-    statmod
-Encoding: UTF-8
-Roxygen: list(markdown = TRUE)
-RoxygenNote: 7.2.1
 Depends: 
     R (>= 3.5.0)
+Imports: 
+    checkmate,
+    cli,
+    dplyr,
+    here,
+    Matrix,
+    purrr,
+    rlang,
+    statmod,
+    stats,
+    tidyr
+Suggests: 
+    covr,
+    ggplot2,
+    knitr,
+    latex2exp,
+    rmarkdown,
+    testthat (>= 3.0.0)
+VignetteBuilder: 
+    knitr
+Config/testthat/edition: 3
+Encoding: UTF-8
 LazyData: true
 LazyDataCompression: bzip2
-Suggests: 
-    testthat (>= 3.0.0),
-    covr,
-    knitr,
-    rmarkdown,
-    ggplot2, 
-    magrittr
-Config/testthat/edition: 3
-VignetteBuilder: knitr
-
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.2.1

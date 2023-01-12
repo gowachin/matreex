@@ -340,5 +340,74 @@ test_that("sp_rec species works", {
         get_maxdbh(fit_Abies_alba),
         1420
     )
+})
+
+# Summary
+test_that("summary IPM works", {
+
+    IPM <- new_ipm(IPM = list(
+        new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
+            p = c(0L, 3L,  5L, 6L),
+            Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
+    ), BA = 1, mesh = 1:3,
+    species = "darwin",  correction = "constant",
+    climatic = 1, clim_lab = "1",
+    fit = fit, compress = FALSE)
+    validate_ipm(IPM)
+
+
+
+    res<-evaluate_promise({
+        summary(IPM)
+    })
+
+    expect_equal(
+        res$messages[1],
+        paste0("IPM object for species darwin at climate '1' \n\n",
+               "Integation was done on a mesh from 1.00 to 3.00 with 3 cells for BA between 1 and 1. \n",
+               "Gauss-Legendre was used on 0 cells with 0 x 0 levels (size at t * t+1) \n",
+               "Midbin was used on 0 cells with 0 levels. \n",
+               "The correction was constant, the IPM does contain survival and the recruitment delay is 0. \n\n"
+        )
+    )
+})
+
+test_that("summary IPM works", {
+
+    IPM <- new_ipm(IPM = list(
+        new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L),
+            p = c(0L, 3L,  5L, 6L),
+            Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
+    ), BA = 1, mesh = 1:3,
+    species = "darwin",  correction = "constant",
+    climatic = 1, clim_lab = "1",
+    fit = fit, compress = FALSE)
+
+    sp <- species(IPM)
+    validate_species(sp)
+
+
+
+    res<-evaluate_promise({
+        summary(sp)
+    })
+
+    expect_equal(
+        res$messages[1],
+        paste0("IPM object for species darwin at climate '1' \n\n",
+               "For Uneven harvest, dth = 175.0, dha = 575.0 and hmax = 1.00.\n",
+               "rdi_coef are not defined for this species. Even harvest not possible\n",
+               "disturb_coef are not defined for this species. Disturbance models not possible\n\n"
+        )
+    )
+
+    expect_equal(
+        res$messages[2],
+        paste0("Integation was done on a mesh from 1.00 to 3.00 with 3 cells for BA between 1 and 1. \n",
+               "Gauss-Legendre was used on 0 cells with 0 x 0 levels (size at t * t+1) \n",
+               "Midbin was used on 0 cells with 0 levels. \n",
+               "The correction was constant, the IPM does contain survival and the recruitment delay is 0. \n\n"
+        )
+    )
 
 })
