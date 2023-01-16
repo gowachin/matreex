@@ -25,7 +25,7 @@ This replace `climate <- drop(as.matrix(subset(climate_species, ...)`.
 * Class `ipm` was modified and *invalidate* previous script output (if saved as
 .Rds/.Rdata).
 
-* Idea from Arnaud to precompute mu values to speed up in-simulaiton integration
+* Idea from Arnaud to precompute mu values to speed up in-simulation integration
 and modify climate. This kind of simulations takes longer but is very flexible. 
 New class `mu_gr`.
 

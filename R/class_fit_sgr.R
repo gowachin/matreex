@@ -176,7 +176,7 @@ mean_oldfit <- function(fit, species, max_dbh){
                                        value = .x$sv$params_m)) %>%
         reduce(full_join, by = "var") %>%
         # replace(is.na(.data), 0) %>%
-        pivot_longer(-.data$var) %>%
+        pivot_longer(- c("var")) %>%
         replace_na(list(value = 0)) %>%
         group_by(.data$var) %>% summarize(mean = mean(.data$value)) %>%
         pull(.data$mean, .data$var)
@@ -190,7 +190,7 @@ mean_oldfit <- function(fit, species, max_dbh){
                                        value = .x$gr$params_m)) %>%
         reduce(full_join, by = "var") %>%
         # replace(is.na(.data), 0) %>%
-        pivot_longer(-.data$var) %>%
+        pivot_longer(- c("var")) %>%
         replace_na(list(value = 0)) %>%
         group_by(.data$var) %>% summarize(mean = mean(.data$value)) %>%
         pull(.data$mean, .data$var)
@@ -201,7 +201,7 @@ mean_oldfit <- function(fit, species, max_dbh){
                                        value = .x$rec$params_m)) %>%
         reduce(full_join, by = "var") %>%
         # replace(is.na(.data), 0) %>%
-        pivot_longer(-.data$var) %>%
+        pivot_longer(- c("var")) %>%
         replace_na(list(value = 0)) %>%
         group_by(.data$var) %>% summarize(mean = mean(.data$value)) %>%
         pull(.data$mean, .data$var)

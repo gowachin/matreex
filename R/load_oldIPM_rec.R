@@ -137,7 +137,7 @@ format_fit <- function(params, list_covs){
 #' @param list_covs Climatic covariates values.
 #'
 #' @importFrom purrr map
-#' @importFrom rlang expr call2 env_unbind .data
+#' @importFrom rlang expr call2 env_unbind
 #'
 #' @details
 #' Each function has an environment binded with params and list_covs.

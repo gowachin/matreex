@@ -580,7 +580,6 @@ tree_format.default <- function(x){
 #' @rdname tree_format
 #' @importFrom dplyr relocate
 #' @importFrom tidyr pivot_longer
-#' @importFrom rlang .data
 #' @importFrom purrr map flatten_dbl
 #' @keywords internal
 #' @export
@@ -611,12 +610,12 @@ tree_format.deter_sim <- function(x){
     res <- cbind(as.data.frame(x), rnms, size = mesh)
     res <- tidyr::pivot_longer(
         res,
-        -c(.data$var, .data$species, .data$mesh, .data$size),
+        -c("var", "species", "mesh", "size"),
         names_to = c("equil", "time"), names_pattern = "(eq)?t(.*)",
         names_transform = list(time = as.numeric, equil = eq_lgl)
     )
 
-    res <- dplyr::relocate(res, .data$species, .data$var, .data$time, .data$mesh,
-                           .data$size, .data$equil, .data$value)
+    res <- dplyr::relocate(res, "species", "var", "time", "mesh",
+                           "size", "equil", "value")
     return(res)
 }
