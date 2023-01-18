@@ -4,7 +4,7 @@
 
 [![Lifecycle:
 experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](https://www.tidyverse.org/lifecycle/#experimental)
-[![](https://img.shields.io/badge/devel%20version-0.1.0-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![](https://img.shields.io/badge/devel%20version-0.2.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 
 <!-- badges: end -->
 
@@ -85,6 +85,12 @@ remotes::install_gitlab("gowachin/matreex", ref = "dev")
 # devtools::install_gitlab('https://gitlab.com/gowachin/matreex', ref = "dev")
 ```
 -->
+
+## Usage Guide
+
+[Getting started vignette](https://github.com/gowachin/matreex/blob/main/vignettes/matreex.md) is now available to run basic simulations with `{matreex}` package.
+
+A second [vignette about harvesting](https://github.com/gowachin/matreex/blob/main/vignettes/Harvesting.md) module is also available. *The markdown version modifies the equations, I'm looking for a solution right now.*
 
 ## Support
 

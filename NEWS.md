@@ -1,16 +1,24 @@
 # matreex (development version)
 
+# matreex 0.2.0
+
+## Breaking changes
+
+* `tree_format()` will get deprecated and fully integrated in `sim_deter_forest()`.
+
+## Documentation
+
 * New functions `summary()` for `ipm` and `species` class.
 
 * New vignette `Harvesting.Rmd`.
 
 * New vignette `matreex.Rmd`.
 
+## User interface
+
 * `make_IPM()` is more flexible for climate input to simplify scripts. 
 Single rows matrix and data.frame are now accepted. 
 This replace `climate <- drop(as.matrix(subset(climate_species, ...)`.
-
-* `tree_format()` will get deprecated and fully integrated in `sim_deter_forest()`.
 
 * `species()` class constructor has now default values and should be preferred to `new_species()`.
 
