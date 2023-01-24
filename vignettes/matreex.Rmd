@@ -21,7 +21,7 @@ options(cli.progress_show_after = 600)
 # 10 minutes before showing a cli progress bar
 ```
 
-This vignette illustrate the basic pipeline used to run simulations with `{matreex}` package. The user can define different species of interest to combine and use in a simulation. During those simulations, modules can de triggered to test hypothesis and scenarii.
+This vignette illustrates the basic pipeline used to run simulations with `{matreex}` package. The user can define different species of interest to combine and use in a simulation. During those simulations, modules can be triggered to test hypothesis and scenarii.
 
 # Simulations input
 
@@ -53,7 +53,9 @@ data("fit_Picea_abies")
 # Load associated climate
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
-# see ?climate_species to understand the filtering of N.
+# N here is a climate defined in Kunstler et al 2021. 
+# N == 2 is the optimum climate for the species. 
+# see ?climate_species for more info.
 climate
 
 Picea_ipm <- make_IPM(
@@ -67,7 +69,7 @@ Picea_ipm <- make_IPM(
 )
 ```
 
-Once the IPM is integrated on a BA range, we can use it to build a species upon it. This species will require few more function to works during simulations :
+Once the IPM is integrated on a BA range, we can use it to build a species upon it. In R, a species is a list object that is constructed with the `species()` function. This list require few more functions to work during simulations :
 
 * `init_pop` : Function to draw the initial size distribution. The default one draw distribution for a basal area (later named BA) of 1 with random functions. The package provide other function to draw random distribution at a selected BA (`def_initBA()`) or a given distribution (`def_init_k()`).
 
@@ -75,7 +77,7 @@ Once the IPM is integrated on a BA range, we can use it to build a species upon 
 
 * `disturb_fun` : Function that return tree mortality after a disturbance. The default one does not react to disturbance.
 
-A species also comes few parameters, but they are only used for harvest and disturbance modules.
+A species also comes with few parameters, but they are only used for harvest and disturbance modules.
 
 For this example, we will just modify the initial size distribution to start at a reasonable basal area.
 
@@ -95,60 +97,6 @@ Picea_for <- forest(species = list(Picea = Picea_sp))
 
 Simulations will run until a given time limit is reached and can continue further if an equilibrium is not reached. Another parameters is the used surface `SurfEch`, and it's define the surface of the studied forest. This parameter is mainly here for historical purpose as models were fitted on $300m^2$ plot, and output is scaled to an hectare.
 
-To explain the time limit, below we simulate for 200 years and past this time we continue the simulation until we reach an equilibrium on the last 50 years (see figure A). This search for equilibrium will run until the 300th year. If we want to register the full dynamic, we can set `tlim = equil_time` with `equil_dist < tlim` (see figure B). **The equilibrium is always the last size distribution** (shown in orange in figure), and the simulation will detect it if the total variation of the BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
-
-```{r timeline_explain, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
-\begin{tikzpicture}
-        \draw[ultra thick] (0,0) node[above= 25pt] {\textbf{A}};
-
-    \draw[ultra thick] (0,0) -- (12,0);
-    \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
-    \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
-    \draw[ultra thick] (6,0) node[below=3pt, thick] {$t_{lim}$};
-    \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{equil\_dist}$};
-    \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
-
-    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(6,0) 
-       node [black,midway,above=4pt, font=\scriptsize] {Registered simulation};
-    \draw[green, line width=8pt](0,.5) -- +(6,0);
-
-    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,0.7)  -- +(3,0) 
-       node [black,midway,above=4pt, font=\scriptsize] {equil\_dist};
-    \draw[lightgray, line width=8pt](7,.5) -- +(2.9,0);
-    \draw[orange, line width=8pt](9.9,.5) -- +(.1,0);
-
-    \foreach \x in {0, 2,4,6,8,10, 12}
-    \draw (\x cm,3pt) -- (\x cm,-3pt);
-
-   \begin{scope}[yshift=-2.5cm]
-
-      \draw[ultra thick] (0,0) node[above= 25pt] {\textbf{B}};
-
-      \draw[ultra thick] (0,0) -- (12,0);
-      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
-      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
-      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{lim}$};
-      \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_dist}$};
-  
-      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,0.7)  -- +(12,0) 
-         node [black,midway,above=4pt, font=\scriptsize] {Registered simulation};
-      \draw[green, line width=8pt](0,.5) -- +(12,0);
-  
-      \begin{scope}
-         \clip(9.5, 1.5) rectangle (12, -0.5);
-         \draw [gray, decorate,decoration={brace,amplitude=12pt}] (9,0.7) -- +(3,0)
-            node [gray,midway,above=8pt, font=\scriptsize] {equil\_dist};
-      \end{scope}
-      \draw[gray, dotted] ([yshift=6pt]9, 0.7) -- ([yshift=6pt]9.5,0.7);
-      \draw[orange, line width=4pt](11.9,.5) -- +(.1,0);
-  
-      \foreach \x in {0, 2,4,6,8,10, 12}
-      \draw (\x cm,3pt) -- (\x cm,-3pt);
-  
-     \end{scope}
-\end{tikzpicture}
-```
-
 ```{r sp1sim}
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim <- sim_deter_forest(
@@ -160,7 +108,205 @@ Picea_sim <- sim_deter_forest(
 )
 ```
 
-The output of a simulation is a data.frame in long format (according to tidyverse style). This is very helpful to filter the output and plot it with `{ggplot2}`.
+To explain the time limit, above we simulate for 200 (`tlim`) years and past this time we continue the simulation (see figure A). This simulation will continue until the 300th year (`equil_time`) unless it reach an equilibrium. An equilibrium (in green) is defined as a step for which the `equil_dist` last steps (in grey) have a BA range below `equil_diff`. The steps between `tlim` and `t_equil` are not recorded.
+
+If `t_equil` is higher than `tlim`, the algorithm will calculate at each time step starting at `tlim` the range of basal area over the last `equil_dist` steps (see figure B). This is why `equil_dist` must not be higher than `tlim`. The equilibrium is reached at the first timestep for which the basal area range is lower than `equil_diff`.
+
+If we want to register the full dynamic, we can set `tlim = equil_time` (see figure C). **The equilibrium is always the last size distribution** (shown in green in figure). In this case, the final distribution will be returned in result twice. The `equil_dist` and `equil_diff` parameters are not important in this case.
+
+```{r timeline_explain, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+\begin{tikzpicture}
+
+    \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{A}};
+    \draw[ultra thick] (0,0) -- (12,0);
+    \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+    \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+    \draw[ultra thick] (6,0) node[below=3pt, thick] {$t_{lim}$};
+    \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{equil\_time}$};
+    \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
+    \foreach \x in {0, 2,4,6,8,10, 12}
+    \draw (\x cm,3pt) -- (\x cm,-3pt);
+
+    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(6,0) 
+       node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation};
+   %  \draw[green, line width=40pt](0,1) -- +(6,0);
+    \fill[blue!10] (0,0.5) rectangle ++(6,2.5);
+    \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (6,3.2)  -- +(3.9,0) 
+         node [black,midway,above=4pt, font=\scriptsize] {Discarded steps};
+    \fill[orange!10] (6,0.5) rectangle ++ (3.9,2.5);
+
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,1.8)  -- +(3,0) 
+         node [black,midway,above=4pt, font=\scriptsize] {equil\_dist};
+      \draw[lightgray, line width=10pt](7,1.6) -- +(2.9,0);
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt, mirror}] (10,1.4)  -- +(0,0.4) 
+      node [black,midway,right=4pt, font=\scriptsize] {equil\_diff};
+      \draw[green, line width=10pt](9.9,1.6) -- +(.1,0);
+
+    \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+      xtick=\empty,ytick=\empty, width=11.5cm,height=5.5cm,
+      xmin=0, xmax=4, ymin=0, ymax=3, ylabel=$BA$, ylabel near ticks
+      ]
+  \addplot[mark=*,mark size=1pt,color=blue!70!black,samples=200] {1.2+exp(-x)*sin(5*x)};
+  \end{axis}
+  
+  \node[font=\scriptsize, above] at (11.5, 3.2) {Recorded equilibrium};
+  \draw[green, ->] plot [smooth, tension=1] coordinates {(10, 1.8) (10.2,2.2) (11.1, 2.7) (11.5, 3.2)};
+  
+
+   \begin{scope}[yshift=-5.5cm]
+
+      \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{B}};
+      \draw[ultra thick] (0,0) -- (12,0);
+      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+      \draw[ultra thick] (8,0) node[below=3pt, thick] {$t_{lim}$};
+      \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
+      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{equil\_time}$};
+      \foreach \x in {0, 2,4,6,8,10, 12}
+      \draw (\x cm,3pt) -- (\x cm,-3pt);
+  
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(8,0) 
+         node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation};
+     %  \draw[green, line width=40pt](0,1) -- +(6,0);
+      \fill[blue!10] (0,0.5) rectangle ++(8,2.5);
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (8,3.2)  -- +(1.9,0) 
+         node [black,midway,above=4pt, font=\scriptsize] {Discarded steps};
+      \fill[orange!10] (8,0.5) rectangle ++ (1.9,2.5);
+  
+        \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,1.8)  -- +(3,0) 
+           node [black,midway,above=4pt, font=\scriptsize] {equil\_dist};
+        \draw[lightgray, line width=10pt](7,1.6) -- +(2.9,0);
+        \draw [thick ,decorate,decoration={brace,amplitude=5pt, mirror}] (10,1.4)  -- +(0,0.4) 
+        node [black,midway,right=4pt, font=\scriptsize] {equil\_diff};
+        \draw[green, line width=10pt](9.9,1.6) -- +(.1,0);
+  
+      \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+        xtick=\empty,ytick=\empty, width=11.5cm,height=5.5cm,
+        xmin=0, xmax=4, ymin=0, ymax=3, ylabel=$BA$, ylabel near ticks
+        ]
+    \addplot[mark=*,mark size=1pt,color=blue!70!black,samples=200] {1.2+exp(-x)*sin(5*x)};
+    \end{axis}
+
+    \node[font=\scriptsize, above] at (11.5, 3.2) {Recorded equilibrium};
+    \draw[green, ->] plot [smooth, tension=1] coordinates {(10, 1.8) (10.2,2.2) (11.1, 2.7) (11.5, 3.2)};
+    
+
+     \end{scope}
+
+     \begin{scope}[yshift=-11cm]
+
+      \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{C}};
+      \draw[ultra thick] (0,0) -- (12,0);
+      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{lim}$};
+      \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_time}$};
+      \foreach \x in {0, 2,4,6,8,10, 12}
+      \draw (\x cm,3pt) -- (\x cm,-3pt);
+   
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(12,0) 
+      node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation (include equilibrium)};
+   \fill[blue!10] (0,0.5) rectangle ++(12,2.5);
+   \draw [gray, thick ,decorate,decoration={brace,amplitude=5pt, mirror}] (12,1.4)  -- +(0,0.4) 
+   node [gray,midway,right=4pt, font=\scriptsize] {equil\_diff};
+
+
+   \draw[green, line width=10pt](11.9,1.6) -- +(.1,0);
+
+   \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+     xtick=\empty,ytick=\empty, width=13.5cm,height=5.5cm,
+     xmin=0, xmax=5, ymin=0, ymax=3, ylabel=$BA$, ylabel near ticks
+     ]
+      \addplot[mark=*,mark size=1pt,color=blue!70!black,samples=200] {1.2+exp(-x)*sin(5*x)};
+   \end{axis}
+
+        \begin{scope}
+         \clip(9.5, 3) rectangle (12, 0);
+         \draw [gray, decorate,decoration={brace,amplitude=12pt}] (9,1.8) -- +(3,0)
+            node [gray,midway,above=8pt, font=\scriptsize] {equil\_dist};
+      \end{scope}
+      \draw[gray, dotted] ([yshift=6pt]9, 1.8) -- ([yshift=6pt]9.5,1.8);
+
+      \node[font=\scriptsize, above] at (13.5, 3.2) {Recorded equilibrium};
+      \draw[green, ->] plot [smooth, tension=1] coordinates {(12, 1.1) (12.2,1.8) (13.1, 2.5) (13.5, 3.2)};
+      
+     \end{scope}
+
+\end{tikzpicture}
+```
+
+Keep in mind that despite high `tlim` and `equil_time` values, the equilibrium may not be reached at the end of the simulation. There is currently no way in the algorithm to report this to the user. The best way to detect "false equilibrium" is when the last step takes place at `t == equil_time` and by plotting the basal area along time. These cases are illustrated in figure D and E.
+
+Also, this equilibrium is only computed on total basal area, and the distribution can change. We welcome any suggestions you may have regarding the equilibrium definition.
+
+```{r timeline_explain_no_eq, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+\begin{tikzpicture}
+
+    \begin{scope}
+
+      \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{D}};
+      \draw[ultra thick] (0,0) -- (12,0);
+      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{lim}$};
+      \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_time}$};
+      \foreach \x in {0, 2,4,6,8,10, 12}
+      \draw (\x cm,3pt) -- (\x cm,-3pt);
+   
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(12,0) 
+      node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation (include "equilibrium")};
+   \fill[blue!10] (0,0.5) rectangle ++(12,2.5);
+   \draw[green, line width=10pt](11.9,1.1) -- +(.1,0);
+
+   \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+     xtick=\empty,ytick=\empty, width=13.5cm,height=5.5cm,
+     xmin=0, xmax=5, ymin=0, ymax=5, ylabel=$BA$, ylabel near ticks
+     ]
+      \addplot[mark=*,mark size=1pt,color=blue!70!black,samples=200] {2+sin(2*x)};
+   \end{axis}
+
+   \node[font=\scriptsize, above] at (13.5, 3.2) {Recorded "equilibrium"};
+   \draw[green, ->] plot [smooth, tension=1] coordinates {(12, 1.1) (12.2,1.8) (13.1, 2.5) (13.5, 3.2)};
+      
+     \end{scope}
+
+     \begin{scope}[yshift=-5.5cm]
+
+      \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{E}};
+      \draw[ultra thick] (0,0) -- (12,0);
+      \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+      \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+      \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{lim}$};
+      \draw[ultra thick] (12,0) node[below=16pt, thick] {$t_{equil\_time}$};
+      \foreach \x in {0, 2,4,6,8,10, 12}
+      \draw (\x cm,3pt) -- (\x cm,-3pt);
+   
+      \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(6,0) 
+      node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation };
+   \fill[blue!10] (0,0.5) rectangle ++(6,2.5);
+   \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (6,3.2)  -- +(5.9,0) 
+     node [black,midway,above=4pt, font=\scriptsize] {Discarded steps};
+   \fill[orange!10] (6,0.5) rectangle ++ (5.9,2.5);
+
+   \draw[lightgray, line width=10pt](9,1.1) -- +(2.9,0);
+   \draw[green, line width=10pt](11.9,1.1) -- +(.1,0);
+
+     \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+      xtick=\empty,ytick=\empty, width=13.5cm,height=5.5cm,
+      xmin=0, xmax=5, ymin=0, ymax=5, ylabel=$BA$, ylabel near ticks
+      ]
+       \addplot[mark=*,mark size=1pt,color=blue!70!black,samples=200] {2+sin(2*x)};
+    \end{axis}
+
+    \node[font=\scriptsize, above] at (13.5, 3.2) {Recorded "equilibrium"};
+    \draw[green, ->] plot [smooth, tension=1] coordinates {(12, 1.1) (12.2,1.8) (13.1, 2.5) (13.5, 3.2)};
+            
+     \end{scope}
+
+\end{tikzpicture}
+```
+
+The output of a simulation is a data.frame in long format (according to tidyverse style). This is very helpful to filter the output and plot it with `{ggplot2}`. Variables exported are the basal area per species `BAsp`, the number of individual per mesh for presence `m` and for harvest `h`, the total number of individual for presence `N` and for harvest `H`.
 
 ```{r sp1plot}
 Picea_sim  %>%
@@ -300,8 +446,6 @@ Abies_ipm <- make_IPM(
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
-
-
 ```{r nsp_forest}
 # We edit back the init_fun for Picea
 Picea_sp$init_pop <- def_initBA(15)
@@ -324,6 +468,55 @@ Picea_Abies_sim  %>%
                  geom ='line', linetype = "dashed", size = .3)
 ```
 
+An important point to note for multiple species is that the equilibrium is defined at the forest level, that is the sum of species basal area.
+
+```{r nsp_timeline, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+\begin{tikzpicture}
+
+   \draw[ultra thick] (0,3) node[above= 25pt] {\textbf{A}};
+   \draw[ultra thick] (0,0) -- (12,0);
+   \draw[ultra thick] (0,0) node[below=3pt,thick] {$t_0$};
+   \draw[ultra thick] (2,0) node[below=3pt,thick] {$t_1$};
+   \draw[ultra thick] (6,0) node[below=3pt, thick] {$t_{lim}$};
+   \draw[ultra thick] (12,0) node[below=3pt, thick] {$t_{equil\_time}$};
+   \draw[ultra thick] (10,0) node[below=3pt, thick] {$t_{equil}$} {};
+   \foreach \x in {0, 2,4,6,8,10, 12}
+   \draw (\x cm,3pt) -- (\x cm,-3pt);
+
+   \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (0,3.2)  -- +(6,0) 
+      node [black,midway,above=4pt, font=\scriptsize] {Mandatory recorded simulation};
+  %  \draw[green, line width=40pt](0,1) -- +(6,0);
+   \fill[blue!10] (0,0.5) rectangle ++(6,2.5);
+   \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (6,3.2)  -- +(3.9,0) 
+        node [black,midway,above=4pt, font=\scriptsize] {Discarded steps};
+   \fill[orange!10] (6,0.5) rectangle ++ (3.9,2.5);
+
+     \draw [thick ,decorate,decoration={brace,amplitude=5pt}] (7,1.9)  -- +(2.9,0) 
+        node [black,midway,above=4pt, font=\scriptsize] {equil\_dist};
+     \draw[lightgray, line width=8pt](7,1.7) -- +(2.9,0);
+     \draw [thick ,decorate,decoration={brace,amplitude=5pt, mirror}] (9.9,1.5)  -- +(0,0.4) 
+     node [black,midway,right=4pt, font=\scriptsize] {equil\_diff};
+     \draw[green, line width=12pt](9.9,0.85) -- +(.1,0);
+
+   \begin{axis}[trig format plots=rad,axis lines=left, axis line style={draw=none},
+     xtick=\empty,ytick=\empty, width=11.5cm,height=5.5cm,
+     xmin=0, xmax=4, ymin=0, ymax=6, ylabel=$BA$, ylabel near ticks
+     ]
+ \addplot[mark=*,mark size=1pt,color=cyan!70!black,samples=200] {1.4+exp(-x)*sin(10*x)};
+ \addplot[mark=*,mark size=1pt,color=teal!70!black,samples=200] {1.2+exp(-x)*sin(2*x)};
+ \addplot[mark=*,mark size=1pt,color=gray!70!black,samples=200] {1.4+exp(-x)*sin(10*x)+ 1.2+exp(-x)*sin(2*x)};
+ \end{axis}
+ 
+ \node[font=\scriptsize, above] at (11.5, 3.2) {Recorded equilibrium};
+ \draw[green, ->] plot [smooth, tension=1] coordinates {(10, 0.95) (10.2,1.2) (11.8, 1.7) (11.5, 3.2)};
+ 
+ \node[font=\scriptsize, right, cyan!70!black] at (10, 0.97) {species A};
+ \node[font=\scriptsize, right, teal!70!black] at (10, 0.78) {species B};
+ \node[font=\scriptsize, align= center, above, gray!70!black] at (5, 1.8) {Species sum \\(not recorded)};
+
+
+\end{tikzpicture}
+```
 
 # References
 

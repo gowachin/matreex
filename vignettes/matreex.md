@@ -1,10 +1,10 @@
 Basic functions and examples
 ================
 
-This vignette illustrate the basic pipeline used to run simulations with
-`{matreex}` package. The user can define different species of interest
-to combine and use in a simulation. During those simulations, modules
-can de triggered to test hypothesis and scenarii.
+This vignette illustrates the basic pipeline used to run simulations
+with `{matreex}` package. The user can define different species of
+interest to combine and use in a simulation. During those simulations,
+modules can be triggered to test hypothesis and scenarii.
 
 # Simulations input
 
@@ -35,6 +35,17 @@ minutes !**
 ``` r
 library(matreex)
 library(dplyr)
+#> 
+#> Attachement du package : 'dplyr'
+#> Les objets suivants sont masqués depuis 'package:stats':
+#> 
+#>     filter, lag
+#> L'objet suivant est masqué depuis 'package:testthat':
+#> 
+#>     matches
+#> Les objets suivants sont masqués depuis 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
 library(ggplot2)
 
 # Load fitted model for a species
@@ -44,10 +55,14 @@ data("fit_Picea_abies")
 # Load associated climate
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
-# see ?climate_species to understand the filtering of N.
+# N here is a climate defined in Kunstler et al 2021. 
+# N == 2 is the optimum climate for the species. 
+# see ?climate_species for more info.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N       SDM
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498
+#>           PC2 N       SDM
+#> 62 0.02602064 2 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -62,12 +77,13 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 41.9 secs
+#> Time difference of 50 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
-species upon it. This species will require few more function to works
-during simulations :
+species upon it. In R, a species is a list object that is constructed
+with the `species()` function. This list require few more functions to
+work during simulations :
 
 -   `init_pop` : Function to draw the initial size distribution. The
     default one draw distribution for a basal area (later named BA) of 1
@@ -83,8 +99,8 @@ during simulations :
 -   `disturb_fun` : Function that return tree mortality after a
     disturbance. The default one does not react to disturbance.
 
-A species also comes few parameters, but they are only used for harvest
-and disturbance modules.
+A species also comes with few parameters, but they are only used for
+harvest and disturbance modules.
 
 For this example, we will just modify the initial size distribution to
 start at a reasonable basal area.
@@ -111,17 +127,6 @@ the used surface `SurfEch`, and it’s define the surface of the studied
 forest. This parameter is mainly here for historical purpose as models
 were fitted on $300m^2$ plot, and output is scaled to an hectare.
 
-To explain the time limit, below we simulate for 200 years and past this
-time we continue the simulation until we reach an equilibrium on the
-last 50 years (see figure A). This search for equilibrium will run until
-the 300th year. If we want to register the full dynamic, we can set
-`tlim = equil_time` with `equil_dist < tlim` (see figure B). **The
-equilibrium is always the last size distribution** (shown in orange in
-figure), and the simulation will detect it if the total variation of the
-BA on `equil_dist` is inferior to 1 (parameter `equil_diff`).
-
-![](matreex_files/figure-gfm/timeline_explain-1.png)<!-- -->
-
 ``` r
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim <- sim_deter_forest(
@@ -134,18 +139,57 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.13 secs
+#> Time difference of 1.17 secs
 ```
+
+To explain the time limit, above we simulate for 200 (`tlim`) years and
+past this time we continue the simulation (see figure A). This
+simulation will continue until the 300th year (`equil_time`) unless it
+reach an equilibrium. An equilibrium (in green) is defined as a step for
+which the `equil_dist` last steps (in grey) have a BA range below
+`equil_diff`. The steps between `tlim` and `t_equil` are not recorded.
+
+If `t_equil` is higher than `tlim`, the algorithm will calculate at each
+time step starting at `tlim` the range of basal area over the last
+`equil_dist` steps (see figure B). This is why `equil_dist` must not be
+higher than `tlim`. The equilibrium is reached at the first timestep for
+which the basal area range is lower than `equil_diff`.
+
+If we want to register the full dynamic, we can set `tlim = equil_time`
+(see figure C). **The equilibrium is always the last size distribution**
+(shown in green in figure). In this case, the final distribution will be
+returned in result twice. The `equil_dist` and `equil_diff` parameters
+are not important in this case.
+
+![](matreex_files/figure-gfm/timeline_explain-1.png)<!-- -->
+
+Keep in mind that despite high `tlim` and `equil_time` values, the
+equilibrium may not be reached at the end of the simulation. There is
+currently no way in the algorithm to report this to the user. The best
+way to detect “false equilibrium” is when the last step takes place at
+`t == equil_time` and by plotting the basal area along time. These cases
+are illustrated in figure D and E.
+
+Also, this equilibrium is only computed on total basal area, and the
+distribution can change. We welcome any suggestions you may have
+regarding the equilibrium definition.
+
+![](matreex_files/figure-gfm/timeline_explain_no_eq-1.png)<!-- -->
 
 The output of a simulation is a data.frame in long format (according to
 tidyverse style). This is very helpful to filter the output and plot it
-with `{ggplot2}`.
+with `{ggplot2}`. Variables exported are the basal area per species
+`BAsp`, the number of individual per mesh for presence `m` and for
+harvest `h`, the total number of individual for presence `N` and for
+harvest `H`.
 
 ``` r
 Picea_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     geom_line(size = .4) + ylab("BA")
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
 ```
 
 ![](matreex_files/figure-gfm/sp1plot-1.png)<!-- -->
@@ -229,7 +273,7 @@ Picea_sim_k <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 282
 #> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.11 secs
+#> Time difference of 1.36 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -277,7 +321,7 @@ Picea_sim_d5 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.19 with diff of 7.20 at time 200
-#> Time difference of 0.849 secs
+#> Time difference of 1.01 secs
 ```
 
 Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected
@@ -326,7 +370,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 28.5 secs
+#> Time difference of 29.7 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -347,7 +391,7 @@ Picea_Abies_sim <- sim_deter_forest(
 #> time 500 | BA diff : 0.08
 #> Simulation ended after time 500
 #> BA stabilized at 50.79 with diff of 0.08 at time 500
-#> Time difference of 3.71 secs
+#> Time difference of 4.38 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -358,6 +402,11 @@ Picea_Abies_sim  %>%
 ```
 
 ![](matreex_files/figure-gfm/nsp_forest-1.png)<!-- -->
+
+An important point to note for multiple species is that the equilibrium
+is defined at the forest level, that is the sum of species basal area.
+
+![](matreex_files/figure-gfm/nsp_timeline-1.png)<!-- -->
 
 # References
 
