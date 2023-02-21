@@ -118,7 +118,7 @@ Picea_sim  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 ## Modulation
@@ -141,7 +141,7 @@ Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 A more advanced step consist in modification of the harvest function for more custom effects. Obviously, this kind of modification is more prone to error so don't hesitate to contact `{matreex}` maintainer. For example, this is function where we multiply a constant rate with the mesh, meaning that the larger the tree get, the more we its size class.
@@ -172,7 +172,7 @@ Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 # Uneven scenario
@@ -354,7 +354,7 @@ Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 We notice that the basal area obtained by the simulation is higher than the targeted one. This can be explained by the fact that the cutting calculation is done on $BA_{stand}$, which does not take into account individuals smaller than $d_{th}$.

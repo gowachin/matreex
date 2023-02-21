@@ -1,0 +1,104 @@
+\documentclass[
+%% TIKZ_CLASSOPTION %%
+]{standalone}
+\usepackage{pgfplots}
+\pgfplotsset{compat = newest}
+
+\usetikzlibrary{shapes.misc, positioning}
+
+\usetikzlibrary{decorations.pathreplacing}
+\usetikzlibrary{calc}
+\usetikzlibrary{chains}
+\usetikzlibrary{shapes}
+
+
+\usepackage{xcolor}
+
+\definecolor{g1}{RGB}{90, 200, 94}
+\definecolor{g2}{RGB}{113, 200, 55}
+\definecolor{g3}{RGB}{170, 222, 135}
+\definecolor{g4}{RGB}{200, 250, 175}
+\definecolor{strange}{RGB}{210,224,233}
+
+
+\makeatletter
+\def\grd@save@target#1{%
+  \def\grd@target{#1}}
+\def\grd@save@start#1{%
+  \def\grd@start{#1}}
+\tikzset{
+  grid with coordinates/.style={
+    to path={%
+      \pgfextra{%
+        \edef\grd@@target{(\tikztotarget)}%
+        \tikz@scan@one@point\grd@save@target\grd@@target\relax
+        \edef\grd@@start{(\tikztostart)}%
+        \tikz@scan@one@point\grd@save@start\grd@@start\relax
+        \draw[minor help lines] (\tikztostart) grid (\tikztotarget);
+        \draw[major help lines] (\tikztostart) grid (\tikztotarget);
+        \grd@start
+        \pgfmathsetmacro{\grd@xa}{\the\pgf@x/1cm}
+        \pgfmathsetmacro{\grd@ya}{\the\pgf@y/1cm}
+        \grd@target
+        \pgfmathsetmacro{\grd@xb}{\the\pgf@x/1cm}
+        \pgfmathsetmacro{\grd@yb}{\the\pgf@y/1cm}
+        \pgfmathsetmacro{\grd@xc}{\grd@xa + \pgfkeysvalueof{/tikz/grid with coordinates/major step}}
+        \pgfmathsetmacro{\grd@yc}{\grd@ya + \pgfkeysvalueof{/tikz/grid with coordinates/major step}}
+        \foreach \x in {\grd@xa,\grd@xc,...,\grd@xb}
+        \node[anchor=north] at (\x,\grd@ya) {\pgfmathprintnumber{\x}};
+        \foreach \y in {\grd@ya,\grd@yc,...,\grd@yb}
+        \node[anchor=east] at (\grd@xa,\y) {\pgfmathprintnumber{\y}};
+      }
+    }
+  },
+  minor help lines/.style={
+    help lines,
+    step=\pgfkeysvalueof{/tikz/grid with coordinates/minor step}
+  },
+  major help lines/.style={
+    help lines,
+    line width=\pgfkeysvalueof{/tikz/grid with coordinates/major line width},
+    step=\pgfkeysvalueof{/tikz/grid with coordinates/major step}
+  },
+  grid with coordinates/.cd,
+  minor step/.initial=.2,
+  major step/.initial=1,
+  major line width/.initial=2pt,
+}
+
+\makeatother
+
+
+\makeatletter
+\tikzset{scale line widths/.style={%
+/utils/exec=\pgfgettransformentries{\tmpa}{\tmpb}{\tmpc}{\tmpd}{\tmp}{\tmp}%
+\pgfmathsetmacro{\myJacobian}{sqrt(abs(\tmpa*\tmpd-\tmpb*\tmpc))}%
+\pgfmathsetlength\pgflinewidth{\myJacobian*0.4pt}%
+\def\tikz@semiaddlinewidth##1{\pgfmathsetmacro{\my@lw}{\myJacobian*##1}%
+\tikz@addoption{\pgfsetlinewidth{\my@lw pt}}\pgfmathsetlength\pgflinewidth{\my@lw pt}},%
+thin}}
+\makeatother
+
+\usepackage{etoolbox}
+\newcounter{mylistcounter}
+
+\def\saveitem#1{%
+\stepcounter{mylistcounter}%
+\expandafter\def\csname mylist\themylistcounter\endcsname{#1}}
+
+\forcsvlist{\saveitem}{%
+   1,
+   i,
+   nsp
+}%
+
+
+\def\getnthelement#1{\csname mylist#1\endcsname}
+
+
+\usepackage{ifthen}
+
+
+\begin{document}
+%% TIKZ_CODE %%
+\end{document}

@@ -7,6 +7,9 @@ devtools::test()
 devtools::check()
 
 
+xaringan:::inf_mr(moon = "inst/matreex.Rmd")
+
+
 # change name
 # grep "matreex" -r ./*
 

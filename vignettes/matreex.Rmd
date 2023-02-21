@@ -312,7 +312,7 @@ The output of a simulation is a data.frame in long format (according to tidyvers
 Picea_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) + ylab("BA")
+    geom_line(linewidth = .4) + ylab("BA")
 ```
 
 If size distributions needs to be extracted, it can be easily done with `{dplyr}` functions. The equilibrium step is associated with a logical to extract it.
@@ -362,7 +362,7 @@ Picea_sim_k  %>%
     # to simplify the understanding of the full document.
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) + ylab("BA") +
+    geom_line(linewidth = .4) + ylab("BA") +
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
@@ -401,7 +401,7 @@ Picea_sim_d5 %>%
     rbind(Picea_sim) %>%
     dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linetype = "dashed", size = .3) +
+    geom_line(linetype = "dashed", linewidth = .3) +
     geom_point(size = .7) + ylab("BA") +
     facet_wrap(~ var, scales = "free_y") +
     NULL
@@ -463,7 +463,7 @@ Picea_Abies_sim <- sim_deter_forest(
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(size = .4) + ylab("BA") +
+    geom_line(linewidth = .4) + ylab("BA") +
     stat_summary(fun = "sum",  aes(col="Total"),
                  geom ='line', linetype = "dashed", size = .3)
 ```
