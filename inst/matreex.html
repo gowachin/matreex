@@ -26,7 +26,7 @@ class: center, middle, inverse, title-slide
 ### UR LESSEM | INRAE
 ]
 .date[
-### 2023-02-22 (updated: 2023-02-21)
+### 2023-02-22 (updated: 2023-02-22)
 ]
 
 ---
@@ -171,14 +171,12 @@ fit_Picea_abies$sv
 
 ```
 ## $params_m
-##      BATOTcomp BATOTcomp:sgdd  BATOTcomp:wai      intercept 
-##   3.614605e-02  -3.333514e-06  -1.002760e-02  -2.104071e+01 
-##        logsize   logsize:sgdd    logsize:wai           sgdd 
-##   3.298095e+00  -2.926404e-03  -1.600203e+00   1.241456e-02 
-##          sgdd2           size      size:sgdd       size:wai 
-##   5.492081e-07  -4.927732e-03   5.128908e-06   2.955988e-03 
-##            wai           wai2 
-##   7.758610e+00   2.612837e-01 
+##      BATOTcomp BATOTcomp:sgdd  BATOTcomp:wai      intercept        logsize 
+##   3.614605e-02  -3.333514e-06  -1.002760e-02  -2.104071e+01   3.298095e+00 
+##   logsize:sgdd    logsize:wai           sgdd          sgdd2           size 
+##  -2.926404e-03  -1.600203e+00   1.241456e-02   5.492081e-07  -4.927732e-03 
+##      size:sgdd       size:wai            wai           wai2 
+##   5.128908e-06   2.955988e-03   7.758610e+00   2.612837e-01 
 ## 
 ## $family
 ## 
@@ -304,7 +302,7 @@ Picea_sim &lt;- sim_deter_forest(
 ```
 
 ```
-## Time difference of 1.41 secs
+## Time difference of 1.43 secs
 ```
 
 ---
@@ -387,6 +385,7 @@ Picea_Abies_sim &lt;- sim_deter_forest(
 
 
 ---
+exclude: false
 
 # Harvesting : Uneven
 
@@ -395,12 +394,39 @@ Pour changer le mode de coupe, il faut faire attention, certain paramêtres sont
 * Coupe irrégulière :
 
 
+
+
 ```r
+Picea_sp$harvest_fun &lt;- `Uneven_harv`
+Abies_sp$harvest_fun &lt;- `Uneven_harv`
 Picea_for_Uneven &lt;- forest(species = list(Picea = Picea_sp, Abies = Abies_sp), 
-                      harv_rules = c(Pmax = 0.25, dBAmin = 3, 
+                      harv_rules = c(Pmax = 0.75, dBAmin = 3, 
                                      freq = 5, alpha = 1))
+set.seed(42)
+Picea_Abies_sim_uneven &lt;- sim_deter_forest(
+    Picea_for_Uneven, 
+    harvest = "Uneven", targetBA = 30,
+    tlim = 100, 
+    equil_time = 100, equil_dist = 50, 
+    SurfEch = 0.03
+)
 ```
 
+---
+
+# Harvesting : Uneven
+
+
+```r
+Picea_Abies_sim_uneven  %&gt;%
+    dplyr::filter(var == "BAsp", ! equil) %&gt;%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linewidth = .4) + ylab("BA") +
+    stat_summary(fun = "sum",  aes(col="Total"),
+                 geom ='line', linetype = "dashed", linewidth = .3)
+```
+
+&lt;img src="matreex_files/figure-html/unnamed-chunk-4-1.png" width="500px" height="350px" style="display: block; margin: auto;" /&gt;
 
 
 ---

@@ -776,6 +776,7 @@ Picea_Abies_sim  %>%
 
 
 ---
+exclude: false
 
 # Harvesting : Uneven
 
@@ -789,18 +790,26 @@ Abies_sp$init_pop <- def_initBA(10)
 ```
 
 ```{r}
+Picea_sp$harvest_fun <- `Uneven_harv`
+Abies_sp$harvest_fun <- `Uneven_harv`
 Picea_for_Uneven <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp), 
                       harv_rules = c(Pmax = 0.75, dBAmin = 3, 
                                      freq = 5, alpha = 1))
 set.seed(42)
 Picea_Abies_sim_uneven <- sim_deter_forest(
-    Picea_for_Uneven,  
+    Picea_for_Uneven, 
+    harvest = "Uneven", targetBA = 30,
     tlim = 100, 
-    equil_time = 100, equil_dist = 50,
-    SurfEch = 0.03, 
-    verbose = TRUE
+    equil_time = 100, equil_dist = 50, 
+    SurfEch = 0.03
 )
+```
 
+---
+
+# Harvesting : Uneven
+
+```{r, out.height= '350px', out.width='500px'}
 Picea_Abies_sim_uneven  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
@@ -808,7 +817,6 @@ Picea_Abies_sim_uneven  %>%
     stat_summary(fun = "sum",  aes(col="Total"),
                  geom ='line', linetype = "dashed", linewidth = .3)
 ```
-
 
 
 ---

@@ -465,7 +465,7 @@ Picea_Abies_sim  %>%
     ggplot(aes(x = time, y = value, color = species)) +
     geom_line(linewidth = .4) + ylab("BA") +
     stat_summary(fun = "sum",  aes(col="Total"),
-                 geom ='line', linetype = "dashed", size = .3)
+                 geom ='line', linetype = "dashed", linewidth = .3)
 ```
 
 An important point to note for multiple species is that the equilibrium is defined at the forest level, that is the sum of species basal area.
