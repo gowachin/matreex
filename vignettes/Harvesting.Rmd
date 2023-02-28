@@ -21,15 +21,15 @@ options(cli.progress_show_after = 600)
 # 10 minutes before showing a cli progress bar
 ```
 
-This vignette illustrate how to use harvesting scenarii with `{matreex}` package. An harvesting scenario is a simulation modification that will trigger some additional death in defined size distribution. This distribution is differenciated from base mortality and is saved and exported for each simulation.
+This vignette illustrates how to use harvesting scenarii with `{matreex}` package. An harvesting scenario provides the rules and the periodicity to trigger harvesting of trees in each size classes. The harvested trees are saved and exported for each simulation time step.
 
-This document will skip the usage of basic function that are shown in [a previous introduction vignette](matreex.html).
+The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
 
 # Simulations input
 
 ## Define a species
 
-The first step of IPM integration. This part is common with basic usage of the package so nothing is very important here.
+The first step is the IPM integration. This part is common with basic usage of the package, so nothing is very important here.
 
 **Please keep in mind this computation is intensive and may take few minutes !**
 
@@ -59,9 +59,9 @@ Picea_ipm <- make_IPM(
 )
 ```
 
-Harvesting rules have different scales : some rules are defined for each species, others at the forest level and lastly input parameters when launching simulation. These rules can always be defined but will only be used when the correct module is triggered by simulations. The table below summarise the required parameters for each scenario. Each scenario have an example in the following document.
+Harvesting scenario are defined at different levels: at the species level with the species harvesting function and its associated parameters, at the forest level with a set of parameters, and at the simulation level with the target of the harvesting scenario. Depending on the scenario used, not all the parameters are used. The table below summarise the required parameters for each scenario. Each scenario have an example in the following document.
 
-| Harvesting scenario | Species function | Species parameters | Forest parameters | Simulation parameters |
+| Harvesting scenario | Species harvesting function | Species parameters | Forest parameters | Simulation parameters |
 | -- | -- | -- | -- | -- |
 | default | `def_harv()` <br> or custom by user. | $\emptyset$ | `harv_rules["freq"]` | $\emptyset$ |
 | Uneven | `Uneven_harv()` | `harv_lim` | `harv_rules` | `targetBA` |
