@@ -1,5 +1,7 @@
 # matreex (development version)
 
+* Correction of vignettes 
+
 # matreex 0.2.0
 
 ## Breaking changes
