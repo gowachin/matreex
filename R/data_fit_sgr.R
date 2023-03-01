@@ -3,10 +3,17 @@
 #' Reformated fitted models from Kunstler et al. 2021. Each species
 #' is fitted for growth, survival and recruitment along climatic conditions
 #' based on sgdd and wai. All objects were modified with the oldfit2fit function
-#' from this package. The parameters are the mean parameters from the 100
-#' resampled models from the original dataset.
+#' from this package.
 #'
-#' The fit_species dataset contains the list of species stored with the package.
+#' The fit_species dataset contains the vector of species stored with the package.
+#' The lag_species dataset contains the vector of default delay for each species.
+#'
+#' @details
+#'
+#' The lag was computed by Kunstler and missing values for Betula, 
+#' Juniperus_thurifera, Prunus_padus, Quercus_faginea and Quercus_pyrenaica
+#' are set with the mean of other species. More details is given in 
+#' https://github.com/gowachin/matreex/issues/10
 #'
 #' @name fit_data
 #' @aliases fit_species
@@ -16,7 +23,9 @@
 "fit_species"
 
 #' @rdname fit_data
-#' @keywords datasets
+"lag_species"
+
+#' @rdname fit_data
 "fit_Abies_alba"
 
 #' @rdname fit_data

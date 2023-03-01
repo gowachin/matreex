@@ -32,6 +32,8 @@
 #' default 1, single int. NOTE : value for dev usage only !
 #' @param IsSurv Adding survival to the IPM. Set to FALSE is useful to test for
 #' eviction of the model. TRUE by default.
+#' @param delay the number of time delay to add. By default, it will use
+#' the delay stored in the \code{fit} object provided, but can be provided.
 #' @param verbose Print message. FALSE by default
 #'
 #' @details
@@ -63,6 +65,7 @@ make_IPM <- function(species,
                      mid_level = 5,
                      year_delta = 1, # NOTE reu 3/10 pour le cas ou n est superieur a 1
                      IsSurv = TRUE,
+                     delay = NULL,
                      verbose = FALSE) {
 
     # Idiot Proof ####
@@ -101,6 +104,10 @@ make_IPM <- function(species,
     assertCount(mid_level)
     assertCount(year_delta)
     assertLogical(IsSurv, len = 1)
+    if(is.null(delay)){
+        delay <- as.numeric(fit$info["delay"])
+    }
+    assertCount(delay)
     # :::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     start <- Sys.time()
@@ -314,6 +321,10 @@ make_IPM <- function(species,
             compress = FALSE, int = int, survival = IsSurv
         )
     )
+
+    res <- delay(res, delay)
+
+
     return(res)
 }
 

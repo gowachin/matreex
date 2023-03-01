@@ -11,7 +11,8 @@ fit_sgr(
   gr_sigma,
   rec_params,
   species,
-  max_dbh
+  max_dbh,
+  delay
 )
 }
 \arguments{
@@ -33,7 +34,9 @@ climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
 
 \item{species}{Name of the species to run simulation on. Single char.}
 
-\item{max_dbh}{Maximum diameter of the fitted dataset. Single dbh.}
+\item{max_dbh}{Maximum diameter of the fitted dataset. Single dbl.}
+
+\item{delay}{Delay for the species. Single dbl.}
 }
 \description{
 Species are defined by an IPM which is a transition matrix from size between

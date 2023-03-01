@@ -18,6 +18,7 @@ make_IPM(
   mid_level = 5,
   year_delta = 1,
   IsSurv = TRUE,
+  delay = NULL,
   verbose = FALSE
 )
 }
@@ -63,6 +64,9 @@ default 1, single int. NOTE : value for dev usage only !}
 
 \item{IsSurv}{Adding survival to the IPM. Set to FALSE is useful to test for
 eviction of the model. TRUE by default.}
+
+\item{delay}{the number of time delay to add. By default, it will use
+the delay stored in the \code{fit} object provided, but can be provided.}
 
 \item{verbose}{Print message. FALSE by default}
 }

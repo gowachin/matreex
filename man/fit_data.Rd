@@ -4,6 +4,7 @@
 \name{fit_data}
 \alias{fit_data}
 \alias{fit_species}
+\alias{lag_species}
 \alias{fit_Abies_alba}
 \alias{fit_Acer_campestre}
 \alias{fit_Acer_pseudoplatanus}
@@ -34,6 +35,8 @@
 \title{Species fited models dataset.}
 \format{
 An object of class \code{character} of length 27.
+
+An object of class \code{numeric} of length 27.
 
 An object of class \code{fit_sgr} of length 4.
 
@@ -95,6 +98,8 @@ https://doi.org/10.1111/1365-2745.13533
 \usage{
 fit_species
 
+lag_species
+
 fit_Abies_alba
 
 fit_Acer_campestre
@@ -153,10 +158,15 @@ fit_Salix_caprea
 Reformated fitted models from Kunstler et al. 2021. Each species
 is fitted for growth, survival and recruitment along climatic conditions
 based on sgdd and wai. All objects were modified with the oldfit2fit function
-from this package. The parameters are the mean parameters from the 100
-resampled models from the original dataset.
+from this package.
 }
 \details{
-The fit_species dataset contains the list of species stored with the package.
+The fit_species dataset contains the vector of species stored with the package.
+The lag_species dataset contains the vector of default delay for each species.
+
+The lag was computed by Kunstler and missing values for Betula,
+Juniperus_thurifera, Prunus_padus, Quercus_faginea and Quercus_pyrenaica
+are set with the mean of other species. More details is given in
+https://github.com/gowachin/matreex/issues/10
 }
 \keyword{datasets}

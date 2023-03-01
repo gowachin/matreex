@@ -30,7 +30,7 @@ test_that("get_step_IPM.ipm works", {
 
     x <- make_IPM(species, climate, clim_lab = "test", fit, mesh, BA = 1:10,
                   correction = "none", level = 420, diag_tresh = 50,
-                  midbin_tresh = 0)
+                  midbin_tresh = 0, delay = 0)
 
     expect_equal(
         get_step_IPM(x = x, BA = 2, climate = climate, sim_corr = "cut"),

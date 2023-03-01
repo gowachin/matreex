@@ -38,7 +38,7 @@ max_dbh <- 42
 
 fit <- new_fit_sgr(sv_params, sv_family,
                    gr_params, gr_sigma, rec_params,
-                   "Yggdrasil", 42)
+                   "Yggdrasil", 42, 0)
 
 # delay ####
 test_that("delay dtCMatrix works", {
@@ -291,7 +291,7 @@ max_dbh <- 42
 
 fit <- new_fit_sgr(sv_params, sv_family,
                    gr_params, gr_sigma, rec_params,
-                   "Yggdrasil", 42)
+                   "Yggdrasil", 42, 0)
 
 test_that("sp_rec species works", {
 

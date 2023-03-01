@@ -72,7 +72,7 @@ fit <- list(
                            `logsize:sgdd` = 9.08e-05),
               sigma = 0.622),
     rec = list(params_m = c(intercept = 1, BATOTSP = 1, BATOTNonSP = 2)),
-    info = c(species = "Yggdrasil", max_dbh = 42))
+    info = c(species = "Yggdrasil", max_dbh = 42, delay = "0"))
 class(fit) <- "fit_sgr"
 int_log <- c(year_delta = 1, MaxError = 1,
              GL_Nint = 0, GL_level = 420, GL_min = 0,

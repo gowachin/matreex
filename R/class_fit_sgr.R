@@ -14,19 +14,20 @@
 #' @param rec_params Named vector of growth parameters fitted for this species and
 #' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
 #' @param species Name of the species to run simulation on. Single char.
-#' @param max_dbh Maximum diameter of the fitted dataset. Single dbh.
+#' @param max_dbh Maximum diameter of the fitted dataset. Single dbl.
+#' @param delay Delay for the species. Single dbl.
 #'
 #' @keywords internal
 #' @export
 new_fit_sgr <- function(sv_params, sv_family,
                         gr_params, gr_sigma,
                         rec_params,
-                        species, max_dbh){
+                        species, max_dbh, delay){
     fit <- list(
         sv = list(params_m = sv_params, family = sv_family),
         gr = list(params_m = gr_params, sigma = gr_sigma),
         rec = list(params_m = rec_params),
-        info = c(species = species, max_dbh = max_dbh)
+        info = c(species = species, max_dbh = max_dbh, delay = delay)
     )
 
     class(fit) <- "fit_sgr"
@@ -76,8 +77,8 @@ validate_fit_sgr <- function(x){
     }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "max_dbh"))){
-        stop("fit_sgr class must have info of elements species and max_dbh")
+    if(any(names(values$info) != c("species", "max_dbh", "delay"))){
+        stop("fit_sgr class must have info of elements species, max_dbh and delay")
     }
 
     invisible(x)
@@ -97,13 +98,13 @@ validate_fit_sgr <- function(x){
 fit_sgr <- function(sv_params, sv_family,
                     gr_params, gr_sigma,
                     rec_params,
-                    species, max_dbh){
+                    species, max_dbh, delay){
 
     res <- validate_fit_sgr(new_fit_sgr(
         sv_params = sv_params, sv_family = sv_family,
         gr_params= gr_params, gr_sigma = gr_sigma,
         rec_params = rec_params,
-        species = species, max_dbh = max_dbh
+        species = species, max_dbh = max_dbh, delay = delay
     ))
 
     return(res)
@@ -128,6 +129,12 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
     assertCharacter(species, len = 1)
     assertCharacter(path, len = 1)
 
+    lag <- matreex::lag_species
+    delay <- unname(lag[species])
+    if(length(delay) != 1 | is.na(delay)){
+        delay <- 0
+    }
+
     f_fit <- here(path, "output", species, "fit_sgr_all.Rds")
     fit <- readRDS(assertFileExists(f_fit)) # 0.16 sec
     if(grepl(" ", species)){
@@ -136,14 +143,15 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 
     if(mean){
         max_dbh <- max(map_dbl(fit, ~ .x$maxDBH))
-        res_fit <- mean_oldfit(fit, species, max_dbh)
+        res_fit <- mean_oldfit(fit, species, max_dbh, delay)
     } else {
         assertNumber(replicat, lower = 1, upper = length(fit))
         res_fit <- fit[[replicat]]
         res_fit <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                            res_fit$gr$params_m, res_fit$gr$sigma,
                            res_fit$rec$params_m,
-                           species = species, max_dbh = res_fit$maxDBH)
+                           species = species, max_dbh = res_fit$maxDBH,
+                           delay = delay)
     }
 
     return(res_fit)
@@ -157,6 +165,7 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 #' elements are discarded.
 #' @param species single chr with the species name.
 #' @param max_dbh maximum diameter of fitted data.
+#' @param delay Delay for the species. Single dbl.
 #'
 #' @return a fit_sgr element.$
 #'
@@ -166,7 +175,7 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
 #' @importFrom tidyr pivot_longer replace_na
 #' @importFrom rlang .data
 #' @noRd
-mean_oldfit <- function(fit, species, max_dbh){
+mean_oldfit <- function(fit, species, max_dbh, delay){
 
     assertList(fit, any.missing = FALSE)
     assertCharacter(species, len = 1)
@@ -207,7 +216,7 @@ mean_oldfit <- function(fit, species, max_dbh){
         pull(.data$mean, .data$var)
 
     res_fit <- fit_sgr(sv_params, sv_family, gr_params, gr_sigma, rec_params,
-                       species = species, max_dbh = max_dbh)
+                       species = species, max_dbh = max_dbh, delay = delay)
 
     return(res_fit)
 }
