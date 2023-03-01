@@ -55,7 +55,7 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' research. Must be higher or equal to tlim and equil_dist. single int.
 #' @param harvest Choice of harvest rules between default, Uneven and Even.
 #' This indicate what settings will be used. See Details.
-#' @param targetBA BA value that is targetted by the Harvest module.
+#' @param targetBA BA value per ha that is targetted by the Harvest module.
 #' Single numeric in \eqn{m^2}.
 #' @param climate Optional, climate matrix if climate variation along time is
 #' needed. Climate variation rely on species created with mu_gr class objects.
@@ -87,8 +87,8 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #'
 #' The variables are :
 #' \describe{
-#'  \item{m}{Distribution of density by mesh along time per ha.}
-#'  \item{N}{Sum of density per ha. (colSums for m)}
+#'  \item{n}{Distribution of density by mesh along time per ha.}
+#'  \item{N}{Sum of density per ha. (colSums for n)}
 #'  \item{BA}{Basal area of the population per ha}
 #'  \item{h}{Distribution of harvest density by mesh along time per ha.}
 #'  \item{H}{Sum of harvested density per ha. (colSums for h)}
@@ -200,7 +200,8 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     harvest <- match.arg(harvest)
-    assertNumber(targetBA, lower = 0)
+    assertNumber(targetBA, lower = 0) # TODO modify target BA per ha.
+    targetBA <- targetBA * SurfEch
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
     # assertNumber(targetKg, lower = 0, upper = 1)
     IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
@@ -267,7 +268,7 @@ sim_deter_forest.forest  <- function(Forest,
                 nrow = x + 2 + x + 1
             )
             colnames(tmp) <- c(paste0("t", 1:(tlim+1))) #, "sp")
-            rownames(tmp) <- c(paste0(y, ".m", 1:x), paste0(y, c(".BAsp", ".N")),
+            rownames(tmp) <- c(paste0(y, ".n", 1:x), paste0(y, c(".BAsp", ".N")),
                                paste0(y, ".h", 1:x), paste0(y,".H"))
             return(tmp)
         })

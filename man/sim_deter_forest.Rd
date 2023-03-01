@@ -42,7 +42,7 @@ research. Must be higher or equal to tlim and equil_dist. single int.}
 \item{harvest}{Choice of harvest rules between default, Uneven and Even.
 This indicate what settings will be used. See Details.}
 
-\item{targetBA}{BA value that is targetted by the Harvest module.
+\item{targetBA}{BA value per ha that is targetted by the Harvest module.
 Single numeric in \eqn{m^2}.}
 
 \item{climate}{Optional, climate matrix if climate variation along time is
@@ -76,8 +76,8 @@ simulation}
 
 The variables are :
 \describe{
-\item{m}{Distribution of density by mesh along time per ha.}
-\item{N}{Sum of density per ha. (colSums for m)}
+\item{n}{Distribution of density by mesh along time per ha.}
+\item{N}{Sum of density per ha. (colSums for n)}
 \item{BA}{Basal area of the population per ha}
 \item{h}{Distribution of harvest density by mesh along time per ha.}
 \item{H}{Sum of harvested density per ha. (colSums for h)}

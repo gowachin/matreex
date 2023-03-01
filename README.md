@@ -10,7 +10,7 @@ experimental](https://img.shields.io/badge/lifecycle-experimental-orange.svg)](h
 
 The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.
 
-Main methods have been developped for [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533) as well as european treee species growth/survival/recruitment models.
+Main methods have been developped for [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533) and [Guyennon *et al* 2023](https://onlinelibrary.wiley.com/doi/10.1111/geb.13640) as well as european treee species growth/survival/recruitment models.
 
 ## Installation
 

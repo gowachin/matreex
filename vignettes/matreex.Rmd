@@ -6,11 +6,16 @@ output:
     rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Basic functions and examples}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib 
 link-citations: true
 ---
+
+<style>
+body {
+text-align: justify}
+</style>
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
@@ -28,14 +33,17 @@ This vignette illustrates the basic functions used to run simulations projecting
 
 Details on the fitting and the integration of IPM model can be found in @ellner2016.
 Briefly, an IPM predicts the size distribution, $n(z', t+1)$, of a population at time t+1 from its size distribution at time t, $n(z, t)$, with $z$ the size at t and $z'$ the size at $t + 1$,
-based on the following equation @Ellner2016:
-\begin{equation}
-	n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz
-\end{equation}
+based on the following equation (@ellner2016): 
+
+$$
+n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
+$$
+
 with $L$ and $U$ being, respectively, the lower and upper observed sizes for integration of the kernel $K$.
 
-The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z', z) = P(z', z) + F(z', z) $.
-The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) * G(z', z)$, $s$ being the survival function and $G$ the growth function. 
+The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
+
+The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and $G$ the growth function. 
 The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
 <!--The figure 1 presents the structure and approach of the IPM. -->
 Note, that this package do not cover the statistical fitting of the vital rates functions.
@@ -47,7 +55,7 @@ Note, that this package do not cover the statistical fitting of the vital rates 
 
 Before simulating forest, we need first to define tree species in R. Species regroups basic vital rates functions: growth, recruitment and survival. In this package, we provide the fitted vital rates functions used in @kunstler2021 and @guyennon2023 . These functions depend on tree size, local competition based on the sum of basal area of competitors, and two climatic variables. The climatic variables are the sum of the sum of growing degree days *sgdd*, the water aridity index *wai* (see @kunstler2021 for more details). @kunstler2021 and @guyennon2023 used a resampling procedure to estimate the vital rates functions resulting in 100 resampled estimate of the parameters of each functions, here to simplify the simulations we provide only the averaged parameters over those 100 resamples. It is however, in theory, possible to run simulations with other vital rates functions if they are provided as glm objects (please contact the authors to test new variables).
 
-```{r hide library, echo = FALSE}
+```{r hide library, echo = FALSE, eval=TRUE}
 # I do this before to show data inline
 library(matreex)
 data("fit_Picea_abies")
@@ -357,7 +365,7 @@ Here is an example where we start from $t = 150$ of the previous simulation. Thi
 
 ```{r sp1initk}
 distrib_t150 <- Picea_sim %>% 
-    dplyr::filter(grepl("m", var), time == 150) %>%
+    dplyr::filter(grepl("n", var), time == 150) %>%
     dplyr::pull(value)
 # NOTE : this distribution is given per ha and we need it for SurfEch = 0.03.
 distrib_t150 <- distrib_t150 * 0.03

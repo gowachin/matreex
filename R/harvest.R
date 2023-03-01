@@ -1,7 +1,7 @@
 # UNEVEN ####
 #' BAstand
 #'
-#' Compute BA standing for a species
+#' Compute BA standing for a species per ha.
 #'
 #' @param X Size distribution at time t
 #' @param species The species class object of interest to get mesh and harv_lim
@@ -19,7 +19,7 @@ getBAstand <- function(X, species, SurfEch = 0.03){
 
     X[mesh <= dth] <- 0
 
-    BAst <- drop(X %*% Buildct(mesh, SurfEch))
+    BAst <- drop(X %*% Buildct(mesh, SurfEch)) * SurfEch
 
     return(BAst)
 }

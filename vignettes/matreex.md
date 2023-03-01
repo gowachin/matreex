@@ -1,51 +1,95 @@
 Basic functions and examples
 ================
 
-This vignette illustrates the basic pipeline used to run simulations
-with `{matreex}` package. The user can define different species of
-interest to combine and use in a simulation. During those simulations,
-modules can be triggered to test hypothesis and scenarii.
+<style>
+body {
+text-align: justify}
+</style>
+
+This vignette illustrates the basic functions used to run simulations
+projecting the population of size-structured trees with `{matreex}`
+package. The package can model the dynamic of monospecific or
+plurispecific tree communities. Different modules allow also to simulate
+harvesting and disturbances. To project forward the dynamic of
+size-structured tree populations, this package relies on **integrated
+projection models** (later named IPM).
+
+# Rapid description of the Integral Projection Model
+
+Details on the fitting and the integration of IPM model can be found in
+Ellner, Childs, and Rees ([2016](#ref-ellner2016)). Briefly, an IPM
+predicts the size distribution, $n(z', t+1)$, of a population at time
+t+1 from its size distribution at time t, $n(z, t)$, with $z$ the size
+at t and $z'$ the size at $t + 1$, based on the following equation
+(Ellner, Childs, and Rees ([2016](#ref-ellner2016))):
+
+$$
+n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
+$$
+
+with $L$ and $U$ being, respectively, the lower and upper observed sizes
+for integration of the kernel $K$.
+
+The kernel $K(z' ,z)$ can be split into the survival and growth kernel
+$P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows :
+$K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
+
+The fecundity kernel $F(z', z)$ gives the size distribution of newly
+recruited trees at time $t+1$ as a function of the size distribution at
+time t. The survival and growth kernel $P(z', z)$ is defined as
+$P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and
+$G$ the growth function. The kernel $K(z' ,z)$, thus, integrate the
+three key vital rates functions: growth, survival, and recruitment. The
+kernel $P$ is numerically approximated with a big iteration matrix and
+the continuous size distribution $n$ is approximated by a big state
+vector. The dimension and the width of the size class are selected to
+ensure a good numerical integration of the kernel $P$. Details on the
+numerical integration are given below and in Kunstler et al.
+([2021](#ref-kunstler2021)) and Guyennon et al.
+([2023](#ref-guyennon2023)) .
+<!--The figure 1 presents the structure and approach of the IPM. -->
+Note, that this package do not cover the statistical fitting of the
+vital rates functions.
 
 # Simulations input
 
 ## Define a species
 
 Before simulating forest, we need first to define tree species in R.
-Species regroups basic dynamic functions : growth, recruitment and
-survival. To speed up computation, this package rely on **integrated
-projection models** (later named IPM). To explain this principle
-quickly, it is a matter of discretizing the dynamic functions into a
-kernel that allows us to go from a size distribution at time t to the
-distribution at time t+1.
+Species regroups basic vital rates functions: growth, recruitment and
+survival. In this package, we provide the fitted vital rates functions
+used in Kunstler et al. ([2021](#ref-kunstler2021)) and Guyennon et al.
+([2023](#ref-guyennon2023)) . These functions depend on tree size, local
+competition based on the sum of basal area of competitors, and two
+climatic variables. The climatic variables are the sum of the sum of
+growing degree days *sgdd*, the water aridity index *wai* (see Kunstler
+et al. ([2021](#ref-kunstler2021)) for more details). Kunstler et al.
+([2021](#ref-kunstler2021)) and Guyennon et al.
+([2023](#ref-guyennon2023)) used a resampling procedure to estimate the
+vital rates functions resulting in 100 resampled estimate of the
+parameters of each functions, here to simplify the simulations we
+provide only the averaged parameters over those 100 resamples. It is
+however, in theory, possible to run simulations with other vital rates
+functions if they are provided as glm objects (please contact the
+authors to test new variables).
 
-To build this IPM for a species, we start from the fitted functions.
-Theses functions depend on the size variable and climatic variables. The
-data provided with the package comes from Kunstler et al.
-([2021](#ref-kunstler2021)), and climatic variable are *sgdd* and *wai*.
-
-An IPM is mostly defined by it’s mesh dimension, that are here
-$700 \times 700$ between 90mm and `get_maxdbh(fit_Picea_abies) * 1.1` =
-1204.5mm. This method is the same as in Kunstler et al.
-([2021](#ref-kunstler2021)) and is used to limit eviction during
-simulations.
+To build an IPM for a species we start from fitted function Kunstler et
+al. ([2021](#ref-kunstler2021)) and Guyennon et al.
+([2023](#ref-guyennon2023)) . To do the numerical integration of $P$, we
+need to define the mesh dimension, here $700$, the lower $L$ and upper
+limits $U$, here respectively 90mm and
+`get_maxdbh(fit_Picea_abies) * 1.1` = 1204.5mm, and range of value of
+competition index BA (here from 0 to 60 $m^2/ha$). These are the values
+used in Kunstler et al. ([2021](#ref-kunstler2021)) and Guyennon et al.
+([2023](#ref-guyennon2023)) that were optimized to provide good
+numerical integration.
 
 **Please keep in mind this computation is intensive and may take few
-minutes !**
+minutes!**
 
 ``` r
 library(matreex)
 library(dplyr)
-#> 
-#> Attachement du package : 'dplyr'
-#> Les objets suivants sont masqués depuis 'package:stats':
-#> 
-#>     filter, lag
-#> L'objet suivant est masqué depuis 'package:testthat':
-#> 
-#>     matches
-#> Les objets suivants sont masqués depuis 'package:base':
-#> 
-#>     intersect, setdiff, setequal, union
 library(ggplot2)
 
 # Load fitted model for a species
@@ -77,33 +121,34 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 50 secs
+#> Time difference of 44 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
-species upon it. In R, a species is a list object that is constructed
-with the `species()` function. This list require few more functions to
-work during simulations :
+species object. In R, a species is a list object that is constructed
+with the `species()` function. In addition to the IPM kernel $P$, this
+list require few more functions to work during simulations :
 
 -   `init_pop` : Function to draw the initial size distribution. The
     default one draw distribution for a basal area (later named BA) of 1
-    with random functions. The package provide other function to draw
-    random distribution at a selected BA (`def_initBA()`) or a given
+    $m^2/ha$ with random functions (see the help of the function for
+    more details). The package provide other functions to draw random
+    distribution at a selected BA (`def_initBA()`) or a given
     distribution (`def_init_k()`).
 
 -   `harvest_fun` : Function that cut tree given the size distribution.
-    The default function cut 0.6% of the trees regardless of their size
-    at constant rate. Further functions allow to harvest according to
-    Uneven and Even rules.
+    The default function cut 0.6% per year of the trees regardless of
+    their size. Further functions allow to harvest according to Uneven
+    and Even rules (see Harvesting Vignette).
 
 -   `disturb_fun` : Function that return tree mortality after a
-    disturbance. The default one does not react to disturbance.
+    disturbance. The default is no disturbance.
 
 A species also comes with few parameters, but they are only used for
 harvest and disturbance modules.
 
 For this example, we will just modify the initial size distribution to
-start at a reasonable basal area.
+start at a basal area of 30 $m^2/ha$.
 
 ``` r
 Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
@@ -111,9 +156,9 @@ Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
 
 ## Define a forest
 
-Once each species is set, we can assemble them in a `forest` object.
-This scale also require to give additional parameters, but they are only
-used for harvest and disturbance modules.
+Once each species objects are built, we can assemble them in a `forest`
+object. This function also require additional parameters, but they are
+only used for harvest and disturbance modules.
 
 ``` r
 Picea_for <- forest(species = list(Picea = Picea_sp))
@@ -121,11 +166,15 @@ Picea_for <- forest(species = list(Picea = Picea_sp))
 
 # Running simulations
 
-Simulations will run until a given time limit is reached and can
-continue further if an equilibrium is not reached. Another parameters is
-the used surface `SurfEch`, and it’s define the surface of the studied
-forest. This parameter is mainly here for historical purpose as models
-were fitted on $300m^2$ plot, and output is scaled to an hectare.
+A simulations project forward a size-structured population from its
+initial state with the matrix kernel $P$ and the recruitment function.
+This function requires the length of the simulation and the time limit
+to search for an equilibrium. A simulation is run until the time limit
+is reached and can continue further if an equilibrium is not reached.
+Another parameter is the simulated surface `SurfEch`, it’s define the
+surface of the studied forest. This parameter is mainly here for
+historical purpose as models were fitted on $300m^2$ plot, and output is
+scaled to one hectare.
 
 ``` r
 set.seed(42) # The seed is here for initial population random functions.
@@ -139,27 +188,29 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 244
 #> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.17 secs
+#> Time difference of 1.09 secs
 ```
 
-To explain the time limit, above we simulate for 200 (`tlim`) years and
-past this time we continue the simulation (see figure A). This
-simulation will continue until the 300th year (`equil_time`) unless it
-reach an equilibrium. An equilibrium (in green) is defined as a step for
-which the `equil_dist` last steps (in grey) have a BA range below
-`equil_diff`. The steps between `tlim` and `t_equil` are not recorded.
+In the code above, we simulate for 200 years (`tlim`) years and past
+this time we continue the simulation till it reach an equilibrium up to
+300 years (see figure A). After `tlim`, the simulation will continue
+until the population reach an equilibrium up to a maximum of 300 year
+(`equil_time`) .
 
-If `t_equil` is higher than `tlim`, the algorithm will calculate at each
-time step starting at `tlim` the range of basal area over the last
-`equil_dist` steps (see figure B). This is why `equil_dist` must not be
-higher than `tlim`. The equilibrium is reached at the first timestep for
-which the basal area range is lower than `equil_diff`.
-
-If we want to register the full dynamic, we can set `tlim = equil_time`
-(see figure C). **The equilibrium is always the last size distribution**
-(shown in green in figure). In this case, the final distribution will be
-returned in result twice. The `equil_dist` and `equil_diff` parameters
-are not important in this case.
+The criteria for reaching an equilibrium (in green) is based on
+computing the range of variation of BA for a moving window of length
+`equil_dist` since the current step (in grey). The equilibrium is
+reached if the range of variation within this moving window is less than
+`equil_diff`. The equilibrium is reached at the first timestep for which
+the basal area range is lower than `equil_diff`. The steps between
+`tlim` and `t_equil` are not recorded. The search for the equilibrium
+start at `tlim` over the last `equil_dist` steps (see figure B). This is
+why `equil_dist` must not be higher than `tlim`. If we want to register
+the full dynamic, we can set `tlim = equil_time` (see figure C). **The
+equilibrium is always the last size distribution** (shown in green in
+figure). Note that in this case, the final distribution will be returned
+in the result twice. The `equil_dist` and `equil_diff` parameters are
+not important in this case.
 
 ![](matreex_files/figure-gfm/timeline_explain-1.png)<!-- -->
 
@@ -179,36 +230,34 @@ regarding the equilibrium definition.
 The output of a simulation is a data.frame in long format (according to
 tidyverse style). This is very helpful to filter the output and plot it
 with `{ggplot2}`. Variables exported are the basal area per species
-`BAsp`, the number of individual per mesh for presence `m` and for
-harvest `h`, the total number of individual for presence `N` and for
-harvest `H`.
+`BAsp`, `n` and `h`the number of alive and harvested individuals per
+mesh, and `N` and `H` the total number of alive and harvested
+individuals in the forest (per hectar).
 
 ``` r
 Picea_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) + ylab("BA")
-#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
-#> ℹ Please use `linewidth` instead.
+    geom_line(linewidth = .4) + ylab("BA")
 ```
 
 ![](matreex_files/figure-gfm/sp1plot-1.png)<!-- -->
 
 If size distributions needs to be extracted, it can be easily done with
 `{dplyr}` functions. The equilibrium step is associated with a logical
-to extract it.
+variable to extract it.
 
 ``` r
 head(Picea_sim)
 #> # A tibble: 6 × 7
 #>   species     var    time  mesh  size equil value
 #>   <chr>       <chr> <dbl> <dbl> <dbl> <lgl> <dbl>
-#> 1 Picea_abies m         1     1  90.8 FALSE  0   
-#> 2 Picea_abies m         2     1  90.8 FALSE  2.19
-#> 3 Picea_abies m         3     1  90.8 FALSE  2.67
-#> 4 Picea_abies m         4     1  90.8 FALSE  2.78
-#> 5 Picea_abies m         5     1  90.8 FALSE  2.82
-#> 6 Picea_abies m         6     1  90.8 FALSE  2.84
+#> 1 Picea_abies n         1     1  90.8 FALSE  0   
+#> 2 Picea_abies n         2     1  90.8 FALSE  2.19
+#> 3 Picea_abies n         3     1  90.8 FALSE  2.67
+#> 4 Picea_abies n         4     1  90.8 FALSE  2.78
+#> 5 Picea_abies n         5     1  90.8 FALSE  2.82
+#> 6 Picea_abies n         6     1  90.8 FALSE  2.84
 
 # get the maximum time
 max_t <- max(Picea_sim$time)
@@ -217,20 +266,8 @@ max_t <- max(Picea_sim$time)
 Picea_sim %>% 
     dplyr::filter(grepl("m", var), time == max_t) %>% 
     dplyr::select(size, value)
-#> # A tibble: 700 × 2
-#>     size value
-#>    <dbl> <dbl>
-#>  1  90.8  1.25
-#>  2  92.4  2.26
-#>  3  94.0  2.01
-#>  4  95.6  1.93
-#>  5  97.2  1.85
-#>  6  98.8  1.78
-#>  7 100.   1.71
-#>  8 102.   1.65
-#>  9 104.   1.59
-#> 10 105.   1.53
-#> # … with 690 more rows
+#> # A tibble: 0 × 2
+#> # … with 2 variables: size <dbl>, value <dbl>
 ```
 
 # Customizing the simulations
@@ -251,12 +288,13 @@ starting from an equilibrium or a post disturbance state.
 
 Here is an example where we start from $t = 150$ of the previous
 simulation. This will illustrate that despite the simulation said it
-reached equilibrium at time $t = 244$, our parameters have introduced a
-bias. The previous equilibrium is highlighted in blue rectangle.
+reached equilibrium at time $t = 244$, our parameters have introduced
+failed to identify the true equilibrium. The previous equilibrium is
+highlighted in blue rectangle.
 
 ``` r
 distrib_t150 <- Picea_sim %>% 
-    dplyr::filter(grepl("m", var), time == 150) %>%
+    dplyr::filter(grepl("n", var), time == 150) %>%
     dplyr::pull(value)
 # NOTE : this distribution is given per ha and we need it for SurfEch = 0.03.
 distrib_t150 <- distrib_t150 * 0.03
@@ -273,7 +311,7 @@ Picea_sim_k <- sim_deter_forest(
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 282
 #> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.36 secs
+#> Time difference of 1.4 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -281,7 +319,7 @@ Picea_sim_k  %>%
     # to simplify the understanding of the full document.
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
-    geom_line(size = .4) + ylab("BA") +
+    geom_line(linewidth = .4) + ylab("BA") +
     geom_rect(mapping = aes(xmin = 194, xmax = 244, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
@@ -292,12 +330,15 @@ Picea_sim_k  %>%
 
 ## Recruitment delay
 
-We can modify a species to add more delay for recruitment of new
-individuals. By default, the recruitment is a given number of new
-individual. This number is split in half and adds to the first two class
-of size distribution. Adding delay expand the mesh on the lower size
-side, where the recruitment will be added. The new recruit will age from
-one class to another until they enter the “real” IPM.
+New trees are recruited at $L$ (90mm). Trees takes however several years
+to grow from seed to the minimum size $L$. To represents the time lag
+for a tree to recruit up to $L$, we can modify a species by adding a
+delay for recruitment of new individuals. By default, the recruitment is
+a given number of new individuals. This number is split in half and adds
+to the first two class of size distribution. Adding delay expand the IPM
+with n_delay age based classes to represent the year its takes (here 5
+years) to grow up to $L$. The new recruit will age from one age class to
+another until they enter the size-based IPM.
 
 ``` r
 n_delay <- 5
@@ -306,8 +347,8 @@ Picea_sp_d5$info["species"] <- "Picea_delayed" # We rename the species for easie
 Picea_sp_d5$init_pop <- def_initBA(30)
 ```
 
-Simulation doesn’t change anything, the delay is only defined at the IPM
-level.
+The simulation is run in the same way as the delay is only defined at
+the IPM level.
 
 ``` r
 set.seed(42)
@@ -321,19 +362,19 @@ Picea_sim_d5 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.19 with diff of 7.20 at time 200
-#> Time difference of 1.01 secs
+#> Time difference of 1.03 secs
 ```
 
-Equilibrium BA should be really close ($\Delta_{BA} < 1$). N is expected
-to increase with delay since delayed mesh cell with seeds are counted
-in.
+Equilibrium BA should be really close with or without delay
+($\Delta_{BA} < 1$). N is expected to increase with delay since delayed
+mesh cell with seeds are counted in.
 
 ``` r
 Picea_sim_d5 %>%
     rbind(Picea_sim) %>%
     dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linetype = "dashed", size = .3) +
+    geom_line(linetype = "dashed", linewidth = .3) +
     geom_point(size = .7) + ylab("BA") +
     facet_wrap(~ var, scales = "free_y") +
     NULL
@@ -370,7 +411,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 29.7 secs
+#> Time difference of 28.3 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -391,14 +432,14 @@ Picea_Abies_sim <- sim_deter_forest(
 #> time 500 | BA diff : 0.08
 #> Simulation ended after time 500
 #> BA stabilized at 50.79 with diff of 0.08 at time 500
-#> Time difference of 4.38 secs
+#> Time difference of 3.97 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(size = .4) + ylab("BA") +
+    geom_line(linewidth = .4) + ylab("BA") +
     stat_summary(fun = "sum",  aes(col="Total"),
-                 geom ='line', linetype = "dashed", size = .3)
+                 geom ='line', linetype = "dashed", linewidth = .3)
 ```
 
 ![](matreex_files/figure-gfm/nsp_forest-1.png)<!-- -->
@@ -411,6 +452,27 @@ is defined at the forest level, that is the sum of species basal area.
 # References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-ellner2016" class="csl-entry">
+
+Ellner, Stephen P., Dylan Z. Childs, and Mark Rees. 2016. *Data-Driven
+Modelling of Structured Populations: A Practical Guide to the Integral
+Projection Model*. Lecture Notes on Mathematical Modelling in the Life
+Sciences. Cham: Springer International Publishing.
+<https://doi.org/10.1007/978-3-319-28893-2>.
+
+</div>
+
+<div id="ref-guyennon2023" class="csl-entry">
+
+Guyennon, Arnaud, Björn Reineking, Roberto Salguero-Gomez, Jonas
+Dahlgren, Aleksi Lehtonen, Sophia Ratcliffe, Paloma Ruiz-Benito, Miguel
+A. Zavala, and Georges Kunstler. 2023. “Beyond Mean Fitness: Demographic
+Stochasticity and Resilience Matter at Tree Species Climatic Edges.”
+*Global Ecology and Biogeography* n/a (n/a).
+https://doi.org/<https://doi.org/10.1111/geb.13640>.
+
+</div>
 
 <div id="ref-kunstler2021" class="csl-entry">
 

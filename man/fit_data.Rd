@@ -153,7 +153,8 @@ fit_Salix_caprea
 Reformated fitted models from Kunstler et al. 2021. Each species
 is fitted for growth, survival and recruitment along climatic conditions
 based on sgdd and wai. All objects were modified with the oldfit2fit function
-from this package.
+from this package. The parameters are the mean parameters from the 100
+resampled models from the original dataset.
 }
 \details{
 The fit_species dataset contains the list of species stored with the package.

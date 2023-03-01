@@ -1,5 +1,9 @@
 # matreex (development version)
 
+* `targetBA` argument of `sim_deter_forest()` is now required per hectare and not for the corresponding `SurEch`.
+
+* `sim_deter_forest()` output table changed the name for variable `m_i` (distribution of density by mesh i) for `n_i`. #8
+
 * Correction of vignettes 
 
 # matreex 0.2.0
