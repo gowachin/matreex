@@ -1,21 +1,20 @@
 Harvesting models
 ================
 
-This vignette illustrate how to use harvesting scenarii with `{matreex}`
-package. An harvesting scenario is a simulation modification that will
-trigger some additional death in defined size distribution. This
-distribution is differenciated from base mortality and is saved and
-exported for each simulation.
+This vignette illustrates how to use harvesting scenarii with
+`{matreex}` package. An harvesting scenario provides the rules and the
+periodicity to trigger harvesting of trees in each size classes. The
+harvested trees are saved and exported for each simulation time step.
 
-This document will skip the usage of basic function that are shown in [a
-previous introduction vignette](matreex.html).
+The basic `{matreex}` functions are shown in [a previous introduction
+vignette](matreex.html).
 
 # Simulations input
 
 ## Define a species
 
-The first step of IPM integration. This part is common with basic usage
-of the package so nothing is very important here.
+The first step is the IPM integration. This part is common with basic
+usage of the package, so nothing is very important here.
 
 **Please keep in mind this computation is intensive and may take few
 minutes !**
@@ -34,8 +33,10 @@ data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
 # see ?climate_species to understand the filtering of N.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N       SDM
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2
+#>          SDM
+#> 62 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -43,24 +44,25 @@ Picea_ipm <- make_IPM(
     fit = fit_Picea_abies,
     clim_lab = "optimum clim", 
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:50, # Default values are 0:200, smaller values speed up this vignette.
+    BA = 0:70, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
 #> Launching integration loop
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 25.8 secs
+#> Time difference of 38.5 secs
 ```
 
-Harvesting rules have different scales : some rules are defined for each
-species, others at the forest level and lastly input parameters when
-launching simulation. These rules can always be defined but will only be
-used when the correct module is triggered by simulations. The table
-below summarise the required parameters for each scenario. Each scenario
-have an example in the following document.
+Harvesting scenario are defined at different levels: at the species
+level with the species harvesting function and its associated
+parameters, at the forest level with a set of parameters, and at the
+simulation level with the target of the harvesting scenario. Depending
+on the scenario used, not all the parameters are used. The table below
+summarise the required parameters for each scenario. Each scenario have
+an example in the following document.
 
-| Harvesting scenario       | Species function                     | Species parameters | Forest parameters                | Simulation parameters       |
+| Harvesting scenario       | Species harvesting function          | Species parameters | Forest parameters                | Simulation parameters       |
 |---------------------------|--------------------------------------|--------------------|----------------------------------|-----------------------------|
 | default                   | `def_harv()` <br> or custom by user. | $\emptyset$        | `harv_rules["freq"]`             | $\emptyset$                 |
 | Uneven                    | `Uneven_harv()`                      | `harv_lim`         | `harv_rules`                     | `targetBA`                  |
@@ -71,29 +73,19 @@ the `Uneven_harv()` function with `harv_lim` parameters. The forest will
 need to have `harv_rules` parameters. The `sim_deter_forest()` require
 `targetBA` argument. If `targetRDI` is defined, it will not be used.
 
-In multi-specific simulation, it is possible to combine Uneven or Even
-managed species with default species.
-
-| species 1 | species 2 | Harvesting scenario to use |
-|-----------|-----------|----------------------------|
-| default   | default   | default                    |
-| Uneven    | default   | Uneven                     |
-| Even      | default   | Even                       |
-| Uneven    | Even      | **Not possible !**         |
-
 # Default scenario
 
 ## Presentation
 
 The default scenario is based on Kunstler et al.
 ([2021](#ref-kunstler2021)). This mean there is a constant harvest rate
-triggered each year. This harvest rate is uniform on the distribution.
-This is the scenario used when no modification is given.
+triggered each year. This harvest rate is uniform over the size
+distribution. This is the scenario used by default.
 
 This rate is coded in `def_harv()` function as shown below and the
 frequency (each year) is given in `harv_rules["freq"]`. Note that the
-rate only impact all size classes except classes used in delay (with
-`* (ct > 0)`).
+harvesting is applied to all size class except the age-classes used in
+delay (with `* (ct > 0)`).
 
 ``` r
 def_harv
@@ -116,7 +108,7 @@ With this scenario, the simulation can be launched without any
 additional parameter.
 
 ``` r
-set.seed(42) # The seed is here for initial population random functions.
+set.seed(42) # The seed is here to replicate the random population initialisation.
 Picea_sim <- sim_deter_forest(
     Picea_for,
     tlim = 200,
@@ -127,14 +119,14 @@ Picea_sim <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
-#> BA stabilized at 45.16 with diff of 0.69 at time 200
+#> BA stabilized at 45.62 with diff of 1.04 at time 200
 #> Time difference of 0.821 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
-number of individual at each step of the simulation. The new variable we
-can look now is $H$, the sum of harvest distribution at each step. This
-distribution is also exported with an harvest value for each mesh cell
+number of individual at each step of the simulation, but also a new
+variable $H$. This is the sum of density of harvested trees at each time
+step. The density of harvested trees is also exported for each size mesh
 $h_i$.
 
 In this case, $H$ is correlated with $N$ since it’s a constant
@@ -146,7 +138,7 @@ Picea_sim  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 ![](Harvesting_files/figure-gfm/sp1plot-1.png)<!-- -->
@@ -171,22 +163,24 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
-#> BA stabilized at 30.14 with diff of 0.02 at time 50
-#> Time difference of 0.27 secs
+#> BA stabilized at 29.24 with diff of 0.25 at time 50
+#> Time difference of 0.315 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 ![](Harvesting_files/figure-gfm/def_freq-1.png)<!-- -->
 
-A more advanced step consist in modification of the harvest function for
-more custom effects. Obviously, this kind of modification is more prone
-to error so don’t hesitate to contact `{matreex}` maintainer. For
-example, this is function where we multiply a constant rate with the
-mesh, meaning that the larger the tree get, the more we its size class.
+A more advanced modification of the harvest function is ilustratted
+below. Obviously, this type of modification have not been thoroughly
+tested and thus is more prone to error so don’t hesitate to contact
+`{matreex}` maintainer in case of trouble. For example, we add a
+function where we multiply a constant rate with the mesh, meaning that
+the larger the tree get, the higher the harvesting rate of its size
+class.
 
 ``` r
 Picea_harv <- Picea_sp
@@ -212,13 +206,13 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
-#> BA stabilized at 25.86 with diff of 5.25 at time 250
-#> Time difference of 1.07 secs
+#> BA stabilized at 27.62 with diff of 4.85 at time 250
+#> Time difference of 1.04 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 ![](Harvesting_files/figure-gfm/edit_def_harv-1.png)<!-- -->
@@ -227,8 +221,10 @@ Picea_sim_f20  %>%
 
 ## Theory
 
-Uneven harvest scenario consist in harvesting tree depending on the
-basal area of the stand and the distribution of the tree sizes. This
+Uneven-aged harvest scenario consist in harvesting trees in all size
+classes with the objective to reach a stable size structure with
+continuous replacing of large mature trees. This scenario depends on the
+basal area of the stand and the size distribution of the tree. This
 should lead to stands with uneven size distribution.
 
 ### Monospecific case
@@ -239,15 +235,16 @@ We note $P_{cut}$ the global harvest proportion which will determine the
 amount of basal area to be cut and harvested.
 
 $$
-P_{cut} = \left\{
+P_{cut} = \left\lbrace
  \begin{array}{ll}
     0 & if (BA_{stand} - BA_{target}) < \Delta BA_{min}\\
     min(\frac{BA_{stand}-BA_{target}}{BA_{stand}}, P_{max}) & if (BA_{stand} - BA_{target}) \geq \Delta BA_{min}
  \end{array}
- \right\}
+ \right\rbrace
 $$
 
-For example, $\Delta BA_{min} = 3 m^2ha^{-1}$, $BA_{target} = 20, 25$ or
+For example, some numerical values of the parameters can be
+$\Delta BA_{min} = 3 m^2ha^{-1}$, $BA_{target} = 20, 25$ or
 $30 m^2ha^{-1}$ (depending on species) and $P_{max} = 0.25$.
 
 Note that stand basal area $BA_{stand}$ is computed only considering
@@ -256,12 +253,14 @@ trees with a dbh above $d_{th}$ (see below).
 #### Harvest curve
 
 Each tree harvest probability only depends on its diameter ($d$). There
-is a minimum diameter of harvest ($d_{th}$), harvest probability then
-increases with diameter until $d_{ha}$, the harvesting diameter after
-which harvest probability is high and constant.
+is a minimum diameter for harvest ($d_{th}$), harvest probability then
+increases with diameter until $d_{ha}$ after which harvest probability
+is constant.
 
 We therefore considered the harvesting function (which associates a dbh
-to an harvesting probability) $$
+to an harvesting probability)
+
+$$
 h(d) = \left\lbrace
  \begin{array}{ll}
     0 & \text{if } d < d_{th} \\
@@ -271,11 +270,11 @@ h(d) = \left\lbrace
  \right\rbrace
 $$
 
-The parameter $h_{max}$ can be tuned so that the probability for a large
-tree to be harvested approaches 1 after several harvesting operations:
-$h_{max} = 1 - \sqrt[n]{1-p}$ with $n$ the number of harvesting
-operations. Parameter $k$ defines how much the harvest preferentially
-selects large trees.
+The maximum harvesting for large tree $h_{max}$ can be tuned so that the
+probability for a large tree to be harvested approaches 1 after several
+harvesting operations: $h_{max} = 1 - \sqrt[n]{1-p}$ with $n$ the number
+of harvesting operations. Parameter $k$ defines how quickly the
+harvesting rate increase from $d_{th}$ to $d_{ha}$.
 
 ![Harvest curve example, $d_{th} = 17.5cm$, $d_{ha}=57.5cm$,
 $h_{max}=0.8$,
@@ -290,28 +289,23 @@ Given $\phi(x)$ the density function of diameters, the basal area
 harvested is
 
 $$ 
-\begin{array}{ll}
-BA_{harv} & = \pi/4\int_{d_{th}}^{d_{max}}x^2 h(x) \phi(x)dx \\
-          & = \pi/4\int_{d_{th}}^{d_{ha}}x^2 h(x) \phi(x)dx + h_{max} \pi/4\int_{d_{ha}}^{d_{max}}x^2 \phi(x)dx\\
-      & = BA_{th} + BA_{ha}
-\end{array}
+BA_{harv} = BA_{th} + BA_{ha}
+$$ with $$ 
+BA_{ha} =  h_{max} \pi/4\int_{d_{ha}}^{d_{max}}x^2 \phi(x)dx
 $$
 
 $\bullet$ If $BA_{ha} >= P_{cut} \times BA_{stand}$, there is enough
 large trees (diameter above $d_{ha}$) so that the harvest will only
-concern large trees: $BA_{th} = 0$.
+concern large trees and $BA_{th} = 0$.
 
-We then have two different strategies : we can either adapt $h_{max}$ or
-$d_{ha}$ so that:
-$$  BA_{ha} = h_{max} \pi/4 \int_{d_{ha}}^{d_{max}}x^2 \phi(x)dx = P_{cut} \times BA_{stand}$$
-The `{matreex}` package will cut the larger trees until
-$P_{cut} \times BA_{ha} - targetBA <= 0$, since $h_{max}$ and $d_{ha}$
-are values set by the user and won’t be modified. This is equivalent to
-find an harvest diameter $d_t$ such as $d_{ha} < d_t < d_{max}$.
+We then find $d_t$ (with $d_{ha} < d_t < d_{max}$) such that:
+$$  BA_{ha} = h_{max} \pi/4 \int_{d_{t}}^{d_{max}}x^2 \phi(x)dx = P_{cut} \times BA_{stand}$$
+Thus, the `{matreex}` package will cut the larger trees until
+$P_{cut} \times BA_{ha} - targetBA <= 0$.
 
 $\bullet$ If $BA_{ha} < P_{cut} \times BA_{stand}$, we first harvest
 $BA_{ha}$ and then compute $k$ such as:
-$BA_{th} = P_{cut} \times BA_{stand} - BA_{ha}$.
+$BA_{th} = P_{cut} \times BA_{stand} - BA_{ha}$. Note that
 
 ### Multispecific case
 
@@ -349,17 +343,17 @@ which is equivalent to $\sum_{i=1}^{s} p_i f(p_i) = 1$
 The case $f(p_i) = 1$ works, which leads to $P_{cut,i} = P_{cut}$. In
 that case the harvest rate is the same for every species $i$.
 
-More broadly, \$ \> 0\$
-
-$$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$
+More broadly, we can use the function
+$$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$, \$
+\> 0\$
 
 For $\alpha = 2$, we for example have
 
-$$f(p_i) =\frac{p_i}{\sum_{i=1}^{s} p_i ^2} $$ To sum up $\alpha = 1$,
-an abundant species will be more harvested, in effort to balance the
-species. For $\alpha < 1$, the abundant species will be less harvested.
-Finally, $\alpha > 1$ the most abundant species will be cut more, in a
-greater proportion than that allowing to tend towards an equilibrium.
+$$f(p_i) =\frac{p_i}{\sum_{i=1}^{s} p_i ^2} $$ To sum up,
+if$\alpha = 1$, an abundant species will be more harvested, in effort to
+reach an equi-abundance of the species. For $\alpha < 1$, the abundant
+species will be less harvested. Finally, for $\alpha > 1$ the most
+abundant species will be harvested more, in a greater proportion than 1.
 
 <!--
 #### Favoured species
@@ -397,21 +391,21 @@ Picea_for_Uneven <- forest(species = list(Picea = Picea_Uneven),
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim_f20 <- sim_deter_forest(
     Picea_for_Uneven,
-    tlim = 200,
-    equil_time = 200, equil_dist = 10, equil_diff = 1,
-    harvest = "Uneven", targetBA = 30, # We change the harvest and set targetBA.
+    tlim = 260,
+    equil_time = 260, equil_dist = 10, equil_diff = 1,
+    harvest = "Uneven", targetBA = 20, # We change the harvest and set targetBA.
     SurfEch = 0.03,
     verbose = TRUE
 )
-#> Starting while loop. Maximum t = 200
-#> Simulation ended after time 200
-#> BA stabilized at 31.86 with diff of 2.71 at time 200
-#> Time difference of 0.948 secs
+#> Starting while loop. Maximum t = 260
+#> Simulation ended after time 260
+#> BA stabilized at 22.55 with diff of 2.91 at time 260
+#> Time difference of 1.18 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .2) + geom_point(size = 0.4) 
+    geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
 ![](Harvesting_files/figure-gfm/Uneven_sim-1.png)<!-- -->
