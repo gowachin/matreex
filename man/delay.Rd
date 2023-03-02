@@ -9,7 +9,9 @@ delay(x, delay = 0)
 \arguments{
 \item{x}{an object that require a delay addition}
 
-\item{delay}{the number of time delay to add. single positive int.}
+\item{delay}{the number of time delay to add. single int. Its possible to
+give negative values to remove delay from previously delayed objects. However
+final delay must be positive (0 is acceptable).}
 }
 \description{
 Add delay states to an existing pop_state class object or an ipm class

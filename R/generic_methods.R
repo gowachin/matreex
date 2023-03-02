@@ -85,7 +85,9 @@ climatic.species <- function(x){
 #' This function is a method that call \code{delay.ipm} internal function.
 #'
 #' @param x an object that require a delay addition
-#' @param delay the number of time delay to add. single positive int.
+#' @param delay the number of time delay to add. single int. Its possible to
+#' give negative values to remove delay from previously delayed objects. However
+#' final delay must be positive (0 is acceptable).
 #'
 #' @name delay
 #'
@@ -97,9 +99,18 @@ delay <- function(x, delay = 0){
 #' @method delay numeric
 #' @export
 delay.numeric <- function(x, delay = 0){
-    assertCount(delay)
+    assert_integerish(delay, len = 1)
 
-    x <- c(rep(0, delay), x)
+    if(delay == 0){
+        return(x)
+    }
+
+    if(delay > 0){
+        x <- c(rep(0, delay), x)
+    } else {
+        x <- x[-c(1:-delay)]
+    }
+
     return(x)
 }
 
@@ -107,10 +118,21 @@ delay.numeric <- function(x, delay = 0){
 #' @export
 delay.ipm <- function(x, delay = 0){
 
-    assertCount(delay)
+    assert_integerish(delay, len = 1)
     if(delay == 0){
         return(x)
     }
+
+
+    prev_d <- as.numeric(x$info["delay"])
+    new_d <- delay + prev_d
+    if(new_d < 0){
+        stop(sprintf(
+            "Negative delay is not possible for ipm objects. Minimal value here is %.f",
+            prev_d))
+    }
+    x$info["delay"] <- as.character(new_d)
+
     if(as.logical(x$info["compress"])){
         x$IPM <- lapply(x$IPM, `*`, 1e-7)
         x$info["compress"] <- "FALSE"
@@ -118,8 +140,8 @@ delay.ipm <- function(x, delay = 0){
     x$IPM <- lapply(x$IPM, delay.dtCMatrix, delay)
     x$mesh <- delay(x$mesh, delay)
 
-    prev_d <- as.numeric(x$info["delay"])
-    x$info["delay"] <- as.character(delay + prev_d)
+    # prev_d <- as.numeric(x$info["delay"])
+    # x$info["delay"] <- as.character(delay + prev_d)
 
     return(validate_ipm(x))
 }
@@ -128,7 +150,7 @@ delay.ipm <- function(x, delay = 0){
 #' @export
 delay.species <- function(x, delay = 0){
 
-    assertCount(delay)
+    assert_integerish(delay, len = 1)
     if(delay == 0){
         return(x)
     }
@@ -140,7 +162,7 @@ delay.species <- function(x, delay = 0){
 #' @export
 delay.forest <- function(x, delay = 0){
 
-    assertCount(delay)
+    assert_integerish(delay, len = 1)
     if(delay == 0){
         return(x)
     }
@@ -159,27 +181,50 @@ delay.forest <- function(x, delay = 0){
 #' @method delay dtCMatrix
 #' @examples
 #' x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
-#'          Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
-#' delay(x, 2)
+#'          Dim = c(3L, 3L), x = c(0.1, 0.2, 0.3, 0.1, 0.2, 0.1), uplo = "L", diag = "N")
+#' x <- delay(x, 2)
+#' delay(x, -1)
+#' @importFrom Matrix Matrix
 #' @export
 delay.dtCMatrix <- function(x, delay = 0){
 
-    assertCount(delay)
+    assert_integerish(delay, len = 1)
     if(delay == 0){
         return(x)
     }
 
     size <- dim(x)[1]
-    P <- cbind(matrix(0, nrow = size+delay, ncol = delay),
-               rbind(matrix(0, ncol=size, nrow=delay), x))
-    # NOTE this move from dtCMatrix to dgCMatrix, is it an issue ?
+    if(delay > 0){
 
-    for (i in 1:delay) {
-        P[i + 1, i] <- 1
+        P <- cbind(matrix(0, nrow = size+delay, ncol = delay),
+                   rbind(matrix(0, ncol=size, nrow=delay), x))
+        # NOTE this move from dtCMatrix to dgCMatrix, is it an issue ?
+
+        for (i in 1:delay) {
+            P[i + 1, i] <- 1
+        }
+
+    } else {
+        P <- as.matrix(x)[-c(1:-delay), -c(1:-delay)]
+        P <- Matrix(P, sparse = TRUE)
     }
 
     return(P)
 }
+
+
+#' Delay dgCMatrix
+#'
+#' Adding a topleft corner to a matrix filled with 0.
+#' @inheritParams delay
+#' @method delay dgCMatrix
+#' @examples
+#' x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
+#'          Dim = c(3L, 3L), x = c(0.1, 0.2, 0.3, 0.1, 0.2, 0.1), uplo = "L", diag = "N")
+#' x <- delay(x, 2)
+#' delay(x, -1)
+#' @export
+delay.dgCMatrix <- delay.dtCMatrix
 
 
 # Correction ####

@@ -61,8 +61,8 @@ devtools::check() # takes few minutes
 
 ## Compile documentation site ####
 devtools::load_all()
-rmarkdown::render("vignettes/matreex.Rmd")
-rmarkdown::render("vignettes/Harvesting.Rmd")
+rmarkdown::render(here("vignettes", "matreex.Rmd"))
+rmarkdown::render(here("vignettes", "Harvesting.Rmd"))
 rmarkdown::render("README.rmd", clean = TRUE, quiet = TRUE)
 fs::file_delete("README.html")
 pkgdown::build_site(preview = TRUE, devel = TRUE) # will open website

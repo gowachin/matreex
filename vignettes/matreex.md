@@ -103,10 +103,10 @@ climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
 # N == 2 is the optimum climate for the species. 
 # see ?climate_species for more info.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498
-#>           PC2 N       SDM
-#> 62 0.02602064 2 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2
+#>          SDM
+#> 62 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -121,7 +121,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 44 secs
+#> Time difference of 34.5 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -186,9 +186,9 @@ Picea_sim <- sim_deter_forest(
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 300
-#> Simulation ended after time 244
-#> BA stabilized at 45.30 with diff of 0.96 at time 244
-#> Time difference of 1.09 secs
+#> Simulation ended after time 255
+#> BA stabilized at 46.52 with diff of 0.96 at time 255
+#> Time difference of 1.18 secs
 ```
 
 In the code above, we simulate for 200 years (`tlim`) years and past
@@ -252,12 +252,12 @@ head(Picea_sim)
 #> # A tibble: 6 × 7
 #>   species     var    time  mesh  size equil value
 #>   <chr>       <chr> <dbl> <dbl> <dbl> <lgl> <dbl>
-#> 1 Picea_abies n         1     1  90.8 FALSE  0   
-#> 2 Picea_abies n         2     1  90.8 FALSE  2.19
-#> 3 Picea_abies n         3     1  90.8 FALSE  2.67
-#> 4 Picea_abies n         4     1  90.8 FALSE  2.78
-#> 5 Picea_abies n         5     1  90.8 FALSE  2.82
-#> 6 Picea_abies n         6     1  90.8 FALSE  2.84
+#> 1 Picea_abies n         1     1     0 FALSE  0   
+#> 2 Picea_abies n         2     1     0 FALSE  2.19
+#> 3 Picea_abies n         3     1     0 FALSE  2.20
+#> 4 Picea_abies n         4     1     0 FALSE  2.22
+#> 5 Picea_abies n         5     1     0 FALSE  2.24
+#> 6 Picea_abies n         6     1     0 FALSE  2.26
 
 # get the maximum time
 max_t <- max(Picea_sim$time)
@@ -309,9 +309,9 @@ Picea_sim_k <- sim_deter_forest(
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 300
-#> Simulation ended after time 282
-#> BA stabilized at 34.10 with diff of 0.96 at time 282
-#> Time difference of 1.4 secs
+#> Simulation ended after time 300
+#> BA stabilized at 33.24 with diff of 1.48 at time 300
+#> Time difference of 1.38 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -320,10 +320,10 @@ Picea_sim_k  %>%
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
     geom_line(linewidth = .4) + ylab("BA") +
-    geom_rect(mapping = aes(xmin = 194, xmax = 244, 
+    geom_rect(mapping = aes(xmin = 205, xmax = 255, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
-    geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
+    geom_text(aes(label = "False equilibrium", x = 232, y = 45), size = 4) 
 ```
 
 ![](matreex_files/figure-gfm/sp1initk-1.png)<!-- -->
@@ -336,9 +336,12 @@ for a tree to recruit up to $L$, we can modify a species by adding a
 delay for recruitment of new individuals. By default, the recruitment is
 a given number of new individuals. This number is split in half and adds
 to the first two class of size distribution. Adding delay expand the IPM
-with n_delay age based classes to represent the year its takes (here 5
+with `n_delay` age based classes to represent the year its takes (here 5
 years) to grow up to $L$. The new recruit will age from one age class to
 another until they enter the size-based IPM.
+
+A default delay is used by `build_IPM()` for each species. These values
+are computed from regressions.
 
 ``` r
 n_delay <- 5
@@ -361,8 +364,8 @@ Picea_sim_d5 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
-#> BA stabilized at 45.19 with diff of 7.20 at time 200
-#> Time difference of 1.03 secs
+#> BA stabilized at 45.59 with diff of 9.40 at time 200
+#> Time difference of 0.924 secs
 ```
 
 Equilibrium BA should be really close with or without delay
@@ -411,7 +414,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 28.3 secs
+#> Time difference of 23.8 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -429,10 +432,10 @@ Picea_Abies_sim <- sim_deter_forest(
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 500
-#> time 500 | BA diff : 0.08
+#> time 500 | BA diff : 1.07
 #> Simulation ended after time 500
-#> BA stabilized at 50.79 with diff of 0.08 at time 500
-#> Time difference of 3.97 secs
+#> BA stabilized at 49.30 with diff of 1.07 at time 500
+#> Time difference of 4.06 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%

@@ -42,16 +42,26 @@ fit <- new_fit_sgr(sv_params, sv_family,
 
 # delay ####
 test_that("delay dtCMatrix works", {
-    x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
+    x <- new("dtCMatrix",
+             i = c(0L, 1L, 2L, 1L, 2L, 2L),
+             p = c(0L, 3L,  5L, 6L),
              Dim = c(3L, 3L), x = c(1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
 
     expect_identical(
         delay(x, 2),
-        new("dgCMatrix", i = c(1L, 2L,
-                               2L, 3L, 4L, 3L, 4L, 4L),
+        new("dgCMatrix",
+            i = c(1L, 2L, 2L, 3L, 4L, 3L, 4L, 4L),
             p = c(0L, 1L, 2L, 5L,  7L, 8L),
-            Dim = c(5L, 5L), x = c(1, 1,
-                                   1, 2, 3, 1, 2, 1))
+            Dim = c(5L, 5L),
+            x = c(1, 1, 1, 2, 3, 1, 2, 1))
+    )
+
+    expect_identical(
+        delay(delay(x, 2), -1),
+        new("dtCMatrix",
+            i = c(1L, 1L, 2L, 3L, 2L, 3L, 3L),
+            p = c(0L, 1L, 4L,  6L, 7L),
+            Dim = c(4L, 4L), x = c(1, 1, 2, 3, 1, 2, 1), uplo = "L", diag = "N")
     )
 
     expect_identical( delay(x, 0), x )
@@ -62,6 +72,7 @@ test_that("delay numeric works", {
     x <- as.numeric(1:10)
 
     expect_identical( delay(x, 2), c(0,0, x) )
+    expect_identical( delay(delay(x, 2), -1), c(0, x) )
     expect_identical( delay(x, 0), x )
 })
 
@@ -100,6 +111,9 @@ test_that("delay ipm works", {
     # validate_ipm(exp)
 
     expect_identical( delay(x, 2), exp )
+
+    expect_error( delay(delay(x, 2), -3),
+                  "Negative delay is not possible for ipm objects. Minimal value here is 2")
 })
 
 

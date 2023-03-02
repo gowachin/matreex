@@ -387,16 +387,18 @@ Picea_sim_k  %>%
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
     geom_line(linewidth = .4) + ylab("BA") +
-    geom_rect(mapping = aes(xmin = 194, xmax = 244, 
+    geom_rect(mapping = aes(xmin = 205, xmax = 255, 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
-    geom_text(aes(label = "False equilibrium", x = 219, y = 44.5), size = 4) 
+    geom_text(aes(label = "False equilibrium", x = 232, y = 45), size = 4) 
 ```
 
 
 ## Recruitment delay
 
-New trees are recruited at $L$ (90mm). Trees takes however several years to grow from seed to the minimum size $L$. To represents the time lag for a tree to recruit up to $L$, we can modify a species by adding a delay for recruitment of new individuals. By default, the recruitment is a given number of new individuals. This number is split in half and adds to the first two class of size distribution. Adding delay expand the IPM with n_delay age based classes to represent the year its takes (here 5 years) to grow up to $L$. The new recruit will age from one age class to another until they enter the size-based IPM.
+New trees are recruited at $L$ (90mm). Trees takes however several years to grow from seed to the minimum size $L$. To represents the time lag for a tree to recruit up to $L$, we can modify a species by adding a delay for recruitment of new individuals. By default, the recruitment is a given number of new individuals. This number is split in half and adds to the first two class of size distribution. Adding delay expand the IPM with `n_delay` age based classes to represent the year its takes (here 5 years) to grow up to $L$. The new recruit will age from one age class to another until they enter the size-based IPM.
+
+A default delay is used by `build_IPM()` for each species. These values are computed from regressions.
 
 ```{r, Forest_delay}
 n_delay <- 5
@@ -436,15 +438,17 @@ Picea_sim_d5 %>%
 <!-- *Note : Values below the redline does not count in BA computation.* -->
 
 ```{r, delay_dist_plot, eval = FALSE, echo = FALSE}
+
+base_d <- as.numeric(Picea_sp$IPM$info["delay"])
 Picea_sim_d5 %>%
     dplyr::mutate(mesh = mesh - n_delay) %>%
     rbind(Picea_sim) %>%
-    dplyr::filter(var == "m", time == 200) %>%
+    dplyr::filter(var == "n", time == 200) %>%
     ggplot(aes(x = mesh, y = value, fill = species, group = desc(species))) +
     geom_area(color = "black", alpha = .3, size = .4, position = "identity") +
-    geom_vline(xintercept = 1, color = "red") +
-    annotate("text", x = 0, y = .1, label = "Minimal mesh in BA", size = 3,
-             color = "red", angle = 90) +
+    geom_vline(xintercept = base_d, color = "red") +
+    annotate("text", x = base_d / 2, y = .5, label = "Minimal mesh in BA", size = 3,
+             color = "red", angle = 90, ) +
     NULL
 ```
 

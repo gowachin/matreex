@@ -7,11 +7,6 @@ devtools::test()
 devtools::check()
 
 
-xaringan:::inf_mr(moon = "inst/matreex.Rmd")
-library(renderthis)
-to_pdf("matreex.html", partial_slides = TRUE)
-
-
 # change name
 # grep "matreex" -r ./*
 
