@@ -54,7 +54,7 @@ Picea_ipm <- make_IPM(
     fit = fit_Picea_abies,
     clim_lab = "optimum clim", 
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
-    BA = 0:50, # Default values are 0:200, smaller values speed up this vignette.
+    BA = 0:70, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
 ```
@@ -334,9 +334,9 @@ Picea_for_Uneven <- forest(species = list(Picea = Picea_Uneven),
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim_f20 <- sim_deter_forest(
     Picea_for_Uneven,
-    tlim = 200,
-    equil_time = 200, equil_dist = 10, equil_diff = 1,
-    harvest = "Uneven", targetBA = 30, # We change the harvest and set targetBA.
+    tlim = 260,
+    equil_time = 260, equil_dist = 10, equil_diff = 1,
+    harvest = "Uneven", targetBA = 20, # We change the harvest and set targetBA.
     SurfEch = 0.03,
     verbose = TRUE
 )

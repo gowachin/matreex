@@ -9,7 +9,7 @@
 #' @param SurfEch Value of plot size surface in ha
 #'
 #' @return
-#' Basal area above dth for a species
+#' Basal area per ha above dth for a species
 #'
 #' @noRd
 getBAstand <- function(X, species, SurfEch = 0.03){
@@ -19,7 +19,7 @@ getBAstand <- function(X, species, SurfEch = 0.03){
 
     X[mesh <= dth] <- 0
 
-    BAst <- drop(X %*% Buildct(mesh, SurfEch)) * SurfEch
+    BAst <- drop(X %*% Buildct(mesh, SurfEch))
 
     return(BAst)
 }

@@ -1,7 +1,7 @@
 #' Tree size distrib to BA of a plot
 #'
-#' Build the vector to pass from a tree size distribution to
-#' a basal area computed for a given plot size
+#' Build the vector to pass from a tree size distribution for a sampled plot size
+#' to a basal area per ha
 #'
 #' @param mesh Vector of all values between L and U of the IPM
 #' (L being the smallest size and U the largest.). Length of this vector is
@@ -9,7 +9,7 @@
 #' @param SurfEch Value of plot size surface in ha
 #'
 #' @return
-#' numeric vector of basal area computed depending on plot size
+#' numeric vector
 #'
 #' @examples
 #' Buildct(seq(10,50, 10), 5e-4)
@@ -201,7 +201,6 @@ sim_deter_forest.forest  <- function(Forest,
 
     harvest <- match.arg(harvest)
     assertNumber(targetBA, lower = 0) # TODO modify target BA per ha.
-    targetBA <- targetBA * SurfEch
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
     # assertNumber(targetKg, lower = 0, upper = 1)
     IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
@@ -350,6 +349,7 @@ sim_deter_forest.forest  <- function(Forest,
         range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
     ) > equil_diff))) {
 
+
         ## t size distrib ####
         X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
 
@@ -412,6 +412,7 @@ sim_deter_forest.forest  <- function(Forest,
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
 
+
         ## Disturbance ####
         if(run_disturb && t_disturb[t]){
 
@@ -439,6 +440,7 @@ sim_deter_forest.forest  <- function(Forest,
             X <- map2(X, Disturb, `-`)
 
         }
+
 
         ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
@@ -471,6 +473,7 @@ sim_deter_forest.forest  <- function(Forest,
             tmp <- do.call("c", tmp)
             sim_X[, t] <- tmp
         }
+
 
         ## Stop loop if BA larger than LIPM largest BA ####
         if (any(map2_lgl(sim_BA[t], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
