@@ -57,6 +57,8 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' This indicate what settings will be used. See Details.
 #' @param targetBA BA value per ha that is targetted by the Harvest module.
 #' Single numeric in \eqn{m^2}.
+#' @param final_harv Final harvest time used when \code{harvest} is set to
+#' "Even". This parameter drives the final cut time for even stands.
 #' @param climate Optional, climate matrix if climate variation along time is
 #' needed. Climate variation rely on species created with mu_gr class objects.
 #' This matrix require as many rows as time steps until equil_time.
@@ -110,6 +112,7 @@ sim_deter_forest  <- function(Forest,
                              targetBA = 20,
                              targetRDI = 0.9,
                              targetKg = 0.9,
+                             final_harv = 100,
                              climate = NULL,
                              disturbance = NULL,
                              correction = "none",
@@ -129,6 +132,7 @@ sim_deter_forest.species  <- function(Forest,
                               targetBA = 20,
                               targetRDI = 0.9,
                               targetKg = 0.9,
+                              final_harv = 100,
                               climate = NULL,
                               disturbance = NULL,
                               correction = "none",
@@ -146,6 +150,7 @@ sim_deter_forest.species  <- function(Forest,
         targetBA = targetBA,
         targetRDI = targetRDI,
         targetKg = targetKg,
+        final_harv = final_harv,
         climate = climate,
         disturbance = disturbance,
         correction = correction,
@@ -165,6 +170,7 @@ sim_deter_forest.forest  <- function(Forest,
                                      targetBA = 20,
                                      targetRDI = 0.9,
                                      targetKg = 0.9,
+                                     final_harv = 100,
                                      climate = NULL,
                                      disturbance = NULL,
                                      correction = "none",
@@ -179,12 +185,12 @@ sim_deter_forest.forest  <- function(Forest,
     # targetBA = 20
     # targetRDI = 0.9
     # targetKg = 0.9
+    # final_harv = 100
     # correction = "none"
     # SurfEch = 0.03
     # verbose = FALSE
 
     # TEMP dev
-    FinalHarvT <- 200
     targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     targetKg <- map_dbl(Forest$species, ~ targetKg)
     # TEMP dev
@@ -200,7 +206,7 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     harvest <- match.arg(harvest)
-    assertNumber(targetBA, lower = 0) # TODO modify target BA per ha.
+    assertNumber(targetBA, lower = 0)
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
     # assertNumber(targetKg, lower = 0, upper = 1)
     IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
@@ -376,7 +382,7 @@ sim_deter_forest.forest  <- function(Forest,
             X <- map2(X, Harv, `-`)
         } else if(harvest == "Even"){
             ### Even ####
-            if(t %% FinalHarvT == 0){
+            if(t %% final_harv == 0){
                 Harv <- X
                 X <- map2(map(Forest$species, `[[`, "init_pop"),
                           meshs,

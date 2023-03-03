@@ -6,10 +6,12 @@ output:
     rmarkdown::html_vignette:
 vignette: >
   %\VignetteIndexEntry{Harvesting models}
-  %\VignetteEngine{knitr::rmarkdown}
   %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib 
 link-citations: true
+editor_options: 
+  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}
@@ -19,6 +21,8 @@ knitr::opts_chunk$set(
 )
 options(cli.progress_show_after = 600) 
 # 10 minutes before showing a cli progress bar
+
+library(tidyr)
 ```
 
 This vignette illustrates how to use harvesting scenarii with `{matreex}` package. An harvesting scenario provides the rules and the periodicity to trigger harvesting of trees in each size classes. The harvested trees are saved and exported for each simulation time step.
@@ -349,7 +353,7 @@ Picea_sim_f20  %>%
 
 We notice that the basal area obtained by the simulation is higher than the targeted one. This can be explained by the fact that the cutting calculation is done on $BA_{stand}$, which does not take into account individuals smaller than $d_{th}$.
 
-<!-- # Even scenario -->
+# Even scenario
 
 <!-- $$ -->
 <!-- dg = \sqrt{\frac{\sum_{i = 0}^n d_i^2 x_i}{ \sum_{i = 0}^n x_i }} \\ -->
@@ -360,6 +364,95 @@ We notice that the basal area obtained by the simulation is higher than the targ
 <!-- $$ -->
 <!-- RDI = \frac{ \sum_{i = 0}^n x_i }{ e^{ RDI_{int} + RDI_{slope} \times \frac{ \log( \frac{ \sum_{i = 0}^n mesh_i^2  x_i }{ \sum_{i = 0}^n x_i} ) }{2}   } } -->
 <!-- $$ -->
+
+The objective of even harvesting is to grow trees with the same age until they reach a self-thinning boundary and cut all of them at this stage. This self-thinning boundary is given for each species following :
+
+$$N_{max} = e^{intercept+slope \cdot log(Dg)}$$
+The species parameters are given in @Aussenac2021 and inside the package with `rdi_coef` table. $Dg$ is the mean quadratic diameter of trees.
+
+```{r rdi_coef}
+data(rdi_coef)
+rdi_coef <- drop(as.matrix(
+    rdi_coef[rdi_coef$species == "Picea_abies",c("intercept", "slope")]
+))
+rdi_coef
+```
+
+From this, we can compute the density index $DI = N / N_{max}$ with $N$ the number of stems. 
+
+During the growth process, trees below the mean quadratic diameter $Dg$ are cut. The magnitude of this cut is given with $Kg$, the ratio between the mean quadratic diameter of killed trees $Dg_d$ and the mean quadratic diameter $Dg$ :
+
+$$Kg = Dg^2_d / Dg^2$$
+
+The algorithm present in `Even_harv` is triggered if $DI > targetRDI$ and
+optimise two parameters $h_{max}$ and $k$ for a cut probability curve to reach $targetKg$ and $targetRDI$.
+
+$$Pcut_i = hmax * i^{-k}$$
+
+```{r, even_hcurve_plot, echo = FALSE, warning = FALSE, fig.cap = "Harvest curve example with various combination of hmax and k"}
+h_fun <- function(hmax, k,n = 100){
+    d <- seq(0, n, length.out=n)
+   harvecurve <- hmax * (d)^(-k)
+   return(harvecurve)
+}
+
+n = 100
+
+expand.grid(hmax = c(.5, .8), k = c(0.1, .5)) %>%
+    rowwise() %>%
+    mutate(pcut = list(h_fun(hmax, k, n)), dbh = list(1:n)) %>%
+    tidyr::unnest(c(pcut, dbh)) %>%
+    mutate(hmax = as.factor(hmax), k = as.factor(k)) %>%
+    ggplot( aes(x=dbh, y=pcut, col = hmax,  linetype = k)) + 
+    geom_line() +
+    theme_bw() +
+    NULL
+```
+
+
+The last parameter for an even harvested simulation is the final cut time. The stand will be harvested with the previous rules at a given frequency but at a certain point, the manager will harvest all trees and plant new ones. This time is dependant on the species growth and differents targets. The value is named `final_harv` in `sim_deter_forest()` function.
+
+**Because the rdi coefficient depends on a species, it's not possible to use multiple species forest with {matreex} package. Please contact authors if you need to use mutlispecific even harvesting.**
+
+<!-- Mortality is triggered when stand density exceeds the self-thinning boundary, i.e. when $DI$  is greater than or equal to 1. In that case, $DI$ is reduced to 1 using the $Kg$ parameter, with -->
+
+<!-- To reduce $DI$ to 1, the number of trees in the stand is reduced while the mean quadratic diameter is increased, which amounts to preferentially killing small trees. In mixed stands, the number of trees killed for each species is defined according to their proportion in the stand before mortality process. -->
+
+
+## Examples
+
+The rdi parameters are input in the `species()` function. Calling `forest()` function is not different, only the frequency of harvest will be used. The different targets `targetKg`, `targetRDI` and `final_harv` values are set when launching a simulation.
+
+```{r Even_Picea}
+Picea_Even <- species(
+    IPM = Picea_ipm, init_pop = def_init_even,
+    harvest_fun = Even_harv, rdi_coef = rdi_coef,
+    harv_lim = c(dth = 175, dha = 575, hmax = 1)
+)
+
+Picea_for_Even <- forest(species = list(Picea = Picea_Even),
+                      harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                                     freq = 5, alpha = 1))
+```
+
+
+```{r Even_sim}
+set.seed(42) # The seed is here for initial population random functions.
+Picea_sim_f20 <- sim_deter_forest(
+    Picea_for_Even,
+    tlim = 100,
+    equil_time = 100, equil_dist = 10, equil_diff = 1,
+    harvest = "Even", targetRDI = 0., targetKg = 0.6,
+    final_harv = 80,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+Picea_sim_f20  %>%
+    dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+```
 
 
 # References
