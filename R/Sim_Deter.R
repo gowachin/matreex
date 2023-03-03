@@ -55,8 +55,15 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' research. Must be higher or equal to tlim and equil_dist. single int.
 #' @param harvest Choice of harvest rules between default, Uneven and Even.
 #' This indicate what settings will be used. See Details.
-#' @param targetBA BA value per ha that is targetted by the Harvest module.
+#' @param targetBA BA value per ha that is targeted when using uneven harvesting.
 #' Single numeric in \eqn{m^2}.
+#' @param targetRDI RDI value that is targeted when using even harvesting.
+#' RDI is the ratio between the number of trees and the maximum number of trees
+#' given the self-thinning boundary for the corresponding mean diameter and
+#' species.
+#' @param targetKg Kg value that is targeted when using even harvesting.
+#' Kg is the ratio between mean quadratic diameter of killed trees and mean
+#' quadratic diameter of trees before harvesting.
 #' @param final_harv Final harvest time used when \code{harvest} is set to
 #' "Even". This parameter drives the final cut time for even stands.
 #' @param climate Optional, climate matrix if climate variation along time is
@@ -69,6 +76,10 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' @param SurfEch Value of plot size surface in ha
 #'
 #' @param verbose Print message. FALSE by default
+#'
+#' @details
+#' Basic simulations input are illustrated in the main vignette.
+#' The harvesting scenario and theory is explained in the harvesting vignette.
 #'
 #'
 #' @return

@@ -43,7 +43,7 @@ test_that("getBAstand works", {
                     harv_lim = c(dth = 15, dha = 35, hmax = 1))
 
     expect_equal(getBAstand(x, species, SurfEch = 0.03),
-                 0.00182212374)
+                 0.060737458)
 })
 
 

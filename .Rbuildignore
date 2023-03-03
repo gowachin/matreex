@@ -11,9 +11,6 @@ R/old_Sim_NonDem.R
 ^output$
 ^outputSim$
 
-vignettes/multisp_deter_sim.md
-vignettes/multisp_deter_sim.html
-vignettes/multisp_deter_sim_files
 vignettes/building_ipm.Rmd
 vignettes/harvesting.Rmd
 

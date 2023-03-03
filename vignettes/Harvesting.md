@@ -51,7 +51,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 38.5 secs
+#> Time difference of 56.8 secs
 ```
 
 Harvesting scenario are defined at different levels: at the species
@@ -120,7 +120,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.62 with diff of 1.04 at time 200
-#> Time difference of 0.821 secs
+#> Time difference of 0.844 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
@@ -164,7 +164,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
 #> BA stabilized at 29.24 with diff of 0.25 at time 50
-#> Time difference of 0.315 secs
+#> Time difference of 0.239 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -207,7 +207,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
 #> BA stabilized at 27.62 with diff of 4.85 at time 250
-#> Time difference of 1.04 secs
+#> Time difference of 1.1 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -400,7 +400,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 260
 #> Simulation ended after time 260
 #> BA stabilized at 22.55 with diff of 2.91 at time 260
-#> Time difference of 1.18 secs
+#> Time difference of 1.21 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -415,7 +415,8 @@ the targeted one. This can be explained by the fact that the cutting
 calculation is done on $BA_{stand}$, which does not take into account
 individuals smaller than $d_{th}$.
 
-<!-- # Even scenario -->
+# Even scenario
+
 <!-- $$ -->
 <!-- dg = \sqrt{\frac{\sum_{i = 0}^n d_i^2 x_i}{ \sum_{i = 0}^n x_i }} \\ -->
 <!-- dg_{cut} = \sqrt{\frac{\sum_{i = 0}^n d_i^2 x_i Pc_i }{ \sum_{i = 0}^n x_i Pc_i }} -->
@@ -425,9 +426,114 @@ individuals smaller than $d_{th}$.
 <!-- RDI = \frac{ \sum_{i = 0}^n x_i }{ e^{ RDI_{int} + RDI_{slope} \times \frac{ \log( \frac{ \sum_{i = 0}^n mesh_i^2  x_i }{ \sum_{i = 0}^n x_i} ) }{2}   } } -->
 <!-- $$ -->
 
+The objective of even harvesting is to grow trees with the same age
+until they reach a self-thinning boundary and cut all of them at this
+stage. This self-thinning boundary is given for each species following :
+
+$$N_{max} = e^{intercept+slope \cdot log(Dg)}$$ The species parameters
+are given in Aussenac et al. ([2021](#ref-Aussenac2021)) and inside the
+package with `rdi_coef` table. $Dg$ is the mean quadratic diameter of
+trees.
+
+``` r
+data(rdi_coef)
+rdi_coef <- drop(as.matrix(
+    rdi_coef[rdi_coef$species == "Picea_abies",c("intercept", "slope")]
+))
+rdi_coef
+#> intercept     slope 
+#> 12.875790 -1.762061
+```
+
+From this, we can compute the density index $DI = N / N_{max}$ with $N$
+the number of stems.
+
+During the growth process, trees below the mean quadratic diameter $Dg$
+are cut. The magnitude of this cut is given with $Kg$, the ratio between
+the mean quadratic diameter of killed trees $Dg_d$ and the mean
+quadratic diameter $Dg$ :
+
+$$Kg = Dg^2_d / Dg^2$$
+
+The algorithm present in `Even_harv` is triggered if $DI > targetRDI$
+and optimise two parameters $h_{max}$ and $k$ for a cut probability
+curve to reach $targetKg$ and $targetRDI$.
+
+$$Pcut_i = hmax * i^{-k}$$
+
+![Harvest curve example with various combination of hmax and
+k](Harvesting_files/figure-gfm/even_hcurve_plot-1.png)
+
+The last parameter for an even harvested simulation is the final cut
+time. The stand will be harvested with the previous rules at a given
+frequency but at a certain point, the manager will harvest all trees and
+plant new ones. This time is dependant on the species growth and
+differents targets. The value is named `final_harv` in
+`sim_deter_forest()` function.
+
+**Because the rdi coefficient depends on a species, it’s not possible to
+use multiple species forest with {matreex} package. Please contact
+authors if you need to use mutlispecific even harvesting.**
+
+<!-- Mortality is triggered when stand density exceeds the self-thinning boundary, i.e. when $DI$  is greater than or equal to 1. In that case, $DI$ is reduced to 1 using the $Kg$ parameter, with -->
+<!-- To reduce $DI$ to 1, the number of trees in the stand is reduced while the mean quadratic diameter is increased, which amounts to preferentially killing small trees. In mixed stands, the number of trees killed for each species is defined according to their proportion in the stand before mortality process. -->
+
+## Examples
+
+The rdi parameters are input in the `species()` function. Calling
+`forest()` function is not different, only the frequency of harvest will
+be used. The different targets `targetKg`, `targetRDI` and `final_harv`
+values are set when launching a simulation.
+
+``` r
+Picea_Even <- species(
+    IPM = Picea_ipm, init_pop = def_init_even,
+    harvest_fun = Even_harv, rdi_coef = rdi_coef,
+    harv_lim = c(dth = 175, dha = 575, hmax = 1)
+)
+
+Picea_for_Even <- forest(species = list(Picea = Picea_Even),
+                      harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                                     freq = 5, alpha = 1))
+```
+
+``` r
+set.seed(42) # The seed is here for initial population random functions.
+Picea_sim_f20 <- sim_deter_forest(
+    Picea_for_Even,
+    tlim = 100,
+    equil_time = 100, equil_dist = 10, equil_diff = 1,
+    harvest = "Even", targetRDI = 0., targetKg = 0.6,
+    final_harv = 80,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+#> Starting while loop. Maximum t = 100
+#> Simulation ended after time 100
+#> BA stabilized at 1.30 with diff of 0.52 at time 100
+#> Time difference of 0.616 secs
+Picea_sim_f20  %>%
+    dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+```
+
+![](Harvesting_files/figure-gfm/Even_sim-1.png)<!-- -->
+
 # References
 
 <div id="refs" class="references csl-bib-body hanging-indent">
+
+<div id="ref-Aussenac2021" class="csl-entry">
+
+Aussenac, R, T Pérot, M Fortin, F de Coligny, JM Monnet, and P Vallet.
+2021. “The Salem Simulator Version 2.0: A Tool for Predicting the
+Productivity of Pure and Mixed Forest Stands and Simulating Management
+Operations \[Version 2; Peer Review: 2 Approved\].” *Open Research
+Europe* 1 (61). <https://doi.org/10.12688/openreseurope.13671.2>.
+
+</div>
 
 <div id="ref-kunstler2021" class="csl-entry">
 

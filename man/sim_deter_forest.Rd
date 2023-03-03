@@ -14,6 +14,7 @@ sim_deter_forest(
   targetBA = 20,
   targetRDI = 0.9,
   targetKg = 0.9,
+  final_harv = 100,
   climate = NULL,
   disturbance = NULL,
   correction = "none",
@@ -42,8 +43,20 @@ research. Must be higher or equal to tlim and equil_dist. single int.}
 \item{harvest}{Choice of harvest rules between default, Uneven and Even.
 This indicate what settings will be used. See Details.}
 
-\item{targetBA}{BA value per ha that is targetted by the Harvest module.
+\item{targetBA}{BA value per ha that is targeted when using uneven harvesting.
 Single numeric in \eqn{m^2}.}
+
+\item{targetRDI}{RDI value that is targeted when using even harvesting.
+RDI is the ratio between the number of trees and the maximum number of trees
+given the self-thinning boundary for the corresponding mean diameter and
+species.}
+
+\item{targetKg}{Kg value that is targeted when using even harvesting.
+Kg is the ratio between mean quadratic diameter of killed trees and mean
+quadratic diameter of trees before harvesting.}
+
+\item{final_harv}{Final harvest time used when \code{harvest} is set to
+"Even". This parameter drives the final cut time for even stands.}
 
 \item{climate}{Optional, climate matrix if climate variation along time is
 needed. Climate variation rely on species created with mu_gr class objects.
@@ -94,4 +107,7 @@ state are returned.
 \details{
 At each iteration, the basal area is evaluated to select the corresponding
 IPM matrix.
+
+Basic simulations input are illustrated in the main vignette.
+The harvesting scenario and theory is explained in the harvesting vignette.
 }
