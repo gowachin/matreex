@@ -9,7 +9,14 @@ vignette: >
   %\VignetteIndexEntry{Building IPM}
   %\VignetteEncoding{UTF-8}
   %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib 
+link-citations: true
 ---
+
+<style>
+body {
+text-align: justify}
+</style>
 
 ```{r, include = FALSE}
 knitr::opts_chunk$set(
