@@ -33,10 +33,10 @@ data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
 # see ?climate_species to understand the filtering of N.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2
-#>          SDM
-#> 62 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498
+#>           PC2 N       SDM
+#> 62 0.02602064 2 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -51,7 +51,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 56.8 secs
+#> Time difference of 39.4 secs
 ```
 
 Harvesting scenario are defined at different levels: at the species
@@ -120,7 +120,7 @@ Picea_sim <- sim_deter_forest(
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
 #> BA stabilized at 45.62 with diff of 1.04 at time 200
-#> Time difference of 0.844 secs
+#> Time difference of 0.773 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
@@ -164,7 +164,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
 #> BA stabilized at 29.24 with diff of 0.25 at time 50
-#> Time difference of 0.239 secs
+#> Time difference of 0.246 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -207,7 +207,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
 #> BA stabilized at 27.62 with diff of 4.85 at time 250
-#> Time difference of 1.1 secs
+#> Time difference of 1.02 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -400,7 +400,7 @@ Picea_sim_f20 <- sim_deter_forest(
 #> Starting while loop. Maximum t = 260
 #> Simulation ended after time 260
 #> BA stabilized at 22.55 with diff of 2.91 at time 260
-#> Time difference of 1.21 secs
+#> Time difference of 1.1 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -503,15 +503,15 @@ Picea_sim_f20 <- sim_deter_forest(
     Picea_for_Even,
     tlim = 100,
     equil_time = 100, equil_dist = 10, equil_diff = 1,
-    harvest = "Even", targetRDI = 0., targetKg = 0.6,
+    harvest = "Even", targetRDI = 0.9, targetKg = 0.6,
     final_harv = 80,
     SurfEch = 0.03,
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 100
 #> Simulation ended after time 100
-#> BA stabilized at 1.30 with diff of 0.52 at time 100
-#> Time difference of 0.616 secs
+#> BA stabilized at 4.21 with diff of 2.36 at time 100
+#> Time difference of 0.456 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +

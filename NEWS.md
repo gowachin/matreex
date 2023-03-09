@@ -1,5 +1,11 @@
 # matreex (development version)
 
+* Added BAstand in the output of the model
+
+* Disturbance is now fully implemented and happens before harvesting. An 
+occurance of disturbance cancel harvesting and the size distribution of
+disturbed trees is saved as harvest distribution output.
+
 * IPM build with `make_IPM()` now use the default delay set for each species (see #10). Previous simulation used `delay = 0`.
 
 * `delay` now accept negative values, to remove a delay to any object.

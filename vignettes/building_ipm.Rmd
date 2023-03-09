@@ -25,12 +25,31 @@ knitr::opts_chunk$set(
 )
 ```
 
-# Introduction
+This vignette expose how the different **integrated projection models** (later named IPM) are built and some mathematical explanations of the integration within `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities. It's composed of chapter about default function call, methods for Gauss Legendre and Midbin integration and finally more code examples for specific calls.
 
-The `{matreex}` package use Integral Projection Model (IPM here after) for tree growth and survival models. Each IPM is defined for a given climate (*sggd* and *wai* variables) and competition (*BA* variable).
+The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
 
-This vignette expose how the different IPM are built and some mathematical explanations of the integration. It's composed of chapter about default function call, methods for Gauss Legendre and Midbin integration and finally more code examples for specific calls.
+# Rapid description of the Integral Projection Model
 
+Details on the fitting and the integration of IPM model can be found in @ellner2016.
+Briefly, an IPM predicts the size distribution, $n(z', t+1)$, of a population at time t+1 from its size distribution at time t, $n(z, t)$, with $z$ the size at t and $z'$ the size at $t + 1$,
+based on the following equation (@ellner2016): 
+
+$$
+n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
+$$
+
+with $L$ and $U$ being, respectively, the lower and upper observed sizes for integration of the kernel $K$.
+
+The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
+
+The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and $G$ the growth function. 
+The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
+<!--The figure 1 presents the structure and approach of the IPM. -->
+Note, that this package do not cover the statistical fitting of the vital rates functions.
+
+
+<!--
 ## Pipeline example
 
 Below is a simple script to show default function calls. To build an IPM for a species, we need the fitted models for growth, survival and recruitment in a `fit_sgr` class (see the main vignette for class explanations). A vector of climatic variables is also needed, as it represent the climate of our simulations.
@@ -288,5 +307,5 @@ BA
 
 :   Basal area of population of tree. ${\displaystyle BA=\pi \times (DBH/2)^{2}}$.
 
-
+ -->
 

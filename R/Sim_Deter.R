@@ -281,10 +281,11 @@ sim_deter_forest.forest  <- function(Forest,
         res <- map2(lengths(mesh), names(mesh), function(x, y) {
             tmp <- matrix(
                 data = NA_real_, ncol = tlim + 1,
-                nrow = x + 2 + x + 1
+                nrow = x + 3 + x + 1
             )
             colnames(tmp) <- c(paste0("t", 1:(tlim+1))) #, "sp")
-            rownames(tmp) <- c(paste0(y, ".n", 1:x), paste0(y, c(".BAsp", ".N")),
+            rownames(tmp) <- c(paste0(y, ".n", 1:x),
+                               paste0(y, c(".BAsp", ".BAstand", ".N")),
                                paste0(y, ".h", 1:x), paste0(y,".H"))
             return(tmp)
         })
@@ -303,12 +304,13 @@ sim_deter_forest.forest  <- function(Forest,
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
+    stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
     # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
     sim_X <- do.call("rbind", sim_X)
-    sim_BAsp <- as.data.frame(matrix(
+    sim_BAstand <- sim_BAsp <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
     ))
     sim_BA <- rep(NA_real_, equil_time)
@@ -324,13 +326,18 @@ sim_deter_forest.forest  <- function(Forest,
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
+    standX <- map2(X, stand_above_dth, `*`)
+    sim_BAstand[1, ] <- map2_dbl(standX, ct, `%*%`)
     sim_BA[1] <- sum(sim_BAsp[1,])
     sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
 
-    tmp <- imap(X, function(x, .y, ba, harv){
-        c(x / SurfEch , ba[[.y]], sum(x) / SurfEch,
+    tmp <- imap(X, function(x, .y, ba, bast, harv){
+        c(x / SurfEch , ba[[.y]], bast[[.y]], sum(x) / SurfEch,
           harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch )
-    }, ba = sim_BAsp[1,, drop = FALSE], harv = Harv )
+    },
+    ba = sim_BAsp[1,, drop = FALSE],
+    bast = sim_BAstand[1,,drop = FALSE],
+    harv = Harv )
 
     tmp <- do.call("c", tmp)
     sim_X[, 1] <- tmp
@@ -361,6 +368,7 @@ sim_deter_forest.forest  <- function(Forest,
     alpha <- Forest$harv_rule["alpha"]
     Pmax <- Forest$harv_rule["Pmax"]
     dBAmin <- Forest$harv_rule["dBAmin"]
+    disturb <- FALSE
 
     while (t < tlim || (t <= equil_time && (t <= tlim || diff(
         range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
@@ -370,8 +378,37 @@ sim_deter_forest.forest  <- function(Forest,
         ## t size distrib ####
         X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
 
+        ## Disturbance ####
+        if(run_disturb && t_disturb[t]){
+            disturb <- TRUE
+
+            if (verbose) {
+                message(sprintf(
+                    "time %i | Disturbance : %s I = %.2f",
+                    t, disturbance[disturbance$t == t, "type"],
+                    disturbance[disturbance$t == t, "intensity"]
+                )
+                )
+            }
+
+            qmd <- QMD(size = unlist(meshs), n = unlist(X))
+            # TODO remove unborn size from X before computations
+
+            Disturb <- imap(
+                map(Forest$species, `[[`, "disturb_fun"),
+                function(f, .y, X, sp, disturb, ...){
+                    exec(f, X[[.y]], sp[[.y]], disturb, ...)
+                }, X = X, sp = Forest$species,
+                disturb = disturbance[disturbance$t == t, ],
+                qmd = qmd
+            )
+
+            X <- map2(X, Disturb, `-`)
+
+        }
+
         ## Harvest ####
-        if(t %% Forest$harv_rule["freq"] == 0 && harvest == "Uneven"){
+        if(!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "Uneven"){
             ### Uneven ####
             BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
             BAstand <- sum(BAstandsp)
@@ -391,7 +428,7 @@ sim_deter_forest.forest  <- function(Forest,
             )
 
             X <- map2(X, Harv, `-`)
-        } else if(harvest == "Even"){
+        } else if(!disturb && harvest == "Even"){
             ### Even ####
             if(t %% final_harv == 0){
                 Harv <- X
@@ -415,7 +452,7 @@ sim_deter_forest.forest  <- function(Forest,
             } else {
                 Harv <- map(meshs, ~ rep(0, length(.x)))
             }
-        } else if (t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
+        } else if (!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
             ### Nothing ####
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),
@@ -425,39 +462,12 @@ sim_deter_forest.forest  <- function(Forest,
             )
 
             X <- map2(X, Harv, `-`)
+        } else if(disturb){
+            Harv <- Disturb
+            disturb <- FALSE
         } else {
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
-
-
-        ## Disturbance ####
-        if(run_disturb && t_disturb[t]){
-
-            if (verbose) {
-                message(sprintf(
-                    "time %i | Disturbance : %s I = %.2f",
-                    t, disturbance[disturbance$t == t, "type"],
-                    disturbance[disturbance$t == t, "intensity"]
-                    )
-                )
-            }
-
-            qmd <- QMD(size = unlist(meshs), n = unlist(X))
-            # TODO remove unborn size from X before computations
-
-            Disturb <- imap(
-                map(Forest$species, `[[`, "disturb_fun"),
-                function(f, .y, X, sp, disturb, ...){
-                    exec(f, X[[.y]], sp[[.y]], disturb, ...)
-                }, X = X, sp = Forest$species,
-                disturb = disturbance[disturbance$t == t, ],
-                qmd = qmd
-            )
-
-            X <- map2(X, Disturb, `-`)
-
-        }
-
 
         ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
@@ -474,18 +484,24 @@ sim_deter_forest.forest  <- function(Forest,
         X <- sapply(names(X), function(n, x, y) x[[n]] + y[[n]], X, recrues,
                simplify = FALSE)
 
+        # browser()
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
         sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
+        standX <- map2(X, stand_above_dth, `*`)
+        sim_BAstand[t, ] <- map2_dbl(standX, ct, `%*%`)
         sim_BA[t] <- sum(sim_BAsp[t,])
         sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
 
         # Update X and extract values per ha
         if (t <= tlim) {
-            tmp <- imap(X, function(x, .y, ba, harv){
-                c(x / SurfEch, ba[[.y]], sum(x) / SurfEch,
+            tmp <- imap(X, function(x, .y, ba, bast, harv){
+                c(x / SurfEch, ba[[.y]], bast[[.y]], sum(x) / SurfEch,
                   harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
-            }, ba = sim_BAsp[t,,drop = FALSE], harv = Harv)
+            },
+            ba = sim_BAsp[t,,drop = FALSE],
+            bast = sim_BAstand[t,,drop = FALSE],
+            harv = Harv)
 
             tmp <- do.call("c", tmp)
             sim_X[, t] <- tmp
@@ -526,10 +542,13 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Format output ####
-    tmp <- imap(X, function(x, .y, ba, harv){
-        c(x / SurfEch, ba[[.y]], sum(x) / SurfEch,
+    tmp <- imap(X, function(x, .y, ba, bast, harv){
+        c(x / SurfEch, ba[[.y]], bast[[.y]], sum(x) / SurfEch,
           harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
-    }, ba = sim_BAsp[t-1,,drop = FALSE], harv = Harv )
+    },
+    ba = sim_BAsp[t,,drop = FALSE],
+    bast = sim_BAstand[t,,drop = FALSE],
+    harv = Harv)
 
     tmp <- do.call("c", tmp)
     sim_X[, tlim +1] <- tmp
@@ -607,7 +626,7 @@ tree_format.default <- function(x){
 tree_format.deter_sim <- function(x){
 
     mesh <- attributes(x)$mesh %>%
-        purrr::map( ~ c(.x, NA, NA, .x, NA)) %>%
+        purrr::map( ~ c(.x, NA, NA, NA, .x, NA)) %>%
         purrr::flatten_dbl()
 
     if(length(mesh) == 0){

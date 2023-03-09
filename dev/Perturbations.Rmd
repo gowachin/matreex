@@ -163,11 +163,12 @@ Running a simulation takes the same parameters as usual, with an added data.fram
                        IsSurv = FALSE, t = 100))
 ```
 
-
+**Disturbance size distribution is saved in harvest output. Harvest is canceled when a disturbance happens.**
 
 ```{r sim}
 time <- 2500
 Picea_abies$init_pop <- def_init_k(equil * 0.03)
+Picea_abies$harvest_fun <- def_harv
 forest_ipm <- forest(species = list(Picea = Picea_abies))
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
@@ -176,7 +177,7 @@ memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
                                  verbose = TRUE, correction = "cut")
 
 memor %>%
-    filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
+    filter(var %in% c("BAsp", "N", "H"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
     geom_line(size = .4) + geom_point(size = .4) +
@@ -207,11 +208,15 @@ Abies_alba <- species(
 time <- 5000
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 2500))
+
+Picea_abies$harvest_fun <- Uneven_harv
+Abies_alba$harvest_fun <- Uneven_harv
 forest_nsp <- forest(species = list(Picea = Picea_abies, Abies = Abies_alba))
 set.seed(42)
 memor_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
+                                 harvest = "Uneven", targetBA = 30,
                                  verbose = TRUE, correction = "cut")
 
 memor_nsp %>%

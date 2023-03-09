@@ -442,7 +442,7 @@ Picea_sim_f20 <- sim_deter_forest(
     Picea_for_Even,
     tlim = 100,
     equil_time = 100, equil_dist = 10, equil_diff = 1,
-    harvest = "Even", targetRDI = 0., targetKg = 0.6,
+    harvest = "Even", targetRDI = 0.9, targetKg = 0.6,
     final_harv = 80,
     SurfEch = 0.03,
     verbose = TRUE
