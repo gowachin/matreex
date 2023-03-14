@@ -11,7 +11,7 @@ make_IPM(
   fit,
   mesh = c(m = 700, L = 90, U = 1500),
   BA = 0:100,
-  correction = c("constant", "none", "ceiling", "sizeExtremes"),
+  correction = c("none", "constant", "ceiling", "sizeExtremes"),
   level = 420,
   diag_tresh = 50,
   midbin_tresh = 25,
@@ -42,7 +42,7 @@ minimum size and U the maximum size. h will be defined in the function as
 so use it. Integrating above 200 is absurd.}
 
 \item{correction}{Correction to apply to the IPM matrix for eviction. Choices
-constant (default), ceiling, sizeExtremes and none.}
+none (default), constant, ceiling and sizeExtremes.}
 
 \item{level}{Number of point to use for integration in a cell during
 Gauss-Legendre integration. This value will be divided by 3 since size t is

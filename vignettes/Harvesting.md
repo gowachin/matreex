@@ -33,10 +33,10 @@ data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
 # see ?climate_species to understand the filtering of N.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498
-#>           PC2 N       SDM
-#> 62 0.02602064 2 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2
+#>          SDM
+#> 62 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -51,7 +51,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 39.4 secs
+#> Time difference of 38.1 secs
 ```
 
 Harvesting scenario are defined at different levels: at the species
@@ -119,8 +119,8 @@ Picea_sim <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
-#> BA stabilized at 45.62 with diff of 1.04 at time 200
-#> Time difference of 0.773 secs
+#> BA stabilized at 52.65 with diff of 0.09 at time 200
+#> Time difference of 0.945 secs
 ```
 
 Once the simulation is done, we can extract the basal area and the
@@ -163,8 +163,8 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 50
 #> Simulation ended after time 50
-#> BA stabilized at 29.24 with diff of 0.25 at time 50
-#> Time difference of 0.246 secs
+#> BA stabilized at 14.56 with diff of 2.18 at time 50
+#> Time difference of 0.373 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -206,8 +206,8 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 250
 #> Simulation ended after time 250
-#> BA stabilized at 27.62 with diff of 4.85 at time 250
-#> Time difference of 1.02 secs
+#> BA stabilized at 26.79 with diff of 4.77 at time 250
+#> Time difference of 1.28 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
@@ -344,8 +344,8 @@ The case $f(p_i) = 1$ works, which leads to $P_{cut,i} = P_{cut}$. In
 that case the harvest rate is the same for every species $i$.
 
 More broadly, we can use the function
-$$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$, \$
-\> 0\$
+$$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$,
+$\forall \alpha > 0$
 
 For $\alpha = 2$, we for example have
 
@@ -378,6 +378,10 @@ All the parameters described above are input either in the `species()`,
 `dBAmin` is the difference between `BA` and `targetBA` under which an
 harvesting will not be triggered.
 
+When plooting the result, keep in mind the difference between `BAsp` and
+`BAstand`. Only the second one will match with `targetBA`, since during
+uneven harvesting, trees below `dth` are excluded from computations.
+
 ``` r
 Picea_Uneven <- species(IPM = Picea_ipm, init_pop = def_initBA(30), 
                         harvest_fun = Uneven_harv,
@@ -399,10 +403,10 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 260
 #> Simulation ended after time 260
-#> BA stabilized at 22.55 with diff of 2.91 at time 260
-#> Time difference of 1.1 secs
+#> BA stabilized at 22.55 with diff of 2.89 at time 260
+#> Time difference of 1.36 secs
 Picea_sim_f20  %>%
-    dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+    dplyr::filter(var %in% c("BAsp", "BAstand", "N"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
     geom_line(linewidth = .2) + geom_point(size = 0.4) 
@@ -510,8 +514,8 @@ Picea_sim_f20 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 100
 #> Simulation ended after time 100
-#> BA stabilized at 4.21 with diff of 2.36 at time 100
-#> Time difference of 0.456 secs
+#> BA stabilized at 4.20 with diff of 2.36 at time 100
+#> Time difference of 0.621 secs
 Picea_sim_f20  %>%
     dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +

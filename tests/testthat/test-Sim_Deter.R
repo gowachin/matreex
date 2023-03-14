@@ -14,7 +14,7 @@ test_that("sim_deter_forest simple", {
     res <- sim_deter_forest(Forest = model, tlim = 30, equil_time = 1e3,
                             correction = "cut")
 
-    expect_equal(dim(res), c(1953, 7))
+    expect_equal(dim(res), c(1984, 7))
     expect_equal(colnames(res),
                  c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
@@ -32,7 +32,7 @@ test_that("sim_deter_species simple", {
     res <- sim_deter_forest(Forest = model, tlim = 30, equil_time = 1e3,
                             correction = "cut")
 
-    expect_equal(dim(res), c(1953, 7))
+    expect_equal(dim(res), c(1984, 7))
     expect_equal(colnames(res),
                  c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
@@ -58,7 +58,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[4], "Simulation ended after time 500\n")
     expect_equal(res$messages[5], "BA stabilized at 2.39 with diff of 0.00 at time 500\n")
 
-    expect_equal(dim(new), c(32565, 7))
+    expect_equal(dim(new), c(33066, 7))
     expect_equal(colnames(new),
                  c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
@@ -84,7 +84,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[4], "BA stabilized at 1.07 with diff of 0.08 at time 3\n")
     expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
-    expect_equal(dim(new), c(803, 7))
+    expect_equal(dim(new), c(814, 7))
     expect_equal(colnames(new),
                  c("species", "var", "time", "mesh", "size", "equil", "value"))
 })
@@ -190,14 +190,15 @@ test_that("sim_deter format work", {
     expect_warning(tree_format(42), warn)
 
     res <- structure(
-        c(0.26, 0.00, 0.00, 0.27, 0.27, 1.00, 2.57, 0, 0, 0, 0, 0, 0.00,
-          0.28, 0.37, 0.05, 0.05, 0.18, 1.04, 2.83, 0, 0, 0, 0, 0, 0.01,
-          0.28, 0.44, 0.26, 0.13, 0.09, 1.10, 3.12, 0, 0, 0, 0, 0, 0.02,
-          0.28, 0.45, 0.33, 0.27, 0.17, 1.20, 3.45, 0, 0, 0, 0, 0, 0.02,
-          0.27, 0.44, 0.35, 0.32, 0.26, 1.27, 3.73, 0, 0, 0, 0, 0, 0.02),
-        dim = c(13L, 5L),
+        c(0.26, 0.00, 0.00, 0.27, 0.27, 1.00, 2.57, 2.32, 0, 0, 0, 0, 0, 0.00,
+          0.28, 0.37, 0.05, 0.05, 0.18, 1.04, 2.83, 2.32, 0, 0, 0, 0, 0, 0.01,
+          0.28, 0.44, 0.26, 0.13, 0.09, 1.10, 3.12, 2.32, 0, 0, 0, 0, 0, 0.02,
+          0.28, 0.45, 0.33, 0.27, 0.17, 1.20, 3.45, 2.32, 0, 0, 0, 0, 0, 0.02,
+          0.27, 0.44, 0.35, 0.32, 0.26, 1.27, 3.73, 2.32, 0, 0, 0, 0, 0, 0.02),
+        dim = c(14L, 5L),
         dimnames = list( c(
-            "Ygg.m1", "Ygg.m2", "Ygg.m3", "Ygg.m4", "Ygg.m5", "Ygg.BAsp", "Ygg.N",
+            "Ygg.m1", "Ygg.m2", "Ygg.m3", "Ygg.m4", "Ygg.m5",
+            "Ygg.BAsp", "Ygg.BAstand", "Ygg.N",
             "Ygg.h1", "Ygg.h2", "Ygg.h3", "Ygg.h4", "Ygg.h5", "Ygg.H"
         ), c("t1", "t2", "t3", "t4", "t5")))
     res <- new_deter_sim(res)

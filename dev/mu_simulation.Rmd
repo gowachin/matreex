@@ -29,6 +29,8 @@ climate <- subset(climate_species, sp == species, select = -sp)
 
 ## Get Mu values
 
+Mu is an intermediate value computed during the simulation.
+
 The first step consist in computing all mu values for a species in its climatic and basal area range. For this, we compute the mu range of the species and simulate a matrix for each values of mu, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
 
 ```{r range_mu}

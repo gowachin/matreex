@@ -16,7 +16,7 @@
 #' @param BA Vector of basal area to integrate on. Integrating on 0 is important
 #' so use it. Integrating above 200 is absurd.
 #' @param correction Correction to apply to the IPM matrix for eviction. Choices
-#' constant (default), ceiling, sizeExtremes and none.
+#' none (default), constant, ceiling and sizeExtremes.
 #' @param level Number of point to use for integration in a cell during
 #' Gauss-Legendre integration. This value will be divided by 3 since size t is
 #' integrated at level = 3 and size t+1 at level = level/3. single int
@@ -58,7 +58,7 @@ make_IPM <- function(species,
                      fit,
                      mesh = c(m = 700, L = 90, U = 1500),
                      BA = 0:100,
-                     correction = c("constant", "none", "ceiling", "sizeExtremes"),
+                     correction = c("none", "constant", "ceiling", "sizeExtremes"),
                      level = 420,
                      diag_tresh = 50,
                      midbin_tresh = 25,

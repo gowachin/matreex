@@ -1,0 +1,129 @@
+template:
+  bootstrap: 5
+
+navbar:
+  structure:
+    right: [search, github]
+
+
+authors:
+  footer:
+    roles: [cre]
+  Maxime Jaunatre:
+    href: https://gowachin.github.io/
+
+repo:
+  url:
+    home: https://github.com/gowachin/matreex
+    source: https://github.com/gowachin/matreex
+
+reference:
+- title: Main package documentation.
+  contents:
+    - matreex
+
+- title: Working with IPMs
+  desc: >
+    Function used to create and modify IPMs
+  contents:
+    - make_IPM
+    - get_step_IPM
+    - make_mu_gr
+
+- title: Species functions
+  desc: >
+    Functions for building species object, default functions used for
+    initiation of population, harvesting and disturbance.
+  contents:
+    - species
+    - def_init
+    - def_initBA
+    - def_init_even
+    - def_init_k
+    - def_harv
+    - def_disturb
+
+- title: Running a simulation.
+  desc: >
+    Takes a forest class object to run a simulation.
+  contents:
+    - forest
+    - sim_deter_forest
+
+- title: Harvesting
+  desc: >
+    Function for harvesting models during simulations.
+  contents:
+    - Uneven_harv
+    - Even_harv
+
+
+- title: Example dataset
+  desc: Species vital traits models and various datasets.
+  contents:
+    - fit_species
+    - lag_species
+    - disturb_coef
+    - rdi_coef
+    - climate_species
+    - fit_Abies_alba
+    - fit_Acer_campestre
+    - fit_Acer_pseudoplatanus
+    - fit_Alnus_glutinosa
+    - fit_Betula
+    - fit_Carpinus_betulus
+    - fit_Fagus_sylvatica
+    - fit_Fraxinus_excelsior
+    - fit_Juniperus_thurifera
+    - fit_Larix_decidua
+    - fit_Picea_abies
+    - fit_Pinus_halepensis
+    - fit_Pinus_nigra
+    - fit_Pinus_pinaster
+    - fit_Pinus_pinea
+    - fit_Pinus_sylvestris
+    - fit_Pinus_uncinata
+    - fit_Populus_tremula
+    - fit_Prunus_padus
+    - fit_Quercus_faginea
+    - fit_Quercus_ilex
+    - fit_Quercus_petraea
+    - fit_Quercus_pubescens
+    - fit_Quercus_pyrenaica
+    - fit_Quercus_robur
+    - fit_Quercus_suber
+    - fit_Salix_caprea
+
+
+- title: Loading old objects
+  desc: >
+    IPMs have been build with the functions before creating {matreex}.
+    These functions allow to load them and format them into the recent classes.
+  contents:
+    - old_fit2fit
+    - old_ipm2species
+    - old_ipm2forest
+
+- title: Misc
+  contents:
+    - fit_sgr
+    - delay
+    - correction
+    - QMD
+    - get_maxdbh
+    - climatic
+    - sp_name
+
+
+- title: Deprecated Functions
+  contents:
+    - tree_format
+
+- title: internal
+  contents:
+    - sp_rec
+    - summary.ipm
+    - summary.mu_gr
+    - summary.species
+    - delay.dgCMatrix
+    - delay.dtCMatrix

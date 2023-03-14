@@ -1,21 +1,38 @@
 ---
-title: "Perturbations"
-author: "Maxime Jaunatre"
-date: "2022-12-08"
-output: pdf_document
+title: "Disturbance"
+package: matreex
+output: 
+    github_document:
+    rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Basic functions and examples}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib 
+link-citations: true
+---
+
+<style>
+body {
+text-align: justify}
+</style>
 ---
 
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(cli.progress_show_after = 600) 
+# 10 minutes before showing a cli progress bar
 ```
 
-## Testing simulation with perturbations
+## Testing simulation with disturbances
 
-This document show how to simulate a species with perturbation occuring in time.
-For now, the package is in experimental state and use the branch *tempest*. For this example we will use the species *Picea abies* as an example.
-
-Only the Julien disturbance model is explained in this case.
+This document show how to run simulations with disturbance occurring at specific times. 
+This part of the package is in experimental state. 
+For this document we will use the species *Picea abies* as an example.
 
 ```{r constant make ipm}
 # Libraries
@@ -150,7 +167,7 @@ legend("topright", c("Distribution", "After Disturbance"),
 ## Simulations
 
 ```{r note, echo = FALSE}
-# We need to remove survival during perturbation. 
+# We need to remove survival during disturbance. 
 # This is done during simulation at the step where we 
 # get the IPM matrix with get_step_IPM.
 # TODO  find a way to show this !

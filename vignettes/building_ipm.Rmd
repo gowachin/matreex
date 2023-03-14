@@ -48,7 +48,7 @@ The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: grow
 <!--The figure 1 presents the structure and approach of the IPM. -->
 Note, that this package do not cover the statistical fitting of the vital rates functions.
 
-
+**This vignette in not fully written**
 <!--
 ## Pipeline example
 
@@ -113,7 +113,7 @@ To speed up computations, several methods are used :
 
 - Only few cells next to the diagonal are computed because tree growth is very slow. This number of cell is named $N_{int}$ and is computed for Gauss Legendre and an argument for mid-bin integration.
 
-```{r band matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
 \begin{tikzpicture}[scale = 0.4, every node/.style={scale=0.4}]
         \foreach \i in {4,3.5,...,0}{
                         {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
@@ -230,14 +230,14 @@ Below is a schematic view so to represent how the points are placed for the Gaus
 <!-- \end{tikzpicture} -->
 <!-- ``` -->
 
-
+<!--
 ## Code option examples
 
 Few specific settings allow to test partial integration, this section will list few of them.
 
 Beyond some points, the levels values cancel integration. For example we can deactivate the Gauss-Legendre integration with a negative `diag_tresh`. If the mid-bin integration has values abose `0.001`, a message will indicate an insufficient integration.
 
-```{r no GL}
+```{r no_GL}
 IPM <- make_IPM(
     species = species, climate = climate, fit =  fit_Pinus_pinea,
     clim_lab = "optimum clim",
@@ -292,6 +292,8 @@ IPM <- make_IPM(
 <!-- #> Loop done.                                                    -->
 <!-- #> Time difference of 21.2 secs -->
 <!-- ``` -->
+
+<!-- 
 
 # Glossary {-}
 

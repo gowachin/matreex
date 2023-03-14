@@ -84,6 +84,8 @@ remotes::install_gitlab("gowachin/matreex", ref = "dev")
 ```
 -->
 
+**If you install the development version of this package, please check the NEWS.md regularly. The package is in active development and some changes may break your code !**
+
 ## Usage Guide
 
 [Getting started vignette](https://github.com/gowachin/matreex/blob/main/vignettes/matreex.md) is now available to run basic simulations with `{matreex}` package.

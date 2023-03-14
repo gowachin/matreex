@@ -23,7 +23,7 @@
 #' that register year delta, maximum integration error on the first half of
 #' the mesh, minimal gauss-legendre value and maximal midbin error.
 #'
-#' @export
+#' @noRd
 new_ipm <- function(IPM, BA, mesh, species, correction, survival = TRUE,
                     climatic, clim_lab,
                     fit, compress = FALSE, delay = 0, int){

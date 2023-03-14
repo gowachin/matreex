@@ -63,6 +63,8 @@ needed. Climate variation rely on species created with mu_gr class objects.
 This matrix require as many rows as time steps until equil_time.
 If the climate does not variate, a single row can given and will be reused.}
 
+\item{disturbance}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} parameter.}
+
 \item{correction}{Choice of correction of the IPM between \code{"none"}
 (default) and \code{"cut"}. The second option set the last column to 0 in the
 IPM so that no individual can grow outside of the defines classes.}
@@ -91,7 +93,9 @@ The variables are :
 \describe{
 \item{n}{Distribution of density by mesh along time per ha.}
 \item{N}{Sum of density per ha. (colSums for n)}
-\item{BA}{Basal area of the population per ha}
+\item{BAsp}{Basal area of the population per ha and species}
+\item{BAstand}{Basal area of the population per ha and species when
+excluding size class below dth. See Harvesting vignette.}
 \item{h}{Distribution of harvest density by mesh along time per ha.}
 \item{H}{Sum of harvested density per ha. (colSums for h)}
 }

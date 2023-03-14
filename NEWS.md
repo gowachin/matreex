@@ -1,5 +1,7 @@
 # matreex (development version)
 
+* Default parameter `correction` in `make_IPM()` is now `"none"`. Previous one was `"constant"`. #11
+
 * Added BAstand in the output of the model
 
 * Disturbance is now fully implemented and happens before harvesting. An 
@@ -12,7 +14,7 @@ disturbed trees is saved as harvest distribution output.
 
 * `sim_deter_forest()` output table changed the name for variable `m_i` (distribution of density by mesh i) for `n_i`. #8.
 
-* Correction of vignettes 
+* Correction of vignettes
 
 # matreex 0.2.0
 

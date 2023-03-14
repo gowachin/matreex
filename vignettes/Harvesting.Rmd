@@ -295,7 +295,7 @@ $\sum_{i=1}^{s} p_i f(p_i) = 1$
 
 The case $f(p_i) = 1$ works, which leads to $P_{cut,i} = P_{cut}$. In that case the harvest rate is the same for every species $i$.
 
-More broadly, we can use the function $$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$, $ \forall \alpha > 0$
+More broadly, we can use the function $$f(p_i) = \frac{p_i^{\alpha - 1}}{\sum_{i=1}^{s} p_i ^{\alpha}}$$, $\forall \alpha > 0$
 
 For $\alpha = 2$, we for example have 
 
@@ -323,6 +323,8 @@ We then apply for each species $i$ the harvest rate $H_i = H_Q$ or $H_i=H_{1-Q}$
 
 All the parameters described above are input either in the `species()`, `forest()` or `sim_deter_forest()` functions. Additional parameter `dBAmin` is the difference between `BA` and `targetBA` under which an harvesting will not be triggered. 
 
+When plooting the result, keep in mind the difference between `BAsp` and `BAstand`. Only the second one will match with `targetBA`, since during uneven harvesting, trees below `dth` are excluded from computations.
+
 ```{r Uneven_Picea}
 Picea_Uneven <- species(IPM = Picea_ipm, init_pop = def_initBA(30), 
                         harvest_fun = Uneven_harv,
@@ -345,7 +347,7 @@ Picea_sim_f20 <- sim_deter_forest(
     verbose = TRUE
 )
 Picea_sim_f20  %>%
-    dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+    dplyr::filter(var %in% c("BAsp", "BAstand", "N"), ! equil) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
     geom_line(linewidth = .2) + geom_point(size = 0.4) 
