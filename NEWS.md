@@ -1,6 +1,6 @@
 # matreex (development version)
 
-* Default parameter `correction` in `make_IPM()` is now `"none"`. Previous one was `"constant"`. #11
+* Default parameter `correction` in `make_IPM()` and `make_mu_gr()` is now `"none"`. Previous one was `"constant"`. #11
 
 * Added BAstand in the output of the model
 

@@ -34,7 +34,7 @@ test_that("make_mu_gr works", {
             BA = 0:200,
             mesh = c(145.5, 256.5, 367.5, 478.5, 589.5, 700.5, 811.5, 922.5, 1033.5, 1144.5),
             mu_tab = c(-5, -4, -3, -2, -1, 0, 1, 2, 3), fit = f,
-            info = c(species = "Picea_abies", correction = "constant",
+            info = c(species = "Picea_abies", correction = "none",
                      clim_lab = "mu_gr", step = "1", surv = "TRUE"),
             int = c(gl1 = 3, gl2 = 10, gl_tresh.U = 1, mb_tresh = 2, mid_level = 5, year_delta = 1)
             ), class = "mu_gr")
@@ -106,3 +106,4 @@ test_that("validate_mu_gr works", {
         "species class must have info of elements species, correction, clim_lab, step and surv"
     )
 })
+

@@ -129,6 +129,9 @@ Linked with this set of parameters, we need to provide a disturbance function to
 #' \describe{
 #'  \item{qmd}{Forest Quadratic Mean Diameter}
 #' }
+#' 
+#' @details
+#' Delayed mesh cells takes the value of the minimal mesh size.
 #'
 disturb_fun <- function(x, species, disturb = NULL, ...){
     
@@ -142,6 +145,10 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
         stop(sprintf("The species %s miss this disturbance type (%s) parameters",
                      sp_name(species), disturb$type))
     }
+    
+    # edits for delay
+    size[size == 0] <- min(size[size !=0])
+    
     logratio <-  log(size / qmd)
     dbh.scaled = coef$dbh.intercept + size * coef$dbh.slope
     logratio.scaled = coef$logratio.intercept + logratio * coef$logratio.slope
@@ -150,6 +157,11 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
     
     return(x* Pkill) # always return the mortality distribution
 }
+
+x <- equil
+species <- Picea_abies
+disturb <- data.frame(type = "storm", intensity = 0.7, IsSurv = FALSE)
+qmd <-QMD(Picea_abies$IPM$mesh, equil)
 
 ex_disturb <- data.frame(type = "storm", intensity = 0.7, IsSurv = FALSE)
 

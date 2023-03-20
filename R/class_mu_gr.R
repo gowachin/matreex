@@ -135,7 +135,7 @@ make_mu_gr <- function(species,
                        climate = NULL,
                        mesh = c(m = 700, L = 90, U = 1500),
                        BA = 0:200,
-                       correction = c("constant", "none", "ceiling", "sizeExtremes"),
+                       correction = c("none", "constant", "ceiling", "sizeExtremes"),
                        stepMu=1e-3, # NEW
                        level = c(3, 140), # 1 not used
                        diag_tresh = 50,

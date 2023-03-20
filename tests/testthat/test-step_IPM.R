@@ -13,7 +13,8 @@ test_that("get_step_IPM.mu_gr works", {
         get_step_IPM.mu_gr(x = x, BA = 20, climate = climate, sim_corr = "cut"),
         new("dtCMatrix", i = c(0L, 1L, 1L), p = c(0L, 2L, 3L, 3L),
             Dim = c(3L, 3L), Dimnames = list(NULL, NULL),
-            x = c(0.0123028767143828, 0.34158918921637, 0.034689615536287),
+            x = c(0.0050851898305768, 0.14117072170973,
+                  0.00508589219324898),
             uplo = "L", diag = "N")
     )
 
@@ -55,3 +56,4 @@ test_that("get_step_IPM.ipm works", {
     )
 
 })
+

@@ -262,8 +262,8 @@ rec_data_lines <- do.call(rbind, l_species_lines)
 
 rec_data %>%
     ggplot(aes(x = BA, y = mean, ymin = rec_min, ymax = rec_max, color = clim, fill = clim)) +
-    geom_ribbon(alpha = 0.2, linetype = 0) +
-    geom_line( linewidth=0.5) +
+    geom_ribbon(data = rec_data %>% filter(new_mod != "mean"), alpha = 0.2, linetype = 0) +
+    geom_line(data = rec_data %>% filter(new_mod == "mean"), linewidth=0.5) +
     facet_wrap(species ~ vital, scales = "free") +
     scale_colour_manual(values = c("cadetblue3", "chartreuse3", "coral2")) +
     scale_fill_manual(values = c("cadetblue3", "chartreuse3", "coral2")) +
@@ -271,12 +271,14 @@ rec_data %>%
     NULL
 
 rec_data_lines %>%
-    # filter(value > 0) %>%
-    mutate(alpha = models == "mean") %>%
-    ggplot(aes(x = mesh, y = value, group = interaction(models,clim),
+    ggplot(aes(x = BA, y = value, group = interaction(models,clim),
                color = clim,  alpha = alpha)) +
     geom_line( linewidth=0.5) +
     facet_wrap(species ~ vital, scales = "free") +
     scale_colour_manual(values = c("cadetblue3", "chartreuse3", "coral2")) +
     scale_alpha_discrete(range = c(0.08, 1), name = "mean") +
     NULL
+
+## Understand Quercu ilex ####
+
+# see test_ipm project with targets files

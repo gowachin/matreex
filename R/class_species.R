@@ -256,7 +256,7 @@ old_ipm2species <- function(species, climatic = 1,
 #' @export
 def_init <- function(mesh, SurfEch = 0.03) {
     ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
-    ini <- exp(runif(1, -.005, .005) * mesh)
+    ini <- exp(runif(1, -.005, -1e-4) * mesh)
     alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
     while(all(alea)){ # because god knows it's fucking possible that alea is
                       # all FALSE and it will return NaN
