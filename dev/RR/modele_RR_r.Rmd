@@ -1,0 +1,27 @@
+---
+title: "{matreex} : Simuler les dynamiques forestières européeennes"
+author:
+- Maxime Jaunatre 1^[INRAE 1, maxime.jaunatre@inrae.fr]
+- Georges Kunstler 2^[INRAE 2, georges.kunstler@inrae.fr]
+output: pdf_document
+indent: true
+bibliography: ref.bib
+---
+
+\begin{center}
+\textbf{Résumé (max 300 mots)}
+\end{center}
+Le package R {matreex} permet de projeter la dynamique de communautés d’arbres en Europe. A partir de fonctions prédisant les taux vitaux : survie, reproduction et croissance paramétrisées sur des inventaires forestiers, ce package simule la dynamique de populations d’arbres et le changement de leurs structures en taille avec des modèles intégré de dynamique de population (IPM). Le modèle prend en compte l’effet du climat et la compétition. A ces simulations s'ajoutent des modules de coupes régulière et irrégulière ainsi que des perturbations. L'utilisation de ces matrices accélère grandement le calcul et autorise donc des simulations sur plusieurs milliers d'années pour l'étude d'équilibres dans la dynamique de population d'espèce arborées.
+
+L'objectif est de faciliter l'utilisation de ce modèle au sein d'une équipe de recherche, afin de développer de nouveaux axes d'étude sur les forêts européennes (@kunstler2021 et @guyennon2023).
+
+
+\noindent \textbf{Mots-clefs} : Integral projection model -- dynamique des populations -- Biologie -- ingénieur -- Package 
+
+## Développement 
+
+Après une introduction sur l'intérêt des modèles de projection intégrés et leurs intérêts dans le cadre des forêts, je présenterais la démarche utilisée pour passer de scripts publiés dans un article de recherche vers un package R fonctionnel.
+
+Cette présentation comprendra les contraintes à développer un package et un environnement de développement permettant de futures ajouts pour appuyer l'équipe de chercheurs.
+
+## Références
