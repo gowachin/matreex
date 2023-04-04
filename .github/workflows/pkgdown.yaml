@@ -20,6 +20,7 @@ jobs:
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     steps:
+
       - uses: actions/checkout@v3
 
       - uses: r-lib/actions/setup-pandoc@v2
@@ -32,6 +33,9 @@ jobs:
         with:
           extra-packages: any::pkgdown, local::.
           needs: website
+
+      - name: install pdflatex
+        run: sudo apt-get install texlive-latex-base texlive-latex-extra
 
       - name: Build site
         run: pkgdown::build_site_github_pages(new_process = FALSE, install = FALSE)

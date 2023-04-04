@@ -37,7 +37,9 @@ Suggests:
     knitr,
     latex2exp,
     rmarkdown,
-    testthat (>= 3.0.0)
+    testthat (>= 3.0.0), 
+    magick, 
+    pdftools
 VignetteBuilder: 
     knitr
 Config/testthat/edition: 3
