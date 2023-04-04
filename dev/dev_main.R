@@ -67,7 +67,9 @@ rmarkdown::render("README.rmd", clean = TRUE, quiet = TRUE)
 fs::file_delete("README.html")
 pkgdown::build_site(preview = TRUE, devel = TRUE) # will open website
 pkgdown::build_home(preview = TRUE) # will open website
+pkgdown::init_site()
 pkgdown::build_reference()
+usethis::use_logo("inst/fig/logo.png")
 
 ## Clear objects in env ####
 rm(list = ls())

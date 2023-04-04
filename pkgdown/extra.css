@@ -1,0 +1,9 @@
+.navbar-nav.me-auto {
+  background-image: url(https://www.lessem.fr/wp-content/uploads/2021/03/LESSEM_couleur-1.png), url(https://www.lessem.fr/wp-content/uploads/2021/03/1280px-Logo-INRAE_Transparent.svg.png);
+  background-size: 70px auto, 90px auto;
+  background-repeat: no-repeat, no-repeat;
+  background-position-x: 520px, 420px;
+  background-position-y: center, center;
+  padding-right: 300px;
+}
+
