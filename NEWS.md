@@ -1,20 +1,34 @@
 # matreex (development version)
 
-* Default parameter `correction` in `make_IPM()` and `make_mu_gr()` is now `"none"`. Previous one was `"constant"`. #11
+# matreex 0.3.0
 
-* Added BAstand in the output of the model
+## News
 
 * Disturbance is now fully implemented and happens before harvesting. An 
 occurance of disturbance cancel harvesting and the size distribution of
 disturbed trees is saved as harvest distribution output.
 
-* IPM build with `make_IPM()` now use the default delay set for each species (see #10). Previous simulation used `delay = 0`.
+* Added BAstand in the output of the model
 
-* `delay` now accept negative values, to remove a delay to any object.
+## Breaking changes
 
 * `sim_deter_forest()` output table changed the name for variable `m_i` (distribution of density by mesh i) for `n_i`. #8.
 
+* `delay` now accept negative values, to remove a delay to any object.
+
+* IPM build with `make_IPM()` now use the default delay set for each species (see #10). Previous simulation used `delay = 0`.
+
+* Default parameter `correction` in `make_IPM()` and `make_mu_gr()` is now `"none"`. Previous one was `"constant"`. #11
+
+## Documentation
+
+* Add `{pkgdown}` usage to document the package on the www.
+
 * Correction of vignettes
+
+## Datasets
+
+* Default delay set for each species (see #10)
 
 # matreex 0.2.0
 

@@ -1,7 +1,7 @@
 Package: matreex
 Title: LESSEM internal package for simulation of forest dynamic depending
     on climatic variables
-Version: 0.2.0
+Version: 0.3.0
 Authors@R: c(
     person("Anne", "Baranger", , "anne.baranger@inrae.fr", role = "aut"),
     person("Julien", "Barrere", , "julien.barrere@inrae.fr", role = "aut"),

@@ -1,4 +1,4 @@
-# matreex <img src="man/figures/logo.png" align="right" height="138" />
+# {matreex} <img src="man/figures/logo.png" align="right" height="138" />
 <!-- badges: start -->
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
@@ -30,7 +30,6 @@ for (i in deps ){
 
 <!-- 
 Be aware that anyone who installs directly from GitHub will need to explicitly request vignettes, e.g. with devtools::install_github(dependencies = TRUE, build_vignettes = TRUE).
-
 -->
 
 You can install the `{matreex}` package from [gitlab](https://gitlab.com/gowachin/matreex) with :
@@ -48,9 +47,9 @@ remotes::install_gitlab("gowachin/matreex")
 ```
 -->
 
-**Note : You need to have your gitlab/github account logged on your local computer because the current repository is in private. See [these answers](https://stackoverflow.com/questions/21171142/how-to-install-r-package-from-private-repo-using-devtools-install-github) for more information.**
+<!--**Note : You need to have your gitlab/github account logged on your local computer because the current repository is in private. See [these answers](https://stackoverflow.com/questions/21171142/how-to-install-r-package-from-private-repo-using-devtools-install-github) for more information.**-->
 
-*Github repository is only a mirror from gitlab. If you are added in the github private repo, the code below will do it !*
+*Github repository is only a mirror from gitlab. If you are added in the github repo, the code below will do it !*
 
 ```
 # install.packages("remotes")
@@ -84,13 +83,13 @@ remotes::install_gitlab("gowachin/matreex", ref = "dev")
 ```
 -->
 
-**If you install the development version of this package, please check the NEWS.md regularly. The package is in active development and some changes may break your code !**
+**If you install the development version of this package, please check the NEWS.md or (changelog)[https://gowachin.github.io/matreex/news/index.html] regularly. The package is in active development and some changes may break your code !**
 
 ## Usage Guide
 
-[Getting started vignette](https://github.com/gowachin/matreex/blob/main/vignettes/matreex.md) is now available to run basic simulations with `{matreex}` package.
+[Getting started vignette](https://gowachin.github.io/matreex/articles/matreex.html) is now available to run basic simulations with `{matreex}` package.
 
-A second [vignette about harvesting](https://github.com/gowachin/matreex/blob/main/vignettes/Harvesting.md) module is also available. *The markdown version modifies the equations, I'm looking for a solution right now.*
+A second [vignette about harvesting](https://gowachin.github.io/matreex/articles/Harvesting.html) module is also available. 
 
 ## Support
 
