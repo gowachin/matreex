@@ -90,6 +90,17 @@ minutes!**
 ``` r
 library(matreex)
 library(dplyr)
+#> 
+#> Attachement du package : 'dplyr'
+#> Les objets suivants sont masqués depuis 'package:stats':
+#> 
+#>     filter, lag
+#> L'objet suivant est masqué depuis 'package:testthat':
+#> 
+#>     matches
+#> Les objets suivants sont masqués depuis 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
 library(ggplot2)
 
 # Load fitted model for a species
@@ -103,10 +114,10 @@ climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
 # N == 2 is the optimum climate for the species. 
 # see ?climate_species for more info.
 climate
-#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1        PC2 N
-#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498 0.02602064 2
-#>          SDM
-#> 62 0.6760556
+#>        sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
+#> 62 1444.667 0.4519387 0.0006922012 0.6887343 0.2042486 2087062 1.671498
+#>           PC2 N       SDM
+#> 62 0.02602064 2 0.6760556
 
 Picea_ipm <- make_IPM(
     species = "Picea_abies", 
@@ -121,7 +132,7 @@ Picea_ipm <- make_IPM(
 #> GL integration occur on 32 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 40.9 secs
+#> Time difference of 47.3 secs
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a
@@ -186,9 +197,9 @@ Picea_sim <- sim_deter_forest(
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 300
-#> Simulation ended after time 224
-#> BA stabilized at 51.80 with diff of 0.94 at time 224
-#> Time difference of 1.07 secs
+#> Simulation ended after time 263
+#> BA stabilized at 45.43 with diff of 0.94 at time 263
+#> Time difference of 1.24 secs
 ```
 
 In the code above, we simulate for 200 years (`tlim`) years and past
@@ -254,10 +265,10 @@ head(Picea_sim)
 #>   <chr>       <chr> <dbl> <dbl> <dbl> <lgl> <dbl>
 #> 1 Picea_abies n         1     1     0 FALSE  0   
 #> 2 Picea_abies n         2     1     0 FALSE  2.19
-#> 3 Picea_abies n         3     1     0 FALSE  2.22
-#> 4 Picea_abies n         4     1     0 FALSE  2.34
-#> 5 Picea_abies n         5     1     0 FALSE  2.53
-#> 6 Picea_abies n         6     1     0 FALSE  2.65
+#> 3 Picea_abies n         3     1     0 FALSE  2.18
+#> 4 Picea_abies n         4     1     0 FALSE  2.21
+#> 5 Picea_abies n         5     1     0 FALSE  2.26
+#> 6 Picea_abies n         6     1     0 FALSE  2.28
 
 # get the maximum time
 max_t <- max(Picea_sim$time)
@@ -288,7 +299,7 @@ starting from an equilibrium or a post disturbance state.
 
 Here is an example where we start from $t = 150$ of the previous
 simulation. This will illustrate that despite the simulation said it
-reached equilibrium at time $t =$ 224244, our parameters have introduced
+reached equilibrium at time $t =$ 263244, our parameters have introduced
 failed to identify the true equilibrium. The previous equilibrium is
 highlighted in blue rectangle.
 
@@ -311,8 +322,8 @@ Picea_sim_k <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 300
 #> Simulation ended after time 300
-#> BA stabilized at 28.21 with diff of 3.47 at time 300
-#> Time difference of 1.4 secs
+#> BA stabilized at 30.32 with diff of 1.25 at time 300
+#> Time difference of 1.72 secs
 
 Picea_sim_k  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
@@ -366,8 +377,8 @@ Picea_sim_d5 <- sim_deter_forest(
 )
 #> Starting while loop. Maximum t = 200
 #> Simulation ended after time 200
-#> BA stabilized at 53.13 with diff of 5.71 at time 200
-#> Time difference of 0.954 secs
+#> BA stabilized at 43.85 with diff of 10.04 at time 200
+#> Time difference of 0.955 secs
 ```
 
 Equilibrium BA should be really close with or without delay
@@ -416,7 +427,7 @@ Abies_ipm <- make_IPM(
 #> GL integration occur on 24 cells
 #> midbin integration occur on 25 cells
 #> Loop done.
-#> Time difference of 24.7 secs
+#> Time difference of 26.1 secs
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
 ```
 
@@ -434,10 +445,10 @@ Picea_Abies_sim <- sim_deter_forest(
     verbose = TRUE
 )
 #> Starting while loop. Maximum t = 500
-#> time 500 | BA diff : 0.80
+#> time 500 | BA diff : 0.54
 #> Simulation ended after time 500
-#> BA stabilized at 48.58 with diff of 0.80 at time 500
-#> Time difference of 4.66 secs
+#> BA stabilized at 50.15 with diff of 0.54 at time 500
+#> Time difference of 3.77 secs
 
 Picea_Abies_sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
