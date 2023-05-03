@@ -65,7 +65,8 @@
 </ul></div>
 <div class="section level3">
 <h3 id="breaking-changes-0-3-0">Breaking changes<a class="anchor" aria-label="anchor" href="#breaking-changes-0-3-0"></a></h3>
-<ul><li><p><code><a href="../reference/sim_deter_forest.html">sim_deter_forest()</a></code> output table changed the name for variable <code>m_i</code> (distribution of density by mesh i) for <code>n_i</code>. #8.</p></li>
+<ul><li><p><code><a href="../reference/def_init_k.html">def_init_k()</a></code> require the distribution of size per hectare and don’t need to multiply this distribution by <code>SurfEch</code> value anymore. See #6</p></li>
+<li><p><code><a href="../reference/sim_deter_forest.html">sim_deter_forest()</a></code> output table changed the name for variable <code>m_i</code> (distribution of density by mesh i) for <code>n_i</code>. #8.</p></li>
 <li><p><code>delay</code> now accept negative values, to remove a delay to any object.</p></li>
 <li><p>IPM build with <code><a href="../reference/make_IPM.html">make_IPM()</a></code> now use the default delay set for each species (see #10). Previous simulation used <code>delay = 0</code>.</p></li>
 <li><p>Default parameter <code>correction</code> in <code><a href="../reference/make_IPM.html">make_IPM()</a></code> and <code><a href="../reference/make_mu_gr.html">make_mu_gr()</a></code> is now <code>"none"</code>. Previous one was <code>"constant"</code>. #11</p></li>
