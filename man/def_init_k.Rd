@@ -8,7 +8,8 @@ def_init_k(x)
 }
 \arguments{
 \item{x}{Distribution to draw systematically. This distribution should
-be composed of values in \code{[0, Inf]} values with a sum superior to 0.}
+be composed of values in \code{[0, Inf]} values with a sum superior to 0.
+This is the distribution per hectare and not for the sampled plot.}
 }
 \value{
 Function similar def_init but with no random effect anymore.

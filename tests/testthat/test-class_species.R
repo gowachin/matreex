@@ -179,7 +179,7 @@ test_that("def_init works", {
     )
 
     foo <- def_init_k(c(12, 2, 0, 40, 0, 5))
-    expect_identical(foo(1:6),c(12, 2, 0, 40, 0, 5))
+    expect_identical(foo(1:6, SurfEch = 1),c(12, 2, 0, 40, 0, 5))
     expect_error(
         foo(1:5),
         paste0("A species initiate with a define distribution with ",

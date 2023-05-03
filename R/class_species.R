@@ -336,6 +336,7 @@ def_initBA <- function(BA = 1, fun = c("def_init", "def_init_even")){
 #'
 #' @param x Distribution to draw systematically. This distribution should
 #' be composed of values in \code{[0, Inf]} values with a sum superior to 0.
+#' This is the distribution per hectare and not for the sampled plot.
 #'
 #' @details
 #' The resulting function will check if the provided vector is the same length
@@ -360,7 +361,7 @@ def_init_k <- function(x){
                         "different length that it's mesh. Check sp$init_pop ",
                         "functions using def_init_k !"))
         }
-        return(x)
+        return(x * SurfEch)
     }
 
     return(fun)

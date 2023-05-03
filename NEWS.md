@@ -12,6 +12,8 @@ disturbed trees is saved as harvest distribution output.
 
 ## Breaking changes
 
+* `def_init_k()` require the distribution of size per hectare and don't need to multiply this distribution by `SurfEch` value anymore. See #6
+
 * `sim_deter_forest()` output table changed the name for variable `m_i` (distribution of density by mesh i) for `n_i`. #8.
 
 * `delay` now accept negative values, to remove a delay to any object.
