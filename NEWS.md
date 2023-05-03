@@ -26,6 +26,8 @@ disturbed trees is saved as harvest distribution output.
 
 * Correction of vignettes
 
+* New warning if `equil_diff` value is too low in `sim_deter_forest()`.
+
 ## Datasets
 
 * Default delay set for each species (see #10)

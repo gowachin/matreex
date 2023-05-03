@@ -219,6 +219,17 @@ sim_deter_forest.forest  <- function(Forest,
         stop("equil_time must be higher or equal to tlim and equil_dist")
     }
 
+    if(getOption("W_matreex_edist") && equil_dist > 1 && equil_dist < 1000){
+        warning(paste0(
+            "The equil_dist value is low and could lead to inappropriate ",
+            "equilibrium states. A recommended value is 1000. ",
+            "\nThis warning  will be printed once by session and is ",
+            "desactivable with options(W_matreex_edist = FALSE)"
+        ))
+        options(W_matreex_edist = FALSE)
+    }
+
+
     harvest <- match.arg(harvest)
     assertNumber(targetBA, lower = 0)
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
@@ -459,9 +470,9 @@ sim_deter_forest.forest  <- function(Forest,
             ### Nothing ####
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),
-                function(f, .y, X, sp, ct){
-                    exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]])
-                }, X = X, sp = Forest$species, ct = ct
+                function(f, .y, X, sp, ct, ...){
+                    exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]], ...)
+                }, X = X, sp = Forest$species, ct = ct, t = t, SurfEch = SurfEch
             )
 
             X <- map2(X, Harv, `-`)
@@ -475,6 +486,7 @@ sim_deter_forest.forest  <- function(Forest,
         ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
         rec <- map(Forest$species, sp_rec.species, sim_clim)
+        # browser()
 
         recrues <- imap(
             rec,

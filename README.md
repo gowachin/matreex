@@ -3,7 +3,7 @@
 
 [![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![](https://img.shields.io/badge/devel%20version-0.2.0-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![](https://img.shields.io/badge/devel%20version-0.3.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 <!-- badges: end -->
 
 The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.

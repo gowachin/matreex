@@ -63,6 +63,10 @@ Picea_ipm <- make_IPM(
 )
 ```
 
+```{r hide warn, echo=FALSE, }
+options(W_matreex_edist = FALSE)
+```
+
 Harvesting scenario are defined at different levels: at the species level with the species harvesting function and its associated parameters, at the forest level with a set of parameters, and at the simulation level with the target of the harvesting scenario. Depending on the scenario used, not all the parameters are used. The table below summarise the required parameters for each scenario. Each scenario have an example in the following document.
 
 | Harvesting scenario | Species harvesting function | Species parameters | Forest parameters | Simulation parameters |

@@ -18,6 +18,7 @@ text-align: justify}
 </style>
 
 ```{r, include = FALSE}
+# load_all()
 knitr::opts_chunk$set(
   collapse = TRUE,
   comment = "#>"
@@ -55,7 +56,7 @@ Note, that this package do not cover the statistical fitting of the vital rates 
 
 Before simulating forest, we need first to define tree species in R. Species regroups basic vital rates functions: growth, recruitment and survival. In this package, we provide the fitted vital rates functions used in @kunstler2021 and @guyennon2023 . These functions depend on tree size, local competition based on the sum of basal area of competitors, and two climatic variables. The climatic variables are the sum of the sum of growing degree days *sgdd*, the water aridity index *wai* (see @kunstler2021 for more details). @kunstler2021 and @guyennon2023 used a resampling procedure to estimate the vital rates functions resulting in 100 resampled estimate of the parameters of each functions, here to simplify the simulations we provide only the averaged parameters over those 100 resamples. It is however, in theory, possible to run simulations with other vital rates functions if they are provided as glm objects (please contact the authors to test new variables).
 
-```{r hide library, echo = FALSE, eval=TRUE}
+```{r hide library, echo = FALSE}
 # I do this before to show data inline
 library(matreex)
 data("fit_Picea_abies")
@@ -91,6 +92,10 @@ Picea_ipm <- make_IPM(
     BA = 0:60, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
+```
+
+```{r hide warn, echo=FALSE, }
+options(W_matreex_edist = FALSE)
 ```
 
 Once the IPM is integrated on a BA range, we can use it to build a species object. In R, a species is a list object that is constructed with the `species()` function. In addition to the IPM kernel $P$, this list require few more functions to work during simulations :

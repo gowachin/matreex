@@ -1,3 +1,6 @@
+
+options(W_matreex_edist = FALSE)
+
 test_that("sim_deter_forest simple", {
 
     path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
