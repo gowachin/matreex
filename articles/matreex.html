@@ -210,7 +210,7 @@ take few minutes!</strong></p>
 <span><span class="co">#&gt; GL integration occur on 32 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 50.5 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 57 secs</span></span></code></pre></div>
 <p>Once the IPM is integrated on a BA range, we can use it to build a
 species object. In R, a species is a list object that is constructed
 with the <code><a href="../reference/species.html">species()</a></code> function. In addition to the IPM kernel
@@ -273,7 +273,7 @@ hectare.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 300</span></span>
 <span><span class="co">#&gt; Simulation ended after time 263</span></span>
 <span><span class="co">#&gt; BA stabilized at 45.43 with diff of 0.94 at time 263</span></span>
-<span><span class="co">#&gt; Time difference of 2.03 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.17 secs</span></span></code></pre></div>
 <p>In the code above, we simulate for 200 years (<code>tlim</code>)
 years and past this time we continue the simulation till it reach an
 equilibrium up to 300 years (see figure A). After <code>tlim</code>, the
@@ -387,7 +387,7 @@ equilibrium is highlighted in blue rectangle.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 300</span></span>
 <span><span class="co">#&gt; Simulation ended after time 300</span></span>
 <span><span class="co">#&gt; BA stabilized at 30.32 with diff of 1.25 at time 300</span></span>
-<span><span class="co">#&gt; Time difference of 2.32 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.45 secs</span></span>
 <span></span>
 <span><span class="va">Picea_sim_k</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op">==</span> <span class="st">"BAsp"</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -437,7 +437,7 @@ the IPM level.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 200</span></span>
 <span><span class="co">#&gt; Simulation ended after time 200</span></span>
 <span><span class="co">#&gt; BA stabilized at 43.85 with diff of 10.04 at time 200</span></span>
-<span><span class="co">#&gt; Time difference of 1.46 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.84 secs</span></span></code></pre></div>
 <p>Equilibrium BA should be really close with or without delay (<span class="math inline">\(\Delta_{BA} &lt; 1\)</span>). N is expected to
 increase with delay since delayed mesh cell with seeds are counted
 in.</p>
@@ -479,7 +479,7 @@ climate as the first species.</p>
 <span><span class="co">#&gt; GL integration occur on 24 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 33.3 secs</span></span>
+<span><span class="co">#&gt; Time difference of 37.9 secs</span></span>
 <span><span class="va">Abies_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/species.html">species</a></span><span class="op">(</span>IPM <span class="op">=</span> <span class="va">Abies_ipm</span>, init_pop <span class="op">=</span> <span class="fu"><a href="../reference/def_initBA.html">def_initBA</a></span><span class="op">(</span><span class="fl">35</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># We edit back the init_fun for Picea</span></span>
@@ -498,7 +498,7 @@ climate as the first species.</p>
 <span><span class="co">#&gt; time 500 | BA diff : 0.54</span></span>
 <span><span class="co">#&gt; Simulation ended after time 500</span></span>
 <span><span class="co">#&gt; BA stabilized at 50.15 with diff of 0.54 at time 500</span></span>
-<span><span class="co">#&gt; Time difference of 5.99 secs</span></span>
+<span><span class="co">#&gt; Time difference of 7 secs</span></span>
 <span></span>
 <span><span class="va">Picea_Abies_sim</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op">==</span> <span class="st">"BAsp"</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
