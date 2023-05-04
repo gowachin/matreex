@@ -147,7 +147,7 @@ take few minutes !</strong></p>
 <span><span class="co">#&gt; GL integration occur on 32 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 1.09 mins</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.4 mins</span></span></code></pre></div>
 <p>Harvesting scenario are defined at different levels: at the species
 level with the species harvesting function and its associated
 parameters, at the forest level with a set of parameters, and at the
@@ -233,7 +233,7 @@ all size class except the age-classes used in delay (with
 <span><span class="co">#&gt;     rate &lt;- 0.006 * (ct &gt; 0)</span></span>
 <span><span class="co">#&gt;     return(x * rate)</span></span>
 <span><span class="co">#&gt; }</span></span>
-<span><span class="co">#&gt; &lt;bytecode: 0x55e1a6a13788&gt;</span></span>
+<span><span class="co">#&gt; &lt;bytecode: 0x5610939c93c8&gt;</span></span>
 <span><span class="co">#&gt; &lt;environment: namespace:matreex&gt;</span></span>
 <span><span class="va">Picea_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/species.html">species</a></span><span class="op">(</span>IPM <span class="op">=</span> <span class="va">Picea_ipm</span>, init_pop <span class="op">=</span> <span class="fu"><a href="../reference/def_initBA.html">def_initBA</a></span><span class="op">(</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">Picea_for</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/forest.html">forest</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Picea <span class="op">=</span> <span class="va">Picea_sp</span><span class="op">)</span>, </span>
@@ -254,7 +254,7 @@ additional parameter.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 200</span></span>
 <span><span class="co">#&gt; Simulation ended after time 200</span></span>
 <span><span class="co">#&gt; BA stabilized at 43.98 with diff of 1.16 at time 200</span></span>
-<span><span class="co">#&gt; Time difference of 1.66 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 2.53 secs</span></span></code></pre></div>
 <p>Once the simulation is done, we can extract the basal area and the
 number of individual at each step of the simulation, but also a new
 variable <span class="math inline">\(H\)</span>. This is the sum of
@@ -293,7 +293,7 @@ triggered, the value returned is 0.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 50</span></span>
 <span><span class="co">#&gt; Simulation ended after time 50</span></span>
 <span><span class="co">#&gt; BA stabilized at 32.85 with diff of 0.78 at time 50</span></span>
-<span><span class="co">#&gt; Time difference of 0.365 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.577 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -332,7 +332,7 @@ class.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 250</span></span>
 <span><span class="co">#&gt; Simulation ended after time 250</span></span>
 <span><span class="co">#&gt; BA stabilized at 28.20 with diff of 5.02 at time 250</span></span>
-<span><span class="co">#&gt; Time difference of 1.76 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.71 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -531,7 +531,7 @@ below <code>dth</code> are excluded from computations.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 260</span></span>
 <span><span class="co">#&gt; Simulation ended after time 260</span></span>
 <span><span class="co">#&gt; BA stabilized at 22.55 with diff of 2.89 at time 260</span></span>
-<span><span class="co">#&gt; Time difference of 1.92 secs</span></span>
+<span><span class="co">#&gt; Time difference of 2.88 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"BAstand"</span>, <span class="st">"N"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -631,7 +631,7 @@ frequency of harvest will be used. The different targets
 <span><span class="co">#&gt; Starting while loop. Maximum t = 100</span></span>
 <span><span class="co">#&gt; Simulation ended after time 100</span></span>
 <span><span class="co">#&gt; BA stabilized at 4.20 with diff of 2.36 at time 100</span></span>
-<span><span class="co">#&gt; Time difference of 0.721 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.06 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
