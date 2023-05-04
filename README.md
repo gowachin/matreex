@@ -83,7 +83,7 @@ remotes::install_gitlab("gowachin/matreex", ref = "dev")
 ```
 -->
 
-**If you install the development version of this package, please check the NEWS.md or (changelog)[https://gowachin.github.io/matreex/news/index.html] regularly. The package is in active development and some changes may break your code !**
+**If you install the development version of this package, please check the NEWS.md or [changelog](https://gowachin.github.io/matreex/news/index.html) regularly. The package is in active development and some changes may break your code !**
 
 ## Usage Guide
 
