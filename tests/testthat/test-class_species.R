@@ -1,6 +1,7 @@
 test_that("new_species works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                   "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
@@ -48,7 +49,8 @@ test_that("new_species works", {
 
 test_that("validate_species ipm works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
@@ -87,7 +89,8 @@ test_that("validate_species ipm works", {
 
 test_that("validate_species mu works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     mu <- make_mu_gr(species = "Picea_abies", fit = fit_Picea_abies,
@@ -104,7 +107,8 @@ test_that("validate_species mu works", {
 
 test_that("old_ipm2species works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")

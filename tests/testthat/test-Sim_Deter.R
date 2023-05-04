@@ -3,7 +3,8 @@ options(W_matreex_edist = FALSE)
 
 test_that("sim_deter_forest simple", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
@@ -25,7 +26,8 @@ test_that("sim_deter_forest simple", {
 
 test_that("sim_deter_species simple", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
@@ -43,7 +45,8 @@ test_that("sim_deter_species simple", {
 
 test_that("sim_deter_forest delay & cut", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
@@ -69,7 +72,8 @@ test_that("sim_deter_forest delay & cut", {
 
 test_that("sim_deter_forest delay & cut", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
@@ -95,7 +99,8 @@ test_that("sim_deter_forest delay & cut", {
 
 test_that("sim_deter_forest error", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
@@ -128,7 +133,8 @@ test_that("sim_deter_forest error", {
 
 test_that("sim_deter_forest error equil_time", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     model <- old_ipm2forest("Yggdrasil", climatic = 1, path = path,
@@ -142,7 +148,8 @@ test_that("sim_deter_forest error equil_time", {
 
 test_that("sim_deter_forest warning climate", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     ygg <- old_ipm2species("Yggdrasil", climatic = 1, path = path,

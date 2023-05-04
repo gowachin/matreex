@@ -13,9 +13,11 @@ fit <- new_fit_sgr(sv_params, sv_family,
 
 test_that("new_ipm works", {
 
-    place <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
-                  "testthat", "testdata")
-    file <- here(place, "output", "Yggdrasil", "IPM_Clim_1.Rds")
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
+                 "testthat", "testdata")
+
+    file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
     x <- readRDS(file)
 
     IPM <- x[[1]]$LIPM
@@ -45,9 +47,11 @@ test_that("new_ipm works", {
 
 test_that("validate_ipm works", {
 
-    place <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
-                  "testthat", "testdata")
-    file <- here(place, "output", "Yggdrasil", "IPM_Clim_1.Rds")
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
+                 "testthat", "testdata")
+
+    file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
     x <- readRDS(file)
 
     IPM <- x[[1]]$LIPM
@@ -84,8 +88,10 @@ test_that("validate_ipm works", {
 
 test_that("old_ipm2ipm works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
+
     file <- here(path, "output", "Yggdrasil", "IPM_Clim_1.Rds")
     x <- readRDS(file)
 

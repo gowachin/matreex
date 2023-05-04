@@ -1,7 +1,9 @@
 
 # sp_name ####
 test_that("sp_name works", {
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     x <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)
@@ -15,7 +17,9 @@ test_that("sp_name works", {
 })
 
 test_that("climatic works", {
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     x <- old_ipm2ipm("Yggdrasil", climatic = 1, path = path, replicat = 1)

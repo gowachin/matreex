@@ -229,7 +229,7 @@ make_mu_gr <- function(species,
                    mu_mesh[N_int + (N_int > 0) + midbin_tresh -1 ] + h/2,
                    by=h/mid_level)[-1]
     ca <- factor(rep(1:midbin_tresh, each = mid_level))
-    ca <- .Internal(split(1:length(meshMid), ca))
+    ca <- split(1:length(meshMid), ca)
     # empty matrix
     mu_gr <- matrix(0, ncol = N_int + (N_int > 0) + midbin_tresh - 1,
                      nrow = length(mu_tab))

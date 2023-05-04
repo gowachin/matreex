@@ -1,6 +1,7 @@
 test_that("new_forest works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     Yggdrasil <- old_ipm2species("Yggdrasil", climatic = 1,
@@ -32,7 +33,8 @@ test_that("new_forest works", {
 
 test_that("validate_forest works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     Yggdrasil <- old_ipm2species("Yggdrasil", climatic = 1,
@@ -54,7 +56,8 @@ test_that("validate_forest works", {
 
 test_that("old_ipm2species works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     Yggdrasil <- old_ipm2species("Yggdrasil", climatic = 1,

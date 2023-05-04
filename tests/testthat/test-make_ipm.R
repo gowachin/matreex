@@ -47,7 +47,8 @@ test_that("fun_mid_int works", {
 
 # Common stuff for make_ipm function !
 species <- "Yggdrasil"
-path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                    "tests", "."),
              "testthat", "testdata")
 clim <- readRDS(here(path, "output", "Yggdrasil", "plots_pred.Rds"))
 climate <- unlist(clim[1,])

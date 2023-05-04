@@ -359,7 +359,7 @@ fun_mid_int <- function(mesh, h, gr, sig_gr, N_ini, N_int, Level=5,
 
     # ca <- factor(rep(0:N_int, c(Level/2, rep(Level, N_int-1), Level/2)))
     ca <- factor(rep(1:N_int, each = Level))
-    ca <- .Internal(split(1:length(dx1), ca))
+    ca <- split(1:length(dx1), ca)
 
     P_incr <- matrix(NA_real_, ncol= length(mesh), nrow=N_int)
 

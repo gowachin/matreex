@@ -81,7 +81,8 @@ test_that("validate_fit_sgr works", {
 
 test_that("mean_oldfit works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     species = "Yggdrasil"
@@ -131,7 +132,8 @@ test_that("mean_oldfit works", {
 
 test_that("old_fit2fit works", {
 
-    path <- here(ifelse(interactive() | covr::in_covr(), "tests", ""),
+    path <- here(ifelse(testthat:::on_ci() | interactive() | covr::in_covr(),
+                        "tests", "."),
                  "testthat", "testdata")
 
     species = "Yggdrasil"
