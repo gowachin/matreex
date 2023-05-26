@@ -122,7 +122,8 @@ sim_deter_forest  <- function(Forest,
                              equil_dist = 250,
                              equil_diff = 1,
                              equil_time = 1e4,
-                             harvest = c("default", "Uneven", "Even"),
+                             harvest = c("default", "Uneven", "Even",
+                                         "Favoured_Uneven"),
                              targetBA = 20,
                              targetRDI = 0.9,
                              targetKg = 0.9,
@@ -142,7 +143,8 @@ sim_deter_forest.species  <- function(Forest,
                               equil_dist = 250,
                               equil_diff = 1,
                               equil_time = 1e4,
-                              harvest = c("default", "Uneven", "Even"),
+                              harvest = c("default", "Uneven", "Even",
+                                          "Favoured_Uneven"),
                               targetBA = 20,
                               targetRDI = 0.9,
                               targetKg = 0.9,
@@ -180,7 +182,8 @@ sim_deter_forest.forest  <- function(Forest,
                                      equil_dist = 250,
                                      equil_diff = 1,
                                      equil_time = 1e4,
-                                     harvest = c("default", "Uneven", "Even"),
+                                     harvest = c("default", "Uneven", "Even",
+                                                 "Favoured_Uneven"),
                                      targetBA = 20,
                                      targetRDI = 0.9,
                                      targetKg = 0.9,
@@ -422,14 +425,41 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         ## Harvest ####
-        if(!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "Uneven"){
+        if(!disturb && t %% Forest$harv_rule["freq"] == 0 &&
+           harvest %in% c("Uneven", "Favoured_Uneven")){
             ### Uneven ####
             BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
             BAstand <- sum(BAstandsp)
             BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
-            pi <- BAstandsp / BAstand
-            Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
-            targetBAcut <- Hi * BAstandsp
+
+            sfav <- sum(Forest$favoured_sp)
+            if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(Forest$favoured_sp))){
+                print('!!!!!!!!!!!!!!!!!!!!!  WARNING  !!!!!!!!!!!!!!!!!!!!!')
+                # warning("No species are favoured in the forest object, harvest mode 'Favoured_Uneven' is replaced with 'Uneven'")
+                harvest <- "Uneven"
+            }
+
+            # browser()
+            if(harvest == "Uneven"){
+                pi <- BAstandsp / BAstand
+                Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
+                targetBAcut <- Hi * BAstandsp
+            } else { # Favoured_Uneven
+                # TODO va falloir se sortir les doigts la max
+                p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
+                cat(p_fav)
+                if(p_fav > 0.5){
+                    # ici qu'il faut modifier en fait !
+                    cat(" - let's fav \n")
+                    Hi <- BAcut / BAstand
+                }  else {
+                    cat(" \n")
+                    pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
+                    Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
+                }
+                targetBAcut <- Hi * BAstandsp
+            }
+            # browser()
 
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),

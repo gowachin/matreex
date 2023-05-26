@@ -15,14 +15,16 @@
 #' @export
 new_forest <- function(species = list(),
                        harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                                      freq = 1, alpha = 1)
+                                      freq = 1, alpha = 1),
+                       favoured_sp = c()
                        ){
 
     sp <- names(species) <- map_chr(species, sp_name)
     forest <- list(
         species = species, harv_rules = harv_rules,
         info = list(species = sp,
-                 clim_lab = map_chr(species, climatic))
+                 clim_lab = map_chr(species, climatic)),
+        favoured_sp = favoured_sp
     )
 
     class(forest) <- "forest"
@@ -54,6 +56,8 @@ validate_forest <- function(x){
         }
     }
 
+    # TODO check that favoured_sp contains the same species
+
 
     invisible(x)
 }
@@ -67,12 +71,14 @@ validate_forest <- function(x){
 #'
 #' @export
 forest <- function(species = list(),
-                   harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
+                   harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1),
+                   favoured_sp = c()
                    ){
 
     res <- validate_forest(new_forest(
         species = species,
-        harv_rules = harv_rules
+        harv_rules = harv_rules,
+        favoured_sp = favoured_sp
     ))
 
     return(res)
@@ -96,7 +102,8 @@ old_ipm2forest <- function(sp_name, climatic = 1, path = here(), replicat = 42){
     assertCharacter(sp_name)
 
     res <- forest(
-        species = lapply(sp_name, old_ipm2species, climatic, path, replicat)
+        species = lapply(sp_name, old_ipm2species, climatic, path, replicat),
+        favoured_sp = sapply(sp_name, isTRUE, USE.NAMES = TRUE)
     )
 
     return(res)
