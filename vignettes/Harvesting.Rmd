@@ -268,7 +268,7 @@ $\bullet$ If $BA_{ha} < P_{cut} \times BA_{stand}$, we first harvest $BA_{ha}$ a
 
 ### Multispecific case
 
-<!-- #### Abundance-based preference -->
+#### Abundance-based preference
 
 As in the monospecific case, we define the global harvest rate $P_{cut} = \frac{BA_{harv}}{BA_{stand}}$.
 
@@ -306,7 +306,7 @@ For $\alpha = 2$, we for example have
 $$f(p_i) =\frac{p_i}{\sum_{i=1}^{s} p_i ^2} $$
 To sum up, if$\alpha = 1$, an abundant species will be more harvested, in effort to reach an equi-abundance of the species. For $\alpha < 1$, the abundant species will be less harvested. Finally, for $\alpha > 1$ the most abundant species will be harvested more, in a greater proportion than 1.
 
-<!--
+
 #### Favoured species
 
 In some case, we may want to favour some species compared to others.
@@ -320,7 +320,6 @@ If $P_Q < 0.5$, we compute $H_Q=f(P_Q) H$ and $H_{1-Q}=f(1-P_Q) H$ with $\alpha 
 By definition, we will get $H_Q \leq H$.
 
 We then apply for each species $i$ the harvest rate $H_i = H_Q$ or $H_i=H_{1-Q}$ depending on which group it belongs to.
--->
 
 
 ## Examples

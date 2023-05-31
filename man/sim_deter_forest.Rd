@@ -10,7 +10,7 @@ sim_deter_forest(
   equil_dist = 250,
   equil_diff = 1,
   equil_time = 10000,
-  harvest = c("default", "Uneven", "Even"),
+  harvest = c("default", "Uneven", "Even", "Favoured_Uneven"),
   targetBA = 20,
   targetRDI = 0.9,
   targetKg = 0.9,

@@ -57,12 +57,20 @@ Fagus_ipm <- make_IPM(
 # We then apply for each species $i$ the harvest rate $H_i = H_Q$ or $H_i=H_{1-Q}$ depending on which group it belongs to.
 # -->
 devtools::load_all()
-Picea_Uneven <- species(IPM = Picea_ipm, init_pop = def_initBA(30),
+Picea_Uneven <- species(IPM = Picea_ipm, init_pop = def_initBA(5),
                         harvest_fun = Uneven_harv,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1))
 Fagus_Uneven <- species(IPM = Fagus_ipm, init_pop = def_initBA(30),
                         harvest_fun = Uneven_harv,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1))
+
+vec = c(Picea_abies = TRUE, Fagus_sylvatica = 0)
+PiFa_for_Uneven <- forest(species = list(Picea = Picea_Uneven,
+                                         Fagus = Fagus_Uneven),
+                          harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                                         freq = 5, alpha = 2),
+                          favoured_sp = vec
+)
 
 cases <- list(nofav = c(Picea_abies = FALSE, Fagus_sylvatica = FALSE),
              fav_fagus = c(Picea_abies = FALSE, Fagus_sylvatica = TRUE),
@@ -93,27 +101,27 @@ sim_ls <- purrr::map(cases, function(vec) {
 })
 
 
-devtools::load_all()
-vec <- c(Picea_abies = FALSE, Fagus_sylvatica = TRUE)
- PiFa_for_Uneven <- forest(species = list(Picea = Picea_Uneven,
-                                                   Fagus = Fagus_Uneven),
-                                    harv_rules = c(Pmax = 0.25, dBAmin = 3,
-                                                   freq = 5, alpha = 2),
-                                    favoured_sp = vec
-)
-
-set.seed(42) # The seed is here for initial population random functions.
-Picea_sim_f20 <- sim_deter_forest(
-    PiFa_for_Uneven,
-    tlim = 460,
-    equil_time = 460, equil_dist = 10, equil_diff = 1,
-    harvest = "Favoured_Uneven", targetBA = 20, # We change the harvest and set targetBA.
-    # harvest = "Uneven", targetBA = 20,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-sim_ls <- list(fav_all = Picea_sim_f20)
+# devtools::load_all()
+# vec <- c(Picea_abies = FALSE, Fagus_sylvatica = TRUE)
+#  PiFa_for_Uneven <- forest(species = list(Picea = Picea_Uneven,
+#                                                    Fagus = Fagus_Uneven),
+#                                     harv_rules = c(Pmax = 0.25, dBAmin = 3,
+#                                                    freq = 5, alpha = 2),
+#                                     favoured_sp = vec
+# )
+#
+# set.seed(42) # The seed is here for initial population random functions.
+# Picea_sim_f20 <- sim_deter_forest(
+#     PiFa_for_Uneven,
+#     tlim = 460,
+#     equil_time = 460, equil_dist = 10, equil_diff = 1,
+#     harvest = "Favoured_Uneven", targetBA = 20, # We change the harvest and set targetBA.
+#     # harvest = "Uneven", targetBA = 20,
+#     SurfEch = 0.03,
+#     verbose = TRUE
+# )
+#
+# sim_ls <- list(fav_all = Picea_sim_f20)
 
 sim_ls %>% dplyr::bind_rows(.id = "sims") %>%
     dplyr::filter(var %in% c("BAstand", "H"), ! equil, value > 0) %>%

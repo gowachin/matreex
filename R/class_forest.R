@@ -9,6 +9,9 @@
 #'   \item{dBAmin}{the minimum BA to perform cut}
 #'   \item{freq}{Frequence at which the harvest will be executed.}
 #' }
+#' @param favoured_sp Logical named vector to tell if species are favoured during
+#' Uneven harvesting or not. If not NULL, the species names should be the same as
+#' in the species list.
 #' @importFrom purrr map_chr
 #'
 #' @keywords internal
@@ -56,7 +59,22 @@ validate_forest <- function(x){
         }
     }
 
-    # TODO check that favoured_sp contains the same species
+    sp <- map_chr(values$species, sp_name)
+    if(is.null(values$favoured_sp)){
+        x$favoured_sp <- sapply(sp, isTRUE, USE.NAMES = TRUE)
+    } else {
+        nms <- names(values$favoured_sp)
+        if(length(nms) != length(values$species) ||
+           ! identical(nms, names(values$species))
+        ){
+            stop(paste0("Names of favored species are not the same as the names",
+                        " of species. All species must be listed.\n",
+                        "Expected ", paste0(names(values$species), collapse = " "),
+                        "\n Observed ", paste0(nms, collapse = " "), "\n"))
+        }
+        assertLogical(values$favoured_sp, any.missing = FALSE,
+                      .var.name = "favoured_sp")
+    }
 
 
     invisible(x)

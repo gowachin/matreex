@@ -6,7 +6,8 @@
 \usage{
 new_forest(
   species = list(),
-  harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
+  harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1),
+  favoured_sp = c()
 )
 }
 \arguments{
@@ -18,6 +19,10 @@ new_forest(
 \item{dBAmin}{the minimum BA to perform cut}
 \item{freq}{Frequence at which the harvest will be executed.}
 }}
+
+\item{favoured_sp}{Logical named vector to tell if species are favoured during
+Uneven harvesting or not. If not NULL, the species names should be the same as
+in the species list.}
 }
 \description{
 Only used in the matreex package

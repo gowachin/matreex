@@ -439,21 +439,19 @@ sim_deter_forest.forest  <- function(Forest,
                 harvest <- "Uneven"
             }
 
-            # browser()
             if(harvest == "Uneven"){
                 pi <- BAstandsp / BAstand
                 Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
                 targetBAcut <- Hi * BAstandsp
             } else { # Favoured_Uneven
-                # TODO va falloir se sortir les doigts la max
                 p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
-                cat(p_fav)
+                # cat(p_fav)
                 if(p_fav > 0.5){
                     # ici qu'il faut modifier en fait !
-                    cat(" - let's fav \n")
+                    # cat(" - let's fav \n")
                     Hi <- BAcut / BAstand
                 }  else {
-                    cat(" \n")
+                    # cat(" \n")
                     pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
                     Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
                 }

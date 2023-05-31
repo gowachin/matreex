@@ -14,7 +14,8 @@ test_that("new_forest works", {
                          harv_rules = c(Pmax = 0.25, dBAmin = 3,
                                         freq = 1, alpha = 1),
                          info = list(species = c("Yggdrasil"),
-                                     clim_lab = c(Yggdrasil = "1"))),
+                                     clim_lab = c(Yggdrasil = "1")),
+                         favoured_sp = c()),
                          class = "forest"))
 
     expect_identical(
@@ -25,7 +26,8 @@ test_that("new_forest works", {
             harv_rules = c(Pmax = 0.25, dBAmin = 3,
                            freq = 1, alpha = 1),
             info = list(species = c("Yggdrasil", "Yggdrasil"),
-                        clim_lab = c(Yggdrasil = "1", Yggdrasil = "1"))),
+                        clim_lab = c(Yggdrasil = "1", Yggdrasil = "1")),
+            favoured_sp = c()),
             class = "forest")
     )
 })
@@ -65,13 +67,14 @@ test_that("old_ipm2species works", {
 
     expect_identical(
         old_ipm2forest("Yggdrasil", climatic = 1, path = path, replicat = 1),
-        new_forest(list(Yggdrasil))
+        new_forest(list(Yggdrasil), favoured_sp = c(Yggdrasil = FALSE))
     )
 
     expect_identical(
         old_ipm2forest(c("Yggdrasil", "Yggdrasil"), climatic = 1,
                        path = path, replicat = 1),
-        new_forest(list(Yggdrasil, Yggdrasil))
+        new_forest(list(Yggdrasil, Yggdrasil),
+                   favoured_sp = c(Yggdrasil = FALSE,Yggdrasil = FALSE))
     )
 
 })
