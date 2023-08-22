@@ -20,7 +20,7 @@ test_that("new_species works", {
                          rdi_coef = NULL, disturb_coef = NULL,
                          recruit_fun = exp_recFun(params = IPM$fit$rec$params_m,
                                                   list_covs = IPM$climatic),
-                         info = c(species = "Yggdrasil", clim_lab = "1")),
+                         info = c(species = "Yggdrasil", clim_lab = "1", type = "Broadleaf")),
                          class = "species"))
 
     class(IPM) <- "mu_gr"
@@ -33,7 +33,7 @@ test_that("new_species works", {
             harv_lim = c(dth = 175, dha = 575, hmax = 1),
             disturb_fun = def_disturb,
             rdi_coef = NULL, disturb_coef = NULL, recruit_fun = "to define",
-            info = c(species = "Yggdrasil", clim_lab = "1")),
+            info = c(species = "Yggdrasil", clim_lab = "1", type = "Broadleaf")),
             class = "species")
     )
 
@@ -73,7 +73,7 @@ test_that("validate_species ipm works", {
     names(tmp$info) <- c("sp", "clim_lab")
     expect_error(
         validate_species(tmp),
-        "species class must have info of elements species and clim_lab"
+        "species class must have info of elements species, clim_lab and type"
     )
 
     class(x$IPM) <- "mu_growth"

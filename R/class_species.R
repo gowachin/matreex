@@ -26,6 +26,9 @@
 #' }
 #' @param rdi_coef Coefficient for RDI curve used in even harvest.
 #' The model require the intercept and slope.
+#' @param type Type of the tree, choosing between "Broadleaf" and "Coniferous".
+#' This value is only used during biotic disturbance with a specific disturb_fun.
+#' This is experimental
 #'
 #' @keywords internal
 #' @export
@@ -33,8 +36,11 @@ new_species <- function(IPM, init_pop,
                         harvest_fun, disturb_fun,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                         rdi_coef = NULL,
-                        disturb_coef = NULL
+                        disturb_coef = NULL,
+                        type = c("Broadleaf", "Coniferous")
                         ){
+
+    type <- match.arg(type)
 
     if(inherits(IPM, "ipm")){
         rec <- exp_recFun(params = IPM$fit$rec$params_m,
@@ -51,7 +57,7 @@ new_species <- function(IPM, init_pop,
         disturb_fun = disturb_fun,
         rdi_coef = rdi_coef, disturb_coef = disturb_coef,
         recruit_fun = rec,
-        info = c(species = sp_name(IPM), clim_lab = climatic(IPM))
+        info = c(species = sp_name(IPM), clim_lab = climatic(IPM), type = type)
     )
 
     class(species) <- "species"
@@ -107,8 +113,8 @@ validate_species <- function(x){
     }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "clim_lab"))){
-        stop("species class must have info of elements species and clim_lab")
+    if(any(names(values$info) != c("species", "clim_lab", "type"))){
+        stop("species class must have info of elements species, clim_lab and type")
     }
 
     invisible(x)
@@ -154,12 +160,16 @@ validate_species <- function(x){
 species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
                     disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
-                    rdi_coef = NULL, disturb_coef = NULL){
+                    rdi_coef = NULL, disturb_coef = NULL,
+                    type = c("Broadleaf", "Coniferous")){
+
+    type <- match.arg(type)
 
     res <- validate_species(new_species(
         IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun,
         disturb_fun = disturb_fun,
-        harv_lim = harv_lim, rdi_coef = rdi_coef, disturb_coef = disturb_coef
+        harv_lim = harv_lim, rdi_coef = rdi_coef, disturb_coef = disturb_coef,
+        type = type
     ))
 
     return(res)
@@ -227,9 +237,13 @@ old_ipm2species <- function(species, climatic = 1,
     disturb_c <- matreex::disturb_coef
     disturb_c <- disturb_c[disturb_c$species == species,]
 
+    type <- matreex::tree_type
+    type <- type[type$species == species, "type"]
+
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        disturb_fun  = disturb, rdi_coef = rdi, disturb_coef = disturb_c
+        disturb_fun  = disturb, rdi_coef = rdi, disturb_coef = disturb_c,
+        type = type
     )
 
     return(res)

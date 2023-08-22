@@ -167,14 +167,14 @@ test_that("delay forest works", {
                       harvest_fun = def_harv,
                       disturb_fun = def_disturb)
 
-    x <- new_forest(list(darwin = sp))
-    exp <- new_forest(list(darwin = delay(sp, 2)))
+    x <- new_forest(list(darwin = sp), favoured_sp = c(darwin = FALSE))
+    exp <- new_forest(list(darwin = delay(sp, 2)), favoured_sp = c(darwin = FALSE))
     # hack ne pas nommer les elements ici fout la merde.
 
     # validate_forest(x)
     # validate_forest(exp)
 
-    expect_identical( delay(x, 2), exp )
+    expect_identical( delay.forest(x, 2), exp )
     expect_identical( delay(x, 0), x )
 
 })
@@ -429,3 +429,4 @@ test_that("summary IPM works", {
     )
 
 })
+

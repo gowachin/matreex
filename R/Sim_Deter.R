@@ -321,6 +321,7 @@ sim_deter_forest.forest  <- function(Forest,
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
+    types <- map_chr(Forest$species, ~ .x$info["type"])
     stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
     # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
@@ -411,13 +412,19 @@ sim_deter_forest.forest  <- function(Forest,
             qmd <- QMD(size = unlist(meshs), n = unlist(X))
             # TODO remove unborn size from X before computations
 
+            # TODO compute percentage of coniferous (relative share in number of stems)
+            total_stem <- purrr::reduce(X, sum, .init = 0)
+            sp_stem <- map_dbl(X, ~ sum(.x) / total_stem)
+            perc_coni <- sum(sp_stem[names(types[types == "Coniferous"])])
+            # browser()
+
             Disturb <- imap(
                 map(Forest$species, `[[`, "disturb_fun"),
                 function(f, .y, X, sp, disturb, ...){
                     exec(f, X[[.y]], sp[[.y]], disturb, ...)
                 }, X = X, sp = Forest$species,
                 disturb = disturbance[disturbance$t == t, ],
-                qmd = qmd
+                qmd = qmd, perc_coni = perc_coni
             )
 
             X <- map2(X, Disturb, `-`)

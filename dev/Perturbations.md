@@ -1,47 +1,39 @@
----
-title: "Disturbance"
-package: matreex
-output: 
-    github_document:
-    rmarkdown::html_vignette:
-vignette: >
-  %\VignetteIndexEntry{Basic functions and examples}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
-# bibliography: references.bib 
-link-citations: true
----
+Disturbance
+================
 
 <style>
 body {
 text-align: justify}
 </style>
----
 
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(
-  collapse = TRUE,
-  comment = "#>"
-)
-options(cli.progress_show_after = 600) 
-# 10 minutes before showing a cli progress bar
-```
+------------------------------------------------------------------------
 
 ## Testing simulation with disturbances
 
-This document show how to run simulations with disturbance occurring at specific times. 
-This part of the package is in experimental state. 
-For this document we will use the species *Picea abies* as an example.
+This document show how to run simulations with disturbance occurring at
+specific times. This part of the package is in experimental state. For
+this document we will use the species *Picea abies* as an example.
 
-```{r constant make ipm}
+``` r
 # Libraries
 library(ggplot2)
 library(dplyr)
+#> 
+#> Attaching package: 'dplyr'
+#> The following objects are masked from 'package:stats':
+#> 
+#>     filter, lag
+#> The following object is masked from 'package:testthat':
+#> 
+#>     matches
+#> The following objects are masked from 'package:base':
+#> 
+#>     intersect, setdiff, setequal, union
 library(devtools)
 
 # Loading all functions of the package
 devtools::load_all()
+#> ℹ Loading matreex
 species <- "Picea_abies"
 data(list = paste0("fit_", species))
 climate <- subset(climate_species, sp == species & N == 2, select = -c(N, sp))
@@ -50,19 +42,38 @@ ipm_Picea <- make_IPM(
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
     BA = 0:100, verbose = TRUE
 )
+#> Launching integration loop
+#> GL integration occur on 32 cells
+#> midbin integration occur on 25 cells
+#> Loop done.
+#> Time difference of 1.13 mins
 Picea_abies <- species(IPM = ipm_Picea, init_pop = def_initBA(40),
                        harvest_fun = def_harv, type = "Coniferous")
 ```
 
-We want to start our simulations with an equilibrium size distribution so we compute here first
+We want to start our simulations with an equilibrium size distribution
+so we compute here first
 
-```{r equilibrium}
+``` r
 forest_ipm <- forest(species = list(Picea = Picea_abies))
 time <- 3000
 set.seed(42)
 memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
                                      equil_dist = 250, equil_time = time,
                                      verbose = TRUE, correction = "cut") 
+#> Warning in sim_deter_forest.forest(forest_ipm, tlim = time, equil_dist = 250, : The equil_dist value is low and could lead to inappropriate equilibrium states. A recommended value is 1000. 
+#> This warning  will be printed once by session and is desactivable with options(W_matreex_edist = FALSE)
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 3000
+#> time 500 | BA diff : 14.48
+#> time 1000 | BA diff : 5.37
+#> time 1500 | BA diff : 2.09
+#> time 2000 | BA diff : 0.82
+#> time 2500 | BA diff : 0.32
+#> time 3000 | BA diff : 0.13
+#> Simulation ended after time 3000
+#> BA stabilized at 36.41 with diff of 0.13 at time 3000
+#> Time difference of 14.6 secs
 
 memor %>%
     filter(var %in% c("BAsp"), ! equil, value != 0) %>%
@@ -70,11 +81,17 @@ memor %>%
     facet_wrap(~ var, scales = "free_y") +
     geom_line(size = .4) + geom_point(size = .4) +
     NULL
+#> Warning: Using `size` aesthetic for lines was deprecated in ggplot2 3.4.0.
+#> ℹ Please use `linewidth` instead.
+```
+
+![](Perturbations_files/figure-gfm/equilibrium-1.png)<!-- -->
+
+``` r
 
 equil <- memor %>%
     filter(var == "n", equil) %>% pull(value)
 ```
-
 
 ## Disturbance
 
@@ -82,21 +99,30 @@ equil <- memor %>%
 
 We define a disturbance by few parameters used later in the formula.
 
-* $I$ its intensity
+- $I$ its intensity
 
-* $type$ the class of disturbance. This is often a label in `"storm"`, `"fire"` and `"biotic"`.
-This is not used in the formula but to filter species parameters fitted.
+- $type$ the class of disturbance. This is often a label in `"storm"`,
+  `"fire"` and `"biotic"`. This is not used in the formula but to filter
+  species parameters fitted.
 
-We can set all of this in a data.frame object. We had a last column named **IsSurv**. It's used to tell the simulation if the survival part of the IPM is needed during a disturbance. In this case, the data do not allow differentiation between disturbance mortality and background mortality. Therefore, we need to deactivate baseline mortality so that it is not double counted.
+We can set all of this in a data.frame object. We had a last column
+named **IsSurv**. It’s used to tell the simulation if the survival part
+of the IPM is needed during a disturbance. In this case, the data do not
+allow differentiation between disturbance mortality and background
+mortality. Therefore, we need to deactivate baseline mortality so that
+it is not double counted.
 
-```{r}
+``` r
 ex_disturb <- data.frame(type = "storm", intensity = 0.5, IsSurv = FALSE)
 ```
 
-
 ### Impact on population
 
-The disturbance impact on the population result from parameters computed by Julien. They compose a function that takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance. A set of parameters was made for each type of disturbance and species.
+The disturbance impact on the population result from parameters computed
+by Julien. They compose a function that takes the size distribution,
+quadratic diameter of the species, intensity ($I$) and duration ($t$) of
+the disturbance. A set of parameters was made for each type of
+disturbance and species.
 
 $$
 dqm = \sqrt{\frac{\sum_{i=1}^m size_i^2 \times value_i}{\sum_{i=1}^m value_i}} \\
@@ -104,17 +130,26 @@ logratio = log(\frac{size}{dqm}) \\
 dbh.scaled = dbh.intercept + size \times dbh.slope \\
 logratio.scaled = logratio.intercept + logratio \times logratio.slope \\
 X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times logratio.scaled + b \times I^{c \times dbh.scaled}))^t 
-$$
-The parameters are estimated with Bayesian computations. The mean of all estimations are stored inside the package for each combination of species and disturbance type.
+$$ The parameters are estimated with Bayesian computations. The mean of
+all estimations are stored inside the package for each combination of
+species and disturbance type.
 
-```{r data_pkg}
+``` r
 (coefs <- filter(matreex::disturb_coef, species == "Picea_abies"))
+#>   disturbance     species        a0         a1        b            c
+#> 1      biotic Picea_abies -5.645296  0.0000000 5.831757 -0.079284149
+#> 2       storm Picea_abies -4.568872 -0.1489534 5.359453  0.003335358
+#>   dbh.intercept   dbh.slope logratio.intercept logratio.slope
+#> 1    -0.7868063 0.007928421          0.4682191       2.923733
+#> 2    -0.7197517 0.007261211          0.1725871       2.722508
 Picea_abies$disturb_coef <- coefs
 ```
 
-Linked with this set of parameters, we need to provide a disturbance function to the species we want to simulate. *The species is initiated with an empty function that will throw warnings.*
+Linked with this set of parameters, we need to provide a disturbance
+function to the species we want to simulate. *The species is initiated
+with an empty function that will throw warnings.*
 
-```{r disturb_fun}
+``` r
 #' Disturbance function
 #' 
 #' @param x population state distribution at time t
@@ -174,25 +209,25 @@ legend("topright", c("Distribution", "After Disturbance"),
        lty = c(1, 1), col = c(1, 2))
 ```
 
+![](Perturbations_files/figure-gfm/disturb_fun-1.png)<!-- -->
+
 ## Simulations
 
-```{r note, echo = FALSE}
-# We need to remove survival during disturbance. 
-# This is done during simulation at the step where we 
-# get the IPM matrix with get_step_IPM.
-# TODO  find a way to show this !
-```
+Running a simulation takes the same parameters as usual, with an added
+data.frame with disturbance along time. *We need to think about a clean
+way to build this table…*
 
-Running a simulation takes the same parameters as usual, with an added data.frame with disturbance along time. *We need to think about a clean way to build this table...*
-
-```{r disturbance table}
+``` r
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 100))
+#>    type intensity IsSurv   t
+#> 1 storm       0.2  FALSE 100
 ```
 
-**Disturbance size distribution is saved in harvest output. Harvest is canceled when a disturbance happens.**
+**Disturbance size distribution is saved in harvest output. Harvest is
+canceled when a disturbance happens.**
 
-```{r sim}
+``` r
 time <- 2500
 Picea_abies$init_pop <- def_init_k(equil * 0.03)
 Picea_abies$harvest_fun <- def_harv
@@ -202,6 +237,17 @@ memor <- sim_deter_forest.forest(forest_ipm, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
                                  verbose = TRUE, correction = "cut")
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 2500
+#> time 100 | Disturbance : storm I = 0.20
+#> time 500 | BA diff : 10.43
+#> time 1000 | BA diff : 2.83
+#> time 1500 | BA diff : 1.12
+#> time 2000 | BA diff : 0.44
+#> time 2500 | BA diff : 0.17
+#> Simulation ended after time 2500
+#> BA stabilized at 36.30 with diff of 0.17 at time 2500
+#> Time difference of 12.2 secs
 
 memor %>%
     filter(var %in% c("BAsp", "N", "H"), ! equil, value != 0) %>%
@@ -211,12 +257,13 @@ memor %>%
     NULL
 ```
 
+![](Perturbations_files/figure-gfm/sim-1.png)<!-- -->
 
-## Multispecific simulations 
+## Multispecific simulations
 
-What happens when we add other species ? 
+What happens when we add other species ?
 
-```{r abies_ipm}
+``` r
 species <- "Abies_alba"
 data(list = paste0("fit_", species))
 ipm_Abies <- make_IPM(
@@ -224,6 +271,11 @@ ipm_Abies <- make_IPM(
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
     BA = 0:100, verbose = TRUE
 )
+#> Launching integration loop
+#> GL integration occur on 24 cells
+#> midbin integration occur on 25 cells
+#> Loop done.
+#> Time difference of 38 secs
 Abies_alba <- species(
     IPM = ipm_Abies, init_pop = def_initBA(40),
     harvest_fun = def_harv, disturb_fun = disturb_fun, 
@@ -232,10 +284,12 @@ Abies_alba <- species(
 )
 ```
 
-```{r nsp_sim}
+``` r
 time <- 1500
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 1000))
+#>    type intensity IsSurv    t
+#> 1 storm       0.2  FALSE 1000
 
 Picea_abies$harvest_fun <- Uneven_harv
 Abies_alba$harvest_fun <- Uneven_harv
@@ -246,6 +300,15 @@ memor_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
                                  disturbance  = disturb,
                                  harvest = "Uneven", targetBA = 30,
                                  verbose = TRUE, correction = "cut")
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 1500
+#> time 500 | BA diff : 2.72
+#> time 1000 | Disturbance : storm I = 0.20
+#> time 1000 | BA diff : 16.36
+#> time 1500 | BA diff : 2.71
+#> Simulation ended after time 1500
+#> BA stabilized at 35.63 with diff of 2.71 at time 1500
+#> Time difference of 13.5 secs
 
 memor_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%
@@ -255,16 +318,21 @@ memor_nsp %>%
     NULL
 ```
 
+![](Perturbations_files/figure-gfm/nsp_sim-1.png)<!-- -->
 
 ## Delay
 
-I test delay here just to be sure. And there was a bug in get_step_IPM so I was right. 
+I test delay here just to be sure. And there was a bug in get_step_IPM
+so I was right.
 
-```{r delay}
+``` r
 load_all()
+#> ℹ Loading matreex
 time <- 1500
 (disturb <- data.frame(type = "storm", intensity = 0.2, 
                        IsSurv = FALSE, t = 600))
+#>    type intensity IsSurv   t
+#> 1 storm       0.2  FALSE 600
 forest_d <- forest(species = list(Abies = delay(Abies_alba, 5)))
 set.seed(42)
 memor_d <- sim_deter_forest.forest(forest_d, tlim = time,
@@ -272,6 +340,17 @@ memor_d <- sim_deter_forest.forest(forest_d, tlim = time,
                                  disturbance  = disturb,
                                  harvest = "Uneven", targetBA = 30,
                                  verbose = TRUE, correction = "cut")
+#> Warning in sim_deter_forest.forest(forest_d, tlim = time, equil_dist = 250, : The equil_dist value is low and could lead to inappropriate equilibrium states. A recommended value is 1000. 
+#> This warning  will be printed once by session and is desactivable with options(W_matreex_edist = FALSE)
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 1500
+#> time 500 | BA diff : 5.32
+#> time 600 | Disturbance : storm I = 0.20
+#> time 1000 | BA diff : 5.28
+#> time 1500 | BA diff : 4.15
+#> Simulation ended after time 1500
+#> BA stabilized at 33.69 with diff of 4.15 at time 1500
+#> Time difference of 7.3 secs
 
 memor_d %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%
@@ -281,11 +360,17 @@ memor_d %>%
     NULL
 ```
 
+![](Perturbations_files/figure-gfm/delay-1.png)<!-- -->
+
 ## Linear stabilizing effect of species mixture
 
-I create a broadleaf species (*Fagus sylvatica*) in order to mix with the previous coniferous species. Note that I specified the type of the tree for each species. This was optionnal with previous simulations, but we will edit the disturbance function in order to take that information into account.
+I create a broadleaf species (*Fagus sylvatica*) in order to mix with
+the previous coniferous species. Note that I specified the type of the
+tree for each species. This was optionnal with previous simulations, but
+we will edit the disturbance function in order to take that information
+into account.
 
-```{r fagus_ipm}
+``` r
 species <- "Fagus_sylvatica"
 data(list = paste0("fit_", species))
 ipm_Fagus <- make_IPM(
@@ -293,6 +378,11 @@ ipm_Fagus <- make_IPM(
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
     BA = 0:100, verbose = TRUE
 )
+#> Launching integration loop
+#> GL integration occur on 21 cells
+#> midbin integration occur on 25 cells
+#> Loop done.
+#> Time difference of 32.5 secs
 Fagus_sylvatica <- species(
     IPM = ipm_Fagus, init_pop = def_initBA(40),
     harvest_fun = def_harv, disturb_fun = disturb_fun, 
@@ -302,9 +392,12 @@ Fagus_sylvatica <- species(
 Fagus_sylvatica$harvest_fun <- Uneven_harv
 ```
 
-The disturbance function need to be edited, to accept the input of the coniferous percentage computed at the plot scale before disturbing each species and to modify the mortality probability (`Pkill`) if the species is a coniferous.
+The disturbance function need to be edited, to accept the input of the
+coniferous percentage computed at the plot scale before disturbing each
+species and to modify the mortality probability (`Pkill`) if the species
+is a coniferous.
 
-```{r mixture_disturb}
+``` r
 #' Disturbance function
 #' 
 #' @param x population state distribution at time t
@@ -362,18 +455,23 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
 }
 ```
 
-This is an example simulation. This is important to have a biotic disturbance as well as to 
+This is an example simulation. This is important to have a biotic
+disturbance as well as to
 
-```{r jasper_sim}
+``` r
 time <- 1500
 (disturb <- data.frame(type = "biotic", intensity = 0.2, 
                        IsSurv = FALSE, t = 600))
+#>     type intensity IsSurv   t
+#> 1 biotic       0.2  FALSE 600
 # Giving the new disturb_fun
 Picea_abies$disturb_fun <- disturb_fun
 Fagus_sylvatica$disturb_fun <- disturb_fun
 # The effect is only applied on the tree of type "Coniferous"
 # Picea_abies$info["type"] <- "Coniferous"
 Picea_abies$info["type"]
+#>         type 
+#> "Coniferous"
 forest_nsp <- forest(species = list(Picea = Picea_abies, Fagus = Fagus_sylvatica))
 set.seed(42)
 jasper_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
@@ -381,6 +479,16 @@ jasper_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
                                  disturbance  = disturb,
                                  harvest = "Uneven", targetBA = 30,
                                  verbose = TRUE, correction = "cut")
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 1500
+#> time 500 | BA diff : 2.99
+#> time 600 | Disturbance : biotic I = 0.20
+#> sp : Picea_abies | coni : 0.438 | modif : 0.74
+#> time 1000 | BA diff : 3.05
+#> time 1500 | BA diff : 2.98
+#> Simulation ended after time 1500
+#> BA stabilized at 35.38 with diff of 2.98 at time 1500
+#> Time difference of 13.5 secs
 
 jasper_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%
@@ -390,9 +498,13 @@ jasper_nsp %>%
     NULL
 ```
 
-To desactivate this effect, there is just a modification of the species type. This is not biological accurate, I can add a third option like NA later if it's not that clear.
+![](Perturbations_files/figure-gfm/jasper_sim-1.png)<!-- -->
 
-```{r basic sim}
+To desactivate this effect, there is just a modification of the species
+type. This is not biological accurate, I can add a third option like NA
+later if it’s not that clear.
+
+``` r
 Picea_abies$info["type"] <- "Broadleaf"
 forest_nsp <- forest(species = list(Picea = Picea_abies, Fagus = Fagus_sylvatica))
 set.seed(42)
@@ -401,13 +513,26 @@ memor_nsp <- sim_deter_forest.forest(forest_nsp, tlim = time,
                                  disturbance  = disturb,
                                  harvest = "Uneven", targetBA = 30,
                                  verbose = TRUE, correction = "cut")
+#> apply a IPM cut correction
+#> Starting while loop. Maximum t = 1500
+#> time 500 | BA diff : 2.99
+#> time 600 | Disturbance : biotic I = 0.20
+#> time 1000 | BA diff : 3.03
+#> time 1500 | BA diff : 2.98
+#> Simulation ended after time 1500
+#> BA stabilized at 36.12 with diff of 2.98 at time 1500
+#> Time difference of 13.4 secs
 ```
 
-I compare the two simulations in order to check the presence of the effect. As seen above in messages, the mortality is multiplied by 0.74, which we see here with the blue line under the red one for *Picea abies*.
+I compare the two simulations in order to check the presence of the
+effect. As seen above in messages, the mortality is multiplied by 0.74,
+which we see here with the blue line under the red one for *Picea
+abies*.
 
-*Yes, the disturbance mortality is saved in the harvest variable since there is no harvest when there is a disturbance.*
+*Yes, the disturbance mortality is saved in the harvest variable since
+there is no harvest when there is a disturbance.*
 
-```{r comparaison}
+``` r
 bind_rows(mixture = jasper_nsp, basic =  memor_nsp, .id = "jasper") %>% 
     filter(var == "h", time == 600) %>%
     ggplot(aes(x = mesh, y = value, color = jasper)) + 
@@ -416,3 +541,4 @@ bind_rows(mixture = jasper_nsp, basic =  memor_nsp, .id = "jasper") %>%
     NULL
 ```
 
+![](Perturbations_files/figure-gfm/comparaison-1.png)<!-- -->

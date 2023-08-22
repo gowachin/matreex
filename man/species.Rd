@@ -14,7 +14,8 @@ species(
   disturb_fun = def_disturb,
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
   rdi_coef = NULL,
-  disturb_coef = NULL
+  disturb_coef = NULL,
+  type = c("Broadleaf", "Coniferous")
 )
 }
 \arguments{
@@ -48,6 +49,10 @@ values and names are highly dependent on the disturbance function.
 Should return a population state as it's take it in input, with less
 population than before. Unless you want zombie trees. It represent the
 distribution of the population to harvest}
+
+\item{type}{Type of the tree, choosing between "Broadleaf" and "Coniferous".
+This value is only used during biotic disturbance with a specific disturb_fun.
+This is experimental}
 }
 \description{
 Species are defined by an IPM which is a transition matrix from size between
