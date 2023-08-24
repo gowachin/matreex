@@ -320,6 +320,8 @@ sim_deter_forest.forest  <- function(Forest,
     }
     # correct also decompress integer to double with x * 1e-7 app
     Forest <- correction(Forest, correction = correction)
+    regional <- inherits(Forest, "reg_forest")
+
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
     types <- map_chr(Forest$species, ~ .x$info["type"])
     stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
@@ -365,6 +367,14 @@ sim_deter_forest.forest  <- function(Forest,
             "Border Basal Area reached for this simulation.",
             "This maximum is reached before iteration, check init_pop functions"
         ))
+    }
+
+    if(regional){
+        if(verbose){
+            message("Simulation with regional pool")
+        }
+        reg_ba <- Forest$regional_abundance
+        reg_banonsp <- sum(reg_ba) - reg_ba
     }
 
     # Create sim IPM ####
@@ -519,9 +529,9 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         ### Recruitment ####
+        # browser()
         sim_clim <- climate[t, , drop = TRUE]
         rec <- map(Forest$species, sp_rec.species, sim_clim)
-        # browser()
 
         recrues <- imap(
             rec,
@@ -530,11 +540,22 @@ sim_deter_forest.forest  <- function(Forest,
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
             mesh = meshs, SurfEch = SurfEch )
 
-        # X <- map2(X, recrues, `+`) # gain time
-        X <- sapply(names(X), function(n, x, y) x[[n]] + y[[n]], X, recrues,
-               simplify = FALSE)
-
         # browser()
+        if(regional){
+            reg_recrues <- imap(
+                rec,
+                function(x, .y, basp, banonsp, mesh, SurfEch, mig){
+                    exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
+                }, basp = reg_ba, banonsp = reg_banonsp,
+                mesh = meshs, SurfEch = SurfEch, Forest$migration_rate )
+        } else {
+            reg_recrues <- map(recrues, ~ .x * 0)
+        }
+
+        # X <- map2(X, recrues, `+`) # gain time
+        X <- sapply(names(X), function(n, x, y, z) x[[n]] + y[[n]] + z[[n]],
+                    X, recrues, reg_recrues, simplify = FALSE)
+
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
         sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
@@ -592,12 +613,13 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Format output ####
+    # browser()
     tmp <- imap(X, function(x, .y, ba, bast, harv){
         c(x / SurfEch, ba[[.y]], bast[[.y]], sum(x) / SurfEch,
           harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
     },
-    ba = sim_BAsp[t,,drop = FALSE],
-    bast = sim_BAstand[t,,drop = FALSE],
+    ba = sim_BAsp[t-1,,drop = FALSE],
+    bast = sim_BAstand[t-1,,drop = FALSE],
     harv = Harv)
 
     tmp <- do.call("c", tmp)
