@@ -375,6 +375,9 @@ sim_deter_forest.forest  <- function(Forest,
         }
         reg_ba <- Forest$regional_abundance
         reg_banonsp <- sum(reg_ba) - reg_ba
+        migrate <- Forest$migration_rate
+    } else {
+        migrate <- map(X, ~ 0)
     }
 
     # Create sim IPM ####
@@ -529,25 +532,25 @@ sim_deter_forest.forest  <- function(Forest,
         }
 
         ### Recruitment ####
-        # browser()
         sim_clim <- climate[t, , drop = TRUE]
         rec <- map(Forest$species, sp_rec.species, sim_clim)
 
         recrues <- imap(
             rec,
-            function(x, .y, basp, banonsp, mesh, SurfEch){
-                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
+            function(x, .y, basp, banonsp, mesh, SurfEch, mig){
+                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
-            mesh = meshs, SurfEch = SurfEch )
+            mesh = meshs, SurfEch = SurfEch, mig = migrate )
 
-        # browser()
         if(regional){
+            rec_reg <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
+
             reg_recrues <- imap(
-                rec,
+                rec_reg,
                 function(x, .y, basp, banonsp, mesh, SurfEch, mig){
                     exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
                 }, basp = reg_ba, banonsp = reg_banonsp,
-                mesh = meshs, SurfEch = SurfEch, Forest$migration_rate )
+                mesh = meshs, SurfEch = SurfEch, migrate )
         } else {
             reg_recrues <- map(recrues, ~ .x * 0)
         }

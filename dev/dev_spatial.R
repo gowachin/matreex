@@ -32,6 +32,26 @@ climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
 # see ?climate_species for more info.
 climate
 
+# modif de la fonction de recrut #********************************************
+rm(list = ls())
+devtools::load_all()
+data("fit_Abies_alba")
+data("climate_species")
+climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
+climate
+list_covs <- climate
+params <- fit_Abies_alba$rec$params_m
+list_covs ; params
+matreex:::exp_recFun(params, list_covs)
+names(params) <- sub("^logBATOTSP$", "logBAFecSP", names(params))
+params
+matreex:::exp_recFun(params, list_covs)
+# ne marche pas car il n'y a que les inputs des deux variables BA
+# J'ai modifié les fonction
+devtools::load_all()
+matreex:::exp_recFun(params, list_covs, TRUE)
+# modif de la fonction de recrut #********************************************
+
 Abies_ipm <- make_IPM(
     species = "Abies_alba",
     climate = climate,
@@ -41,8 +61,14 @@ Abies_ipm <- make_IPM(
     BA = 0:120,
     verbose = TRUE
 )
+
+Abies_ipm$fit$rec
+
 options(W_matreex_edist = FALSE)
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(30))
+
+Abies_sp$recruit_fun
+
 Abies_for <- forest(species = list(Abies = Abies_sp))
 set.seed(42) # The seed is here for initial population random functions.
 Abies_sim <- sim_deter_forest(

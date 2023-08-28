@@ -156,7 +156,11 @@ format_fit <- function(params, list_covs){
 #' foo(1, 2, 1:5, 0.03)
 #'
 #' @noRd
-exp_recFun <- function(params, list_covs){
+exp_recFun <- function(params, list_covs, regional = FALSE){
+
+    if(regional){
+        names(params) <- sub("^logBATOTSP$", "logBAFecSP", names(params))
+    }
 
     df2 <- format_fit(params, list_covs)
 
@@ -178,7 +182,19 @@ exp_recFun <- function(params, list_covs){
     )
     calls <- c(exp_invar, add_invar, final_res)
 
-    empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03){}
+    if(regional){
+        empty <- function(BATOTSP, BAFecSP, BATOTNonSP, mesh, SurfEch = 0.03){}
+    } else {
+        empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03){}
+    }
+
+    # IDEA for latter
+    # empty <- function(){}
+    # arguments <- vector("pairlist", length(invar) + 2)
+    # names(arguments) <- c(invar, "mesh", "SurfEch")
+    # arguments <- lapply(arguments, function(y) substitute(x, alist(x=)))
+    # arguments$SurfEch <- 0.03
+    # formals(empty) <- arguments
 
     body(empty)[[2]] <- call2("<-", expr(intercept), inter)
     body(empty)[[3]] <- expr(res <- 0)

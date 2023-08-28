@@ -285,7 +285,7 @@ correction.mu_gr <- function(x, correction = "none"){
 }
 
 
-
+# sp_rec ####
 #' sp recruit
 #'
 #' Get species recruitment function
@@ -293,35 +293,38 @@ correction.mu_gr <- function(x, correction = "none"){
 #' @param x Species to get the recruitment function from
 #' @param climatic Climate vector is needed for mu_gr object to build the
 #' corresponding recruitment function.
+#' @param regional TRUE/FALSE if we want to use a regional BA for fecundity.
 #'
 #' @name sp_rec
 #'
 #' @export
-sp_rec <- function(x, climatic){
+sp_rec <- function(x, climatic, regional = FALSE){
     UseMethod("sp_rec")
 }
 
 #' @method sp_rec mu_gr
 #' @export
-sp_rec.mu_gr <- function(x, climatic){
+sp_rec.mu_gr <- function(x, climatic, regional = FALSE){
 
-    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic)
+    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic,
+                      regional = regional) # TODO test this ?
     return(res)
 }
 
 #' @method sp_rec ipm
 #' @export
-sp_rec.ipm <- function(x, climatic){
+sp_rec.ipm <- function(x, climatic, regional = FALSE){
 
-    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic)
+    res <- exp_recFun(params = x$fit$rec$params_m, list_covs = climatic,
+                      regional = regional)
     return(res)
 }
 
 #' @method sp_rec species
 #' @export
-sp_rec.species <- function(x, climatic){
+sp_rec.species <- function(x, climatic, regional = FALSE){
 
-    res <- sp_rec(x = x$IPM, climatic)
+    res <- sp_rec(x = x$IPM, climatic, regional = regional)
     return(res)
 }
 
