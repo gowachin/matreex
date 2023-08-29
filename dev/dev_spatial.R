@@ -33,12 +33,6 @@ climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
 climate
 
 # modif de la fonction de recrut #********************************************
-rm(list = ls())
-devtools::load_all()
-data("fit_Abies_alba")
-data("climate_species")
-climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
-climate
 list_covs <- climate
 params <- fit_Abies_alba$rec$params_m
 list_covs ; params
@@ -49,7 +43,7 @@ matreex:::exp_recFun(params, list_covs)
 # ne marche pas car il n'y a que les inputs des deux variables BA
 # J'ai modifié les fonction
 devtools::load_all()
-matreex:::exp_recFun(params, list_covs, TRUE)
+matreex:::exp_recFun(params, list_covs, regional = TRUE)
 # modif de la fonction de recrut #********************************************
 
 Abies_ipm <- make_IPM(
@@ -270,7 +264,7 @@ isol_sim <- sim_deter_forest(
 )
 
 
-regional_pool <- dplyr::bind_rows(regional002 = regional_sim, isolation = isol_sim,
+regional_pool <- dplyr::bind_rows(regional = regional_sim, isolation = isol_sim,
                                   .id = "migration")
 
 regional_pool %>%
@@ -280,10 +274,9 @@ regional_pool %>%
     facet_wrap(~ var, scales =  "free_y") +
     NULL
 
-#' I guess it works, but questions :
-#' - What basal area use for regional pool
-#' - Migration rate values ?
-#' - SurfEch for the regional pool ?
+
+
+#' Change nothing because the migration comes from equilibrium and 1-m compensate this
 
 # Testing 2 species simulations
 AbFa_sim %>%
@@ -326,10 +319,11 @@ sp2_sim %>%
     facet_wrap(~ var, scales =  "free_y") +
     NULL
 
+#' Change nothing, because start at equilibrium and regional is equilibrium
 
 # Testing invasive species
 Fagus_spE0 <- Fagus_sp
-Fagus_spE0$init_pop <- def_init_k(e2_dist[[2]] * 10e-7)
+Fagus_spE0$init_pop <- def_init_k(e2_dist[[2]] * 0)
 
 
 invasive_AbFa <- forest(
@@ -352,6 +346,37 @@ invas_sim %>%
     geom_line(linewidth = .4) +
     facet_wrap(~ var, scales =  "free_y") +
     NULL
+
+#' this is fun but yup it works
+
+
+# Testing random start
+
+rand_AbFa <- forest(species = list(Abies = Abies_sp,  Fagus = Fagus_sp),
+                    regional_abundance = e2_BA,
+                    migration_rate = c(Abies = 0.5, Fagus = 0.5)
+)
+
+set.seed(42)
+rand_sim <- sim_deter_forest(
+    rand_AbFa,
+    tlim = 2000,
+    equil_time = 2000, equil_dist = 10,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+
+works <- dplyr::bind_rows(regional = rand_sim, isolation = AbFa_sim,
+                 .id = "migration")
+
+works %>%
+    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
+    ggplot(aes(x = time, y = value, color = species, linetype = migration)) +
+    geom_line(linewidth = .4) +
+    facet_wrap(~ var, scales =  "free_y") +
+    NULL
+
+#' It works but this is very dependant on the migration rate
 
 ## Mosaic forest ####
 
@@ -391,6 +416,13 @@ mosaic <- function(forests = list()){
     return(mosaic)
 
 }
+
+Mosaic <- mosaic(forests)
+
+names(Mosaic$forests)
+
+Mosaic$forest[[index]]$info$species
+sp <- $species
 
 ## Simulations ####
 sim_deter_mosaic <- function(Mosaic,
@@ -527,6 +559,7 @@ sim_deter_mosaic <- function(Mosaic,
         return(res)
     }
     nplot <- length(Mosaic$forests)
+    nmsplot <- names(Mosaic$forests)
     disturb_surv <- TRUE
 
     ## Modify IPM ####
@@ -538,62 +571,14 @@ sim_deter_mosaic <- function(Mosaic,
     # correct also decompress integer to double with x * 1e-7 app
     Mosaic$sp_ipms <- map(Mosaic$sp_ipms, correction.ipm, correction = correction)
 
-    meshs <- map(Forest$sp_ipms, ~ .x$IPM$mesh)
-    stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
-    # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
-
-    ## Create output ####
-    sim_X <- init_sim(nsp, tlim, meshs)
-    sim_X <- do.call("rbind", sim_X)
-    sim_BAstand <- sim_BAsp <- as.data.frame(matrix(
-        ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
-    ))
-    sim_BA <- rep(NA_real_, equil_time)
-    sim_BAnonSp <- rep(NA_real_, nsp)
-
-    ## Initiate pop ####
-    X <- map2(map(Forest$species, `[[`, "init_pop"),
-              meshs,
-              exec, SurfEch = SurfEch)
-    Harv <- map(lengths(meshs), ~ rep(0, .x))
-    ct <- map(meshs, Buildct, SurfEch = SurfEch)
-
-    BAsp <- map(Forest$species, ~ .x$IPM$BA)
+    ## Initiate variables and populations ####
+    landscape <- map(nms_plot,
+                     ~ init_forest_env(Mosaic, index = .x,
+                                       tlim = tlim,  equil_time = equil_time,
+                                       SurfEch = SurfEch)
+    )
     # save first pop
-    sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
-    standX <- map2(X, stand_above_dth, `*`)
-    sim_BAstand[1, ] <- map2_dbl(standX, ct, `%*%`)
-    sim_BA[1] <- sum(sim_BAsp[1,])
-    sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
-
-    tmp <- imap(X, function(x, .y, ba, bast, harv){
-        c(x / SurfEch , ba[[.y]], bast[[.y]], sum(x) / SurfEch,
-          harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch )
-    },
-    ba = sim_BAsp[1,, drop = FALSE],
-    bast = sim_BAstand[1,,drop = FALSE],
-    harv = Harv )
-
-    tmp <- do.call("c", tmp)
-    sim_X[, 1] <- tmp
-
-    if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y -1))))) {
-        stop(paste(
-            "Border Basal Area reached for this simulation.",
-            "This maximum is reached before iteration, check init_pop functions"
-        ))
-    }
-
-    if(regional){
-        if(verbose){
-            message("Simulation with regional pool")
-        }
-        reg_ba <- Forest$regional_abundance
-        reg_banonsp <- sum(reg_ba) - reg_ba
-        migrate <- Forest$migration_rate
-    } else {
-        migrate <- map(X, ~ 0)
-    }
+    landscape <- map(landscape, ~ save_step_env(.x, t = 1))
 
     # Create sim IPM ####
     start_clim <- climate[1, , drop = TRUE]
