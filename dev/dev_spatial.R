@@ -332,6 +332,7 @@ invasive_AbFa <- forest(
     migration_rate = c(Abies = 0.1, Fagus = 0.1)
 )
 
+devtools::load_all()
 invas_sim <- sim_deter_forest(
     invasive_AbFa,
     tlim = comp_time,
@@ -386,7 +387,6 @@ works %>%
 forests <- list(A = regional_Abies,
                 B = invasive_AbFa)
 
-map(forests, ~ .x$info$species) %>% flatten_chr() %>% unique()
 
 # each forest require the migration rate I guess
 mosaic <- function(forests = list()){
@@ -421,15 +421,9 @@ Mosaic <- mosaic(forests)
 
 names(Mosaic$forests)
 
-Mosaic$forest[[index]]$info$species
-sp <- $species
-
 ## Simulations ####
 sim_deter_mosaic <- function(Mosaic,
                              tlim = 3e3,
-                             equil_dist = 250,
-                             equil_diff = 1,
-                             equil_time = 1e4,
                              harvest = c("default", "Uneven", "Even"),
                              targetBA = 20,
                              targetRDI = 0.9,
@@ -445,9 +439,6 @@ sim_deter_mosaic <- function(Mosaic,
 
     # browser()
     tlim = 500
-    equil_dist = 1
-    equil_diff = 1
-    equil_time = 500
     harvest = "default"
     climate = NULL
     disturbance = NULL
@@ -537,8 +528,6 @@ sim_deter_mosaic <- function(Mosaic,
     assertNumber(SurfEch, lower = 0)
     assertLogical(verbose, any.missing = FALSE, len = 1)
 
-
-    # TODO continue ici
     start <- Sys.time()
 
     # Initialisation ####
@@ -559,7 +548,7 @@ sim_deter_mosaic <- function(Mosaic,
         return(res)
     }
     nplot <- length(Mosaic$forests)
-    nmsplot <- names(Mosaic$forests)
+    nms_plot <- names(Mosaic$forests)
     disturb_surv <- TRUE
 
     ## Modify IPM ####
@@ -581,13 +570,9 @@ sim_deter_mosaic <- function(Mosaic,
     landscape <- map(landscape, ~ save_step_env(.x, t = 1))
 
     # Create sim IPM ####
-    start_clim <- climate[1, , drop = TRUE]
-
-    sim_ipm <- map(Forest$species, ~ get_step_IPM(
-        x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction,
-        IsSurv = disturb_surv
-    ))
-
+    sim_clim <- climate[1, , drop = TRUE] # why this line ?
+    landscape <- get_step_env(landscape, Mosaic, t= 1,
+                              climate, correction, disturb_surv)
     if (verbose) {
         message("Starting while loop. Maximum t = ", equil_time)
     }
@@ -595,219 +580,43 @@ sim_deter_mosaic <- function(Mosaic,
     # While tlim & eq ####
     t <- 2
     the <- NA_real_ # real time of simulation ending in case of outbound BA
-    # Harv cst
-    alpha <- Forest$harv_rule["alpha"]
-    Pmax <- Forest$harv_rule["Pmax"]
-    dBAmin <- Forest$harv_rule["dBAmin"]
-    disturb <- FALSE
 
-    while (t < tlim || (t <= equil_time && (t <= tlim || diff(
-        range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
-    ) > equil_diff))) {
+    while (t < tlim ) {
 
-
-        ## t size distrib ####
-        X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
-
-        ## Disturbance ####
-        if(run_disturb && t_disturb[t]){
-            disturb <- TRUE
-
-            if (verbose) {
-                message(sprintf(
-                    "time %i | Disturbance : %s I = %.2f",
-                    t, disturbance[disturbance$t == t, "type"],
-                    disturbance[disturbance$t == t, "intensity"]
-                )
-                )
-            }
-
-            qmd <- QMD(size = unlist(meshs), n = unlist(X))
-            # TODO remove unborn size from X before computations
-
-            # TODO compute percentage of coniferous (relative share in number of stems)
-            total_stem <- purrr::reduce(X, sum, .init = 0)
-            sp_stem <- map_dbl(X, ~ sum(.x) / total_stem)
-            perc_coni <- sum(sp_stem[names(types[types == "Coniferous"])])
-            # browser()
-
-            Disturb <- imap(
-                map(Forest$species, `[[`, "disturb_fun"),
-                function(f, .y, X, sp, disturb, ...){
-                    exec(f, X[[.y]], sp[[.y]], disturb, ...)
-                }, X = X, sp = Forest$species,
-                disturb = disturbance[disturbance$t == t, ],
-                qmd = qmd, perc_coni = perc_coni
-            )
-
-            X <- map2(X, Disturb, `-`)
-
-        }
-
-        ## Harvest ####
-        if(!disturb && t %% Forest$harv_rule["freq"] == 0 &&
-           harvest %in% c("Uneven", "Favoured_Uneven")){
-            ### Uneven ####
-            BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
-            BAstand <- sum(BAstandsp)
-            BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
-
-            sfav <- sum(Forest$favoured_sp)
-            if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(Forest$favoured_sp))){
-                print('!!!!!!!!!!!!!!!!!!!!!  WARNING  !!!!!!!!!!!!!!!!!!!!!')
-                # warning("No species are favoured in the forest object, harvest mode 'Favoured_Uneven' is replaced with 'Uneven'")
-                harvest <- "Uneven"
-            }
-
-            if(harvest == "Uneven"){
-                pi <- BAstandsp / BAstand
-                Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
-                targetBAcut <- Hi * BAstandsp
-            } else { # Favoured_Uneven
-                p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
-                # cat(p_fav)
-                if(p_fav > 0.5){
-                    # ici qu'il faut modifier en fait !
-                    # cat(" - let's fav \n")
-                    Hi <- BAcut / BAstand
-                }  else {
-                    # cat(" \n")
-                    pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
-                    Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
-                }
-                targetBAcut <- Hi * BAstandsp
-            }
-            # browser()
-
-            Harv <- imap(
-                map(Forest$species, `[[`, "harvest_fun"),
-                function(f, .y, X, sp, bacut, ct, ...){
-                    exec(f, X[[.y]], sp[[.y]],
-                         targetBAcut = bacut[[.y]],
-                         ct = ct[[.y]], ...)
-                }, X = X, sp = Forest$species, bacut = targetBAcut,
-                ct = ct, t = t
-            )
-
-            X <- map2(X, Harv, `-`)
-        } else if(!disturb && harvest == "Even"){
-            ### Even ####
-            if(t %% final_harv == 0){
-                Harv <- X
-                X <- map2(map(Forest$species, `[[`, "init_pop"),
-                          meshs,
-                          exec, SurfEch = SurfEch)
-            } else if(t %% Forest$harv_rule["freq"] == 0){
-                Harv <- imap(
-                    map(Forest$species, `[[`, "harvest_fun"),
-                    function(f, .y, X, sp, tRDI, tKg, ct, ...){
-                        exec(f, X[[.y]], sp[[.y]],
-                             targetRDI = tRDI[[.y]],
-                             targetKg = tKg[[.y]],
-                             ct = ct[[.y]],
-                             ...)
-                    }, X = X, sp = Forest$species, tRDI = targetRDI,
-                    tKg = targetKg, ct = ct, t = t, SurfEch = SurfEch
-                )
-                X <- map2(X, Harv, `-`)
-
-            } else {
-                Harv <- map(meshs, ~ rep(0, length(.x)))
-            }
-        } else if (!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
-            ### Nothing ####
-            Harv <- imap(
-                map(Forest$species, `[[`, "harvest_fun"),
-                function(f, .y, X, sp, ct, ...){
-                    exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]], ...)
-                }, X = X, sp = Forest$species, ct = ct, t = t, SurfEch = SurfEch
-            )
-
-            X <- map2(X, Harv, `-`)
-        } else if(disturb){
-            Harv <- Disturb
-            disturb <- FALSE
-        } else {
-            Harv <- map(meshs, ~ rep(0, length(.x)))
-        }
-
-        ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
+        # TODO continue ici
+        landscape <- map(landscape, ~ growth_mortal_env(
+            .x, t = 1, harvest = harvest, run_disturb
+            ))
+        # actual in dev
+
+        #***********************************************************************
+        ### Recruitment ####
+        #' separer la repro de la compet. regrouper la repro et la diviser par
+        #' n patch pour apres appliquer la compet locale.
         rec <- map(Forest$species, sp_rec.species, sim_clim)
 
         recrues <- imap(
             rec,
-            function(x, .y, basp, banonsp, mesh, SurfEch, mig){
-                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
+            function(x, .y, basp, banonsp, mesh, SurfEch){
+                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
-            mesh = meshs, SurfEch = SurfEch, mig = migrate )
-
-        if(regional){
-            reg_recrues <- imap(
-                rec,
-                function(x, .y, basp, banonsp, mesh, SurfEch, mig){
-                    exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
-                }, basp = reg_ba, banonsp = reg_banonsp,
-                mesh = meshs, SurfEch = SurfEch, migrate )
-        } else {
-            reg_recrues <- map(recrues, ~ .x * 0)
-        }
+            mesh = meshs, SurfEch = SurfEch)
 
         # X <- map2(X, recrues, `+`) # gain time
-        X <- sapply(names(X), function(n, x, y, z) x[[n]] + y[[n]] + z[[n]],
-                    X, recrues, reg_recrues, simplify = FALSE)
+        X <- sapply(names(X), function(n, x, y) x[[n]] + y[[n]],
+                    X, recrues, simplify = FALSE)
+        #***********************************************************************
 
         ## Save BA ####
-        # compute new BA for selecting the right IPM and save values
-        sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
-        standX <- map2(X, stand_above_dth, `*`)
-        sim_BAstand[t, ] <- map2_dbl(standX, ct, `%*%`)
-        sim_BA[t] <- sum(sim_BAsp[t,])
-        sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
-
-        # Update X and extract values per ha
-        if (t <= tlim) {
-            tmp <- imap(X, function(x, .y, ba, bast, harv){
-                c(x / SurfEch, ba[[.y]], bast[[.y]], sum(x) / SurfEch,
-                  harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
-            },
-            ba = sim_BAsp[t,,drop = FALSE],
-            bast = sim_BAstand[t,,drop = FALSE],
-            harv = Harv)
-
-            tmp <- do.call("c", tmp)
-            sim_X[, t] <- tmp
-        }
-
-
-        ## Stop loop if BA larger than LIPM largest BA ####
-        if (any(map2_lgl(sim_BA[t], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
-            warning("Maximum Basal Area reached for this simulation.")
-            # TODO  say which species reached BA limit !
-            the <- t
-            break()
-        }
-
+        landscape <- map(landscape, ~ save_step_env(.x, t = t))
         ## Get sim IPM ####
-        # Is there a disturbance ?
-        if(run_disturb && t < equil_time){ # IDEA rewrite this ?
-            if(t_disturb[t+1]){
-                disturb_surv <- disturbance[disturbance$t == t+1, "IsSurv"]
-            } else {
-                disturb_surv <- TRUE
-            }
-        }
-
-        sim_ipm <- map(Forest$species, ~ get_step_IPM(
-            x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction,
-            IsSurv = disturb_surv
-        ))
-
+        landscape <- get_step_env(landscape, Mosaic, t= t, climate, correction)
         ## Loop Verbose ####
         if (t %% 500 == 0 && verbose) {
             message(sprintf(
-                "time %i | BA diff : %.2f",
-                t, diff(range(sim_BA[max(1, t - equil_dist):t]))
+                "time %i",
+                t#, diff(range(sim_BA[max(1, t - equil_dist):t]))
             ))
         }
         t <- t + 1

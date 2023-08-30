@@ -36,18 +36,16 @@ fuu <- function(x){
 init_forest_env <- function(Mosaic,
                             index,
                             tlim,
-                            equil_time,
                             SurfEch = SurfEch
 ){
 
     # DEV
-    index <- "B"
-    tlim <- 10
-    equil_time <- 12
-    SurfEch <- 0.03
+    # index <- "A"
+    # tlim <- 10
+    # SurfEch <- 0.03
     # EoDev
 
-    species <- Mosaic$forest[[index]]$species
+    res$species <- Mosaic$forest[[index]]$species
     res <- new.env()
 
     res$index <- index
@@ -57,7 +55,8 @@ init_forest_env <- function(Mosaic,
     res$sp <- unname(Mosaic$forest[[index]]$info$species)
     nsp <- length(res$sp)
 
-    res$meshs <- map(Mosaic$ipms, ~ .x$mesh)
+    res$meshs <- map(Mosaic$ipms, ~ .x$mesh)[res$sp]
+    res$types <- map_chr(species, ~ .x$info["type"])
     res$stand_above_dth <- map2(res$meshs, species,  ~ .x > .y$harv_lim["dth"])
     res$BAsp <- map(Mosaic$ipms, ~ .x$BA)
 
@@ -66,7 +65,7 @@ init_forest_env <- function(Mosaic,
     res$sim_BAstand <- res$sim_BAsp <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, res$sp)
     ))
-    res$sim_BA <- rep(NA_real_, equil_time)
+    res$sim_BA <- rep(NA_real_, tlim)
     res$sim_BAnonSp <- rep(NA_real_, nsp)
 
     # Initiate the pops
@@ -76,6 +75,13 @@ init_forest_env <- function(Mosaic,
     res$Harv <- map(lengths(res$meshs), ~ rep(0, .x))
     res$ct <- map(res$meshs, Buildct, SurfEch = SurfEch)
 
+    # Harv cst
+    res$alpha <- Forest$harv_rule["alpha"]
+    res$Pmax <- Forest$harv_rule["Pmax"]
+    res$dBAmin <- Forest$harv_rule["dBAmin"]
+    res$disturb <- FALSE
+    res$disturb_surv <- TRUE
+
     return(res)
 }
 
@@ -84,7 +90,7 @@ x <- res
 save_step_env <- function(x, t){
 
     # Dev
-    t <- 1
+    # t <- 1
     # EoDev
 
     x$sim_BAsp[t, ] <- map2_dbl(x$X, x$ct, ~ .x %*% .y )
@@ -105,11 +111,161 @@ save_step_env <- function(x, t){
     x$sim_X[, t] <- tmp
 
     if (any(map2_lgl(x$sim_BA[t], x$BAsp, ~ ! between(.x, min(.y), max(.y -1))))) {
-        stop(paste(
-            "Border Basal Area reached for this simulation.",
-            "This maximum is reached before iteration, check init_pop functions"
-        ))
+        waring("Border Basal Area reached for this simulation.")
+        break()
     }
 
     return(x)
+}
+
+get_step_env <- function(x, Mosaic, t, climate, correction){
+
+    # Dev
+    # t <- 1
+    # x <- landscape[[1]]
+    # EoDev
+
+    x$sim_ipm <- map(Mosaic$ipms[x$sp], ~ get_step_IPM(
+        x = .x, BA = x$sim_BA[t], climate = climate, sim_corr = correction,
+        IsSurv = x$disturb_surv
+    ))
+
+
+    return(x)
+}
+
+growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
+
+    ## t size distrib ####
+    x$X <- map2(x$X, x$sim_ipm, ~ drop( .y %*% .x ) )# Growth
+
+    ## Disturbance ####
+    if(FALSE && run_disturb && t_disturb[t]){ # TODO edit the distribution table
+        x$disturb <- TRUE
+
+        if (verbose) {
+            message(sprintf(
+                "Plot %s time %i | Disturbance : %s I = %.2f",
+                x$index, t, disturbance[disturbance$t == t, "type"],
+                disturbance[disturbance$t == t, "intensity"]
+            )
+            )
+        }
+
+        qmd <- QMD(size = unlist(x$meshs), n = unlist(x$X))
+        # TODO remove unborn size from X before computations
+
+        # compute percentage of coniferous (relative share in number of stems)
+        total_stem <- purrr::reduce(x$X, sum, .init = 0)
+        sp_stem <- map_dbl(x$X, ~ sum(.x) / total_stem)
+        perc_coni <- sum(sp_stem[names(x$types[x$types == "Coniferous"])])
+
+        Disturb <- imap(
+            # FIXME The correct distubr_fun() require the mesh from species...damn
+            map(x$species, `[[`, "disturb_fun"),
+            function(f, .y, X, sp, disturb, ...){
+                exec(f, X[[.y]], sp[[.y]], disturb, ...)
+            }, x$X = X, sp = x$species,
+            disturb = disturbance[disturbance$t == t, ],
+            qmd = qmd, perc_coni = perc_coni
+        )
+
+        x$X <- map2(x$X, Disturb, `-`)
+
+    }
+
+    ## Harvest ####
+    if(!x$disturb && t %% Forest$harv_rule["freq"] == 0 &&
+       harvest %in% c("Uneven", "Favoured_Uneven")){
+        ### Uneven ####
+        BAstandsp <- map2_dbl(x$X, Forest$species, getBAstand, SurfEch)
+        BAstand <- sum(BAstandsp)
+        BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
+
+        sfav <- sum(Forest$favoured_sp)
+        if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(Forest$favoured_sp))){
+            print('!!!!!!!!!!!!!!!!!!!!!  WARNING  !!!!!!!!!!!!!!!!!!!!!')
+            # warning("No species are favoured in the forest object, harvest mode 'Favoured_Uneven' is replaced with 'Uneven'")
+            harvest <- "Uneven"
+        }
+
+        if(harvest == "Uneven"){
+            pi <- BAstandsp / BAstand
+            Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
+            targetBAcut <- Hi * BAstandsp
+        } else { # Favoured_Uneven
+            p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
+            if(p_fav > 0.5){
+                Hi <- BAcut / BAstand
+            }  else {
+                pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
+                Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
+            }
+            targetBAcut <- Hi * BAstandsp
+        }
+
+        x$Harv <- imap(
+            map(Forest$species, `[[`, "harvest_fun"),
+            function(f, .y, X, sp, bacut, ct, ...){
+                exec(f, X[[.y]], sp[[.y]],
+                     targetBAcut = bacut[[.y]],
+                     ct = ct[[.y]], ...)
+            }, X = x$X, sp = x$species, bacut = targetBAcut,
+            ct = x$ct, t = t
+        )
+
+        x$X <- map2(x$X, x$Harv, `-`)
+    } else if(!disturb && harvest == "Even"){
+        ### Even ####
+        if(t %% final_harv == 0){
+            x$Harv <- x$X
+            x$X <- map2(map(x$species, `[[`, "init_pop"),
+                      x$meshs,
+                      exec, SurfEch = x$SurfEch)
+        } else if(t %% Forest$harv_rule["freq"] == 0){
+            x$Harv <- imap(
+                map(Forest$species, `[[`, "harvest_fun"),
+                function(f, .y, X, sp, tRDI, tKg, ct, ...){
+                    exec(f, X[[.y]], sp[[.y]],
+                         targetRDI = tRDI[[.y]],
+                         targetKg = tKg[[.y]],
+                         ct = ct[[.y]],
+                         ...)
+                }, X = x$X, sp = x$species, tRDI = targetRDI,
+                tKg = targetKg, ct = x$ct, t = t, SurfEch = x$SurfEch
+            )
+            x$X <- map2(x$X, x$Harv, `-`)
+
+        } else {
+            x$Harv <- map(x$meshs, ~ rep(0, length(.x)))
+        }
+    } else if (!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
+        ### Nothing ####
+        x$Harv <- imap(
+            map(x$species, `[[`, "harvest_fun"),
+            function(f, .y, X, sp, ct, ...){
+                exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]], ...)
+            }, X = x$X, sp = x$species, ct = x$ct, t = t, SurfEch = x$SurfEch
+        )
+
+        x$X <- map2(x$X, x$Harv, `-`)
+    } else if(disturb){
+        x$Harv <- x$Disturb
+        x$disturb <- FALSE
+    } else {
+        x$Harv <- map(x$meshs, ~ rep(0, length(.x)))
+    }
+
+    # Is there a disturbance ?
+    if(run_disturb ){ # IDEA rewrite this ?
+        if(t_disturb[t+1]){
+            x$disturb_surv <- disturbance[disturbance$t == t+1, "IsSurv"]
+        } else {
+            x$disturb_surv <- TRUE
+        }
+    }
+
+    ## Return ####
+    return(x)
+
 }
