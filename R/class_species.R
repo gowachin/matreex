@@ -366,7 +366,12 @@ def_initBA <- function(BA = 1, fun = c("def_init", "def_init_even")){
 def_init_k <- function(x){
 
     assertNumeric(x, lower = 0, any.missing = FALSE)
-    assertTRUE(sum(x) > 0)
+    assertTRUE(sum(x) >= 0)
+    if(sum(x) == 0){
+        warning(paste0("sum(x) is equal to 0, the species will not be present",
+                       " in the forest. Be sure this is intentional."))
+    }
+    # assertTRUE(sum(x) > 0)
 
     force(x)
     fun <- function(mesh, SurfEch = 0.03) {

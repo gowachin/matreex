@@ -12,10 +12,6 @@
 #' Notes from Georges
 #' For the mosaic with  N patches the recruitment rate of species $s$ is given
 #' by $1/N \times \sum_{k=1}^N \alpha_s *BA_{sk}^{\beta_s}$
-#'
-#' For the immigration from a regional pool with constant species abundance
-#' $R_s$ the recruitment would be
-#' $\alpha_s *BA_{sk}^{\beta_s} + m \times R_s$
 
 
 ## Common values to test on it ####
@@ -27,24 +23,7 @@ library(ggplot2)
 data("fit_Abies_alba")
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
-# N here is a climate defined in Kunstler et al 2021.
-# N == 2 is the optimum climate for the species.
-# see ?climate_species for more info.
 climate
-
-# modif de la fonction de recrut #********************************************
-list_covs <- climate
-params <- fit_Abies_alba$rec$params_m
-list_covs ; params
-matreex:::exp_recFun(params, list_covs)
-names(params) <- sub("^logBATOTSP$", "logBAFecSP", names(params))
-params
-matreex:::exp_recFun(params, list_covs)
-# ne marche pas car il n'y a que les inputs des deux variables BA
-# J'ai modifié les fonction
-devtools::load_all()
-matreex:::exp_recFun(params, list_covs, regional = TRUE)
-# modif de la fonction de recrut #********************************************
 
 Abies_ipm <- make_IPM(
     species = "Abies_alba",
@@ -231,10 +210,8 @@ forest <- function(species = list(),
 equil_dist <- dplyr::filter(Abies_sim, equil, var == "n") %>% dplyr::pull(value)
 equil_BA <- dplyr::filter(Abies_sim, equil, var == "BAsp") %>% dplyr::pull(value)
 
-
 Abies_spE <- Abies_sp
 Abies_spE$init_pop <- def_init_k(equil_dist)
-comp_time <- 500
 
 regional_Abies <- forest(
     species = list(Abies = Abies_spE),
@@ -242,84 +219,12 @@ regional_Abies <- forest(
     migration_rate = c(Abies = 0.05)
 )
 
-load_all()
-regional_sim <- sim_deter_forest(
-    regional_Abies,
-    tlim = comp_time,
-    equil_time = comp_time, equil_dist = 10,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-isol_sim <- sim_deter_forest(
-    forest(
-        species = list(Abies = Abies_spE),
-        regional_abundance = list(Abies = equil_dist),
-        migration_rate = c(Abies = 0)
-    ),
-    tlim = comp_time,
-    equil_time = comp_time, equil_dist = 10,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-
-regional_pool <- dplyr::bind_rows(regional = regional_sim, isolation = isol_sim,
-                                  .id = "migration")
-
-regional_pool %>%
-    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
-    ggplot(aes(x = time, y = value, color = migration)) +
-    geom_line(linewidth = .4) +
-    facet_wrap(~ var, scales =  "free_y") +
-    NULL
-
-
-
-#' Change nothing because the migration comes from equilibrium and 1-m compensate this
-
-# Testing 2 species simulations
-AbFa_sim %>%
-    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
-    ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) +
-    facet_wrap(~ var, scales =  "free_y") +
-    NULL
 
 e2_dist <- dplyr::filter(AbFa_sim, equil, var == "n") %>%
     group_by(species) %>%
     dplyr::group_split() %>% map(pull, value)
 e2_BA <- dplyr::filter(AbFa_sim, equil, var == "BAsp") %>% dplyr::pull(value)
 
-
-Abies_spEn <- Abies_sp
-Abies_spEn$init_pop <- def_init_k(e2_dist[[1]])
-Fagus_spEn <- Fagus_sp
-Fagus_spEn$init_pop <- def_init_k(e2_dist[[2]])
-
-
-regional_AbFa <- forest(
-    species = list(Abies = Abies_spEn, Fagus = Fagus_spEn),
-    regional_abundance = e2_BA,
-    migration_rate = c(Abies = 0.1, Fagus = 0.1)
-)
-
-sp2_sim <- sim_deter_forest(
-    regional_AbFa,
-    tlim = comp_time,
-    equil_time = comp_time, equil_dist = 10,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-sp2_sim %>%
-    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
-    ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) +
-    facet_wrap(~ var, scales =  "free_y") +
-    NULL
-
-#' Change nothing, because start at equilibrium and regional is equilibrium
 
 # Testing invasive species
 Fagus_spE0 <- Fagus_sp
@@ -332,52 +237,6 @@ invasive_AbFa <- forest(
     migration_rate = c(Abies = 0.1, Fagus = 0.1)
 )
 
-devtools::load_all()
-invas_sim <- sim_deter_forest(
-    invasive_AbFa,
-    tlim = comp_time,
-    equil_time = comp_time, equil_dist = 10,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-invas_sim %>%
-    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
-    ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) +
-    facet_wrap(~ var, scales =  "free_y") +
-    NULL
-
-#' this is fun but yup it works
-
-
-# Testing random start
-
-rand_AbFa <- forest(species = list(Abies = Abies_sp,  Fagus = Fagus_sp),
-                    regional_abundance = e2_BA,
-                    migration_rate = c(Abies = 0.5, Fagus = 0.5)
-)
-
-set.seed(42)
-rand_sim <- sim_deter_forest(
-    rand_AbFa,
-    tlim = 2000,
-    equil_time = 2000, equil_dist = 10,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-
-works <- dplyr::bind_rows(regional = rand_sim, isolation = AbFa_sim,
-                 .id = "migration")
-
-works %>%
-    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
-    ggplot(aes(x = time, y = value, color = species, linetype = migration)) +
-    geom_line(linewidth = .4) +
-    facet_wrap(~ var, scales =  "free_y") +
-    NULL
-
-#' It works but this is very dependant on the migration rate
 
 ## Mosaic forest ####
 
@@ -594,6 +453,8 @@ sim_deter_mosaic <- function(Mosaic,
         ### Recruitment ####
         #' separer la repro de la compet. regrouper la repro et la diviser par
         #' n patch pour apres appliquer la compet locale.
+
+        #' compute recruitment per plot, mean by species for nplot
         rec <- map(Forest$species, sp_rec.species, sim_clim)
 
         recrues <- imap(

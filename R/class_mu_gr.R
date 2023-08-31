@@ -339,7 +339,7 @@ getRangemu <- function(climate,
     N <- NULL # hack to bind global value
 
     fres <- data.frame(min = 1:3, max = 1:3)
-    for (Nc in 1:3) {
+    for (Nc in 1:3) { # TODO replace climate_species for climate, because it's confusing
         climate <- subset(climate_species, N == Nc, select = -N)
         climate <- drop(as.matrix(climate)) # we need it as a vector.
         list_covs <- c(climate, BATOTcomp = 0)

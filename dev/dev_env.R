@@ -45,14 +45,14 @@ init_forest_env <- function(Mosaic,
     # SurfEch <- 0.03
     # EoDev
 
-    res$species <- Mosaic$forest[[index]]$species
+    res$species <- Mosaic$forests[[index]]$species
     res <- new.env()
 
     res$index <- index
     res$SurfEch <- SurfEch
     res$tlim <- tlim
 
-    res$sp <- unname(Mosaic$forest[[index]]$info$species)
+    res$sp <- unname(Mosaic$forests[[index]]$info$species)
     nsp <- length(res$sp)
 
     res$meshs <- map(Mosaic$ipms, ~ .x$mesh)[res$sp]
@@ -268,4 +268,16 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
     ## Return ####
     return(x)
 
+}
+
+recrut_env <- function(x){
+
+
+    x$rec_sp <- map(x$species, ~ .x$prout)
+
+    rec <- map(x$species, sp_rec.species, sim_clim)
+
+    res <- NULL
+
+    return(res)
 }

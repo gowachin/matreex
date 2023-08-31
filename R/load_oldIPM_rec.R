@@ -135,6 +135,8 @@ format_fit <- function(params, list_covs){
 #'
 #' @param params Estimated parameters for the fit of the model.
 #' @param list_covs Climatic covariates values.
+#' @param regional The recruitment is now dependant on the regional basal area
+#' by requiring another entry BAFecSP.
 #'
 #' @importFrom purrr map
 #' @importFrom rlang expr call2 env_unbind

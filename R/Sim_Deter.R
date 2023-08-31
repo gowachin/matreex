@@ -381,7 +381,7 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
-    start_clim <- climate[1, , drop = TRUE]
+    start_clim <- climate[1, , drop = TRUE] # why do I need this line ?
 
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
         x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction,
@@ -538,6 +538,9 @@ sim_deter_forest.forest  <- function(Forest,
         recrues <- imap(
             rec,
             function(x, .y, basp, banonsp, mesh, SurfEch, mig){
+                if(basp[[.y]] == 0){ # if species is absent, no recruitment
+                    return(mesh[[.y]] * 0)
+                }
                 exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
             }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
             mesh = meshs, SurfEch = SurfEch, mig = migrate )
@@ -547,9 +550,9 @@ sim_deter_forest.forest  <- function(Forest,
 
             reg_recrues <- imap(
                 rec_reg,
-                function(x, .y, basp, banonsp, mesh, SurfEch, mig){
-                    exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
-                }, basp = reg_ba, banonsp = reg_banonsp,
+                function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
+                    exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
+                }, basp = sim_BAsp[t-1,,drop = FALSE], bareg = reg_ba, banonsp = reg_banonsp,
                 mesh = meshs, SurfEch = SurfEch, migrate )
         } else {
             reg_recrues <- map(recrues, ~ .x * 0)
