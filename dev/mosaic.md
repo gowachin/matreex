@@ -1,22 +1,40 @@
----
-title: "No forest is an island"
-author: "Maxime Jaunatre"
-date: "`r Sys.Date()`"
-output: 
-    github_document
----
-
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
-```
+No forest is an island
+================
+Maxime Jaunatre
+2023-08-31
 
 ## Introduction
 
-This document is set to test the different migration or mosaic setups and develop code to simulate this. This is purely experimental and rely on the dev branch of the `{matreex}` package.
+This document is set to test the different migration or mosaic setups
+and develop code to simulate this. This is purely experimental and rely
+on the dev branch of the `{matreex}` package.
 
-```{r library}
+``` r
 devtools::load_all()
+```
+
+    ## ℹ Loading matreex
+
+``` r
 library(dplyr)
+```
+
+    ## 
+    ## Attaching package: 'dplyr'
+    ## 
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
+    ## 
+    ## The following object is masked from 'package:testthat':
+    ## 
+    ##     matches
+    ## 
+    ## The following objects are masked from 'package:base':
+    ## 
+    ##     intersect, setdiff, setequal, union
+
+``` r
 library(ggplot2)
 options(W_matreex_edist = FALSE)
 options(cli.progress_show_after = 600) 
@@ -24,7 +42,9 @@ options(cli.progress_show_after = 600)
 
 ## Regional pool
 
-The idea is to add recruitment from a regional pool with a constant proportion of species and add the recruit produced with a migration rate.
+The idea is to add recruitment from a regional pool with a constant
+proportion of species and add the recruit produced with a migration
+rate.
 
 The recruitment function for a species $s$ is edited such that :
 
@@ -33,20 +53,32 @@ R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}\\
 R_s = [(1-m)\alpha BA_s^\beta +  m \alpha BA_r^\beta] \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}
 $$
 
-$BA_s$ is the local basal area of the species, $BA_r$ is the regional basal area of the species and $BA_h$ is the local basal area of other species. $\alpha$, $\beta$, $\delta$ and $\epsilon$ are parameters fitted for each species. $m \in R: 0 \leq m \leq 1$ 
+$BA_s$ is the local basal area of the species, $BA_r$ is the regional
+basal area of the species and $BA_h$ is the local basal area of other
+species. $\alpha$, $\beta$, $\delta$ and $\epsilon$ are parameters
+fitted for each species. $m \in R: 0 \leq m \leq 1$
 
-To simplify, the recruitment is impacted by regional fecundity, but the competition is still local.
+To simplify, the recruitment is impacted by regional fecundity, but the
+competition is still local.
 
 ### Implementation
 
-This is just the creation of the species required for latter simulations, not much fun yet.
+This is just the creation of the species required for latter
+simulations, not much fun yet.
 
-```{r common_value, cache=TRUE}
+``` r
 data("fit_Abies_alba")
 data("climate_species")
 climate <- subset(climate_species, N == 2 & sp == "Abies_alba", select = -sp)
 climate
+```
 
+    ##       sgdd       wai        sgddb      waib      wai2   sgdd2      PC1
+    ## 2 1823.735 0.4460047 0.0005483254 0.6915607 0.1989202 3326008 1.340515
+    ##         PC2 N       SDM
+    ## 2 0.3391797 2 0.1120306
+
+``` r
 Abies_ipm <- make_IPM(
     species = "Abies_alba",
     climate = climate,
@@ -56,6 +88,19 @@ Abies_ipm <- make_IPM(
     BA = 0:120,
     verbose = TRUE
 )
+```
+
+    ## Launching integration loop
+
+    ## GL integration occur on 24 cells
+
+    ## midbin integration occur on 25 cells
+
+    ## Loop done.
+
+    ## Time difference of 1.26 mins
+
+``` r
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(30))
 Abies_for <- forest(species = list(Abies = Abies_sp))
 set.seed(42) # The seed is here for initial population random functions.
@@ -66,7 +111,25 @@ Abies_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Starting while loop. Maximum t = 2000
+
+    ## time 500 | BA diff : 0.02
+
+    ## time 1000 | BA diff : 0.01
+
+    ## time 1500 | BA diff : 0.00
+
+    ## time 2000 | BA diff : 0.00
+
+    ## Simulation ended after time 2000
+
+    ## BA stabilized at 48.60 with diff of 0.00 at time 2000
+
+    ## Time difference of 11.1 secs
+
+``` r
 data("fit_Fagus_sylvatica")
 Fagus_ipm <- make_IPM(
     species = "Fagus_sylvatica",
@@ -77,6 +140,19 @@ Fagus_ipm <- make_IPM(
     BA = 0:120, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
+```
+
+    ## Launching integration loop
+
+    ## GL integration occur on 21 cells
+
+    ## midbin integration occur on 25 cells
+
+    ## Loop done.
+
+    ## Time difference of 49.3 secs
+
+``` r
 Fagus_sp <- species(IPM = Fagus_ipm, init_pop = def_initBA(30))
 AbFa_for <- forest(species = list(Abies = Abies_sp,  Fagus = Fagus_sp))
 set.seed(42) # The seed is here for initial population random functions.
@@ -89,10 +165,27 @@ AbFa_sim <- sim_deter_forest(
 )
 ```
 
-Now forest class require to have regional abundance, that is basal area and migration rate.
-These values are required to follow the order of the species.
+    ## Starting while loop. Maximum t = 2000
 
-```{r edit_forest}
+    ## time 500 | BA diff : 0.03
+
+    ## time 1000 | BA diff : 0.01
+
+    ## time 1500 | BA diff : 0.00
+
+    ## time 2000 | BA diff : 0.00
+
+    ## Simulation ended after time 2000
+
+    ## BA stabilized at 56.62 with diff of 0.00 at time 2000
+
+    ## Time difference of 19.6 secs
+
+Now forest class require to have regional abundance, that is basal area
+and migration rate. These values are required to follow the order of the
+species.
+
+``` r
 ### regional forest class ####
 #' species are initiated with their own functions and only the regional abundance
 #' is set in the forest object as well as the migration rate
@@ -224,36 +317,80 @@ forest <- function(species = list(),
 }
 ```
 
-
-Another key edit is that we need to create an alternative recruitment function where the fecundity rely on the regional basal area. The default recruitment function is $rec\_fun(BA_s, BA_h)$ and the new one is $rec\_fun_{regional}(BA_s, BA_r, BA_h)$ : 
+Another key edit is that we need to create an alternative recruitment
+function where the fecundity rely on the regional basal area. The
+default recruitment function is $rec\_fun(BA_s, BA_h)$ and the new one
+is $rec\_fun_{regional}(BA_s, BA_r, BA_h)$ :
 
 $$
 R_s = (1-m) \cdot rec\_fun(BA_s, BA_h) + m \cdot rec\_fun_{regional}(BA_s, BA_r, BA_h)
 $$
 
-
 $$
 R_s = (1-m)\alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h} + m \alpha BA_r^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}
 $$
 
-This edit is possible with the `regional` option of the internal function `exp_recFun()`.
+This edit is possible with the `regional` option of the internal
+function `exp_recFun()`.
 
-```{r edit_recfun}
+``` r
 list_covs <- climate
 params <- fit_Abies_alba$rec$params_m
 matreex:::exp_recFun(params, list_covs)
+```
+
+    ## function (BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03) 
+    ## {
+    ##     intercept <- -0.336241732611141
+    ##     res <- 0
+    ##     BATOTNonSP_in <- -0.0318279138362221 * BATOTNonSP
+    ##     BATOTSP_in <- -0.0438755574955998 * BATOTSP
+    ##     logBATOTSP_in <- -0.00443627314063497 * log(BATOTSP)
+    ##     res <- res + intercept
+    ##     res <- res + BATOTNonSP_in
+    ##     res <- res + BATOTSP_in
+    ##     res <- res + logBATOTSP_in
+    ##     mesh <- length(mesh)
+    ##     distrib <- c(rep(1/2, 2), numeric(mesh - 2))
+    ##     final <- exp(res) * SurfEch/0.03 * distrib
+    ##     return(final)
+    ## }
+    ## <environment: 0x5620e1118788>
+
+``` r
 matreex:::exp_recFun(params, list_covs, regional = TRUE)
 ```
 
-*This edit highlight that our simulation are heavily dependant on the basal area for competition and not very open for other competition indices.
+    ## function (BATOTSP, BAFecSP, BATOTNonSP, mesh, SurfEch = 0.03) 
+    ## {
+    ##     intercept <- -0.336241732611141
+    ##     res <- 0
+    ##     BATOTNonSP_in <- -0.0318279138362221 * BATOTNonSP
+    ##     BATOTSP_in <- -0.0438755574955998 * BATOTSP
+    ##     logBAFecSP_in <- -0.00443627314063497 * log(BAFecSP)
+    ##     res <- res + intercept
+    ##     res <- res + BATOTNonSP_in
+    ##     res <- res + BATOTSP_in
+    ##     res <- res + logBAFecSP_in
+    ##     mesh <- length(mesh)
+    ##     distrib <- c(rep(1/2, 2), numeric(mesh - 2))
+    ##     final <- exp(res) * SurfEch/0.03 * distrib
+    ##     return(final)
+    ## }
+    ## <environment: 0x5620de61a310>
+
+\*This edit highlight that our simulation are heavily dependant on the
+basal area for competition and not very open for other competition
+indices.
 
 ### Simulations
 
 Now are several examples to test if it works.
 
-First, I start from equilibrium and compare with and without migration. I expect no differences.
+First, I start from equilibrium and compare with and without migration.
+I expect no differences.
 
-```{r onespsim}
+``` r
 equil_dist <- dplyr::filter(Abies_sim, equil, var == "n") %>% dplyr::pull(value)
 equil_BA <- dplyr::filter(Abies_sim, equil, var == "BAsp") %>% dplyr::pull(value)
 
@@ -275,7 +412,21 @@ regional_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Simulation with regional pool
+
+    ## Starting while loop. Maximum t = 500
+
+    ## time 500 | BA diff : 0.00
+
+    ## Simulation ended after time 500
+
+    ## BA stabilized at 48.59 with diff of 0.00 at time 500
+
+    ## Time difference of 3.11 secs
+
+``` r
 isol_sim <- sim_deter_forest(
     forest(
         species = list(Abies = Abies_spE),
@@ -287,8 +438,23 @@ isol_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Warning in validate_forest(new_forest(species = species, harv_rules =
+    ## harv_rules, : All migration rate are 0, the regional pool of this forest is
+    ## deleted
 
+    ## Starting while loop. Maximum t = 500
+
+    ## time 500 | BA diff : 0.00
+
+    ## Simulation ended after time 500
+
+    ## BA stabilized at 48.59 with diff of 0.00 at time 500
+
+    ## Time difference of 2.7 secs
+
+``` r
 regional_pool <- dplyr::bind_rows(regional = regional_sim, isolation = isol_sim,
                                   .id = "migration")
 
@@ -300,9 +466,12 @@ regional_pool %>%
     NULL
 ```
 
-Now we test two species. I expect no variations from equilibrium because we start from equilibrium and the regional pool is at equilibrium.
+![](mosaic_files/figure-gfm/onespsim-1.png)<!-- -->
 
-```{r twosp_sim}
+Now we test two species. I expect no variations from equilibrium because
+we start from equilibrium and the regional pool is at equilibrium.
+
+``` r
 e2_dist <- dplyr::filter(AbFa_sim, equil, var == "n") %>%
     dplyr::group_by(species) %>%
     dplyr::group_split() %>% map(pull, value)
@@ -328,7 +497,21 @@ sp2_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Simulation with regional pool
+
+    ## Starting while loop. Maximum t = 500
+
+    ## time 500 | BA diff : 0.00
+
+    ## Simulation ended after time 500
+
+    ## BA stabilized at 56.64 with diff of 0.00 at time 500
+
+    ## Time difference of 5.31 secs
+
+``` r
 sp2_sim %>%
     dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
@@ -337,15 +520,24 @@ sp2_sim %>%
     NULL
 ```
 
-One species is absent and colonise from regional pool. **Note : starting a simulation with a species with 0 effectif is generally a bad idea, now it's possible but do NOT abuse this possibility !**
+![](mosaic_files/figure-gfm/twosp_sim-1.png)<!-- -->
 
-I expect the new species to grow, but the lag will be visible. I don't simulate until equilibrium, but I guess it's reached at some point.
+One species is absent and colonise from regional pool. **Note : starting
+a simulation with a species with 0 effectif is generally a bad idea, now
+it’s possible but do NOT abuse this possibility !**
 
-```{r invasive}
+I expect the new species to grow, but the lag will be visible. I don’t
+simulate until equilibrium, but I guess it’s reached at some point.
+
+``` r
 Fagus_spE0 <- Fagus_sp
 Fagus_spE0$init_pop <- def_init_k(e2_dist[[2]] * 0)
+```
 
+    ## Warning in def_init_k(e2_dist[[2]] * 0): sum(x) is equal to 0, the species will
+    ## not be present in the forest. Be sure this is intentional.
 
+``` r
 invasive_AbFa <- forest(
     species = list(Abies = Abies_spE, Fagus = Fagus_spE0),
     regional_abundance = e2_BA,
@@ -359,7 +551,21 @@ invas_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Simulation with regional pool
+
+    ## Starting while loop. Maximum t = 500
+
+    ## time 500 | BA diff : 0.58
+
+    ## Simulation ended after time 500
+
+    ## BA stabilized at 57.53 with diff of 0.58 at time 500
+
+    ## Time difference of 5.3 secs
+
+``` r
 invas_sim %>%
     dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
@@ -368,9 +574,14 @@ invas_sim %>%
     NULL
 ```
 
-With the same start as those I used when looking from equilibrium, I expect to reach equilibrium faster. This is because the recruitment is drived by the regional pool. However, this speed might be dependant on the migration rate.
+![](mosaic_files/figure-gfm/invasive-1.png)<!-- -->
 
-```{r random_start}
+With the same start as those I used when looking from equilibrium, I
+expect to reach equilibrium faster. This is because the recruitment is
+drived by the regional pool. However, this speed might be dependant on
+the migration rate.
+
+``` r
 rand_AbFa <- forest(species = list(Abies = Abies_sp,  Fagus = Fagus_sp),
                     regional_abundance = e2_BA,
                     migration_rate = c(Abies = 0.5, Fagus = 0.5)
@@ -384,7 +595,27 @@ rand_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 )
+```
 
+    ## Simulation with regional pool
+
+    ## Starting while loop. Maximum t = 2000
+
+    ## time 500 | BA diff : 0.34
+
+    ## time 1000 | BA diff : 0.04
+
+    ## time 1500 | BA diff : 0.00
+
+    ## time 2000 | BA diff : 0.00
+
+    ## Simulation ended after time 2000
+
+    ## BA stabilized at 56.63 with diff of 0.00 at time 2000
+
+    ## Time difference of 23.1 secs
+
+``` r
 works <- dplyr::bind_rows(regional = rand_sim, isolation = AbFa_sim,
                  .id = "migration")
 
@@ -396,4 +627,4 @@ works %>%
     NULL
 ```
 
-
+![](mosaic_files/figure-gfm/random_start-1.png)<!-- -->

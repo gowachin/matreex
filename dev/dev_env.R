@@ -45,8 +45,8 @@ init_forest_env <- function(Mosaic,
     # SurfEch <- 0.03
     # EoDev
 
-    res$species <- Mosaic$forests[[index]]$species
     res <- new.env()
+    res$species <- Mosaic$forests[[index]]$species
 
     res$index <- index
     res$SurfEch <- SurfEch
@@ -69,16 +69,16 @@ init_forest_env <- function(Mosaic,
     res$sim_BAnonSp <- rep(NA_real_, nsp)
 
     # Initiate the pops
-    res$X <- map2(map(species, `[[`, "init_pop"),
+    res$X <- map2(map(res$species, `[[`, "init_pop"),
               res$meshs,
               exec, SurfEch = SurfEch)
     res$Harv <- map(lengths(res$meshs), ~ rep(0, .x))
     res$ct <- map(res$meshs, Buildct, SurfEch = SurfEch)
 
     # Harv cst
-    res$alpha <- Forest$harv_rule["alpha"]
-    res$Pmax <- Forest$harv_rule["Pmax"]
-    res$dBAmin <- Forest$harv_rule["dBAmin"]
+    res$alpha <- Mosaic$forests[[index]]$harv_rule["alpha"]
+    res$Pmax <- Mosaic$forests[[index]]$harv_rule["Pmax"]
+    res$dBAmin <- Mosaic$forests[[index]]$harv_rule["dBAmin"]
     res$disturb <- FALSE
     res$disturb_surv <- TRUE
 
@@ -270,14 +270,76 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
 
 }
 
-recrut_env <- function(x){
 
 
-    x$rec_sp <- map(x$species, ~ .x$prout)
+# sp_rec ####
+#' sp recruit
+#'
+#' Get species recruitment function
+#'
+#' @param x Species to get the recruitment function from
+#' @param climatic Climate vector is needed for mu_gr object to build the
+#' corresponding recruitment function.
+#' @param regional TRUE/FALSE if we want to use a regional BA for fecundity.
+#'
+#' @name mosaic_rec
+#'
+#' @export
+mosaic_rec <- function(x, climatic, regional, FecnCom){
+    UseMethod("mosaic_rec")
+}
 
-    rec <- map(x$species, sp_rec.species, sim_clim)
+#' @method mosaic_rec ipm
+#' @export
+mosaic_rec.ipm <- function(x, climatic, regional = FALSE,
+                           FecnCom = c("Fecundity", "Competition")){
 
-    res <- NULL
-
+    if(FecnCom == "Fecundity"){
+        res <- exp_recFun(params = x$fit$fec$params_m, list_covs = climatic, regional = regional)
+    } else {
+        res <- NULL
+    }
     return(res)
+}
+
+#' @method mosaic_rec species
+#' @export
+mosaic_rec.species <- function(x, climatic, regional = FALSE,
+                               FecnCom = c("Fecundity", "Competition")){
+
+    res <- mosaic_rec(x = x$IPM, climatic, regional = regional, FecnCom = FecnCom)
+    return(res)
+}
+
+
+recrut_env <- function(landscape){
+
+    # Dev
+    # t <- 1]
+    # plot <- landscape[[2]]
+    # EoDev
+    all_recrues <- map(landscape, function(plot){
+        fec <- map(plot$species, mosaic_rec.species, sim_clim, TRUE, "Fecundity")
+
+        recrues <- imap(
+            fec,
+            function(x, .y, basp, mesh, SurfEch){
+                if(basp[[.y]] == 0){ # if species is absent, no recruitment
+                    return(mesh[[.y]][1:5] * 0)
+                }
+                exec(x, 0, basp[[.y]], 0, mesh[[.y]], SurfEch)[1:5]
+            }, basp = plot$sim_BAsp[t-1,,drop = FALSE],
+            mesh = plot$meshs, SurfEch = plot$SurfEch)
+
+        return(recrues)
+    }) %>% flatten()
+
+    all_recrues
+
+    nms_sp <- unique(names(all_recrues))
+    rec <- vector("list", length(nms_sp))
+    names(sp) <- nms_sp
+
+    sp
+
 }

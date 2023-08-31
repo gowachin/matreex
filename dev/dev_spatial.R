@@ -243,7 +243,7 @@ invasive_AbFa <- forest(
 #' The most important thing is to prevent RAM overload
 
 
-forests <- list(A = regional_Abies,
+forests <- list(A = AbFa_for,
                 B = invasive_AbFa)
 
 
@@ -254,6 +254,8 @@ mosaic <- function(forests = list()){
     sp_ipms <- vector("list", length(sp))
     names(sp_ipms) <- sp
 
+    # TODO write a test where all species are the same in all forests !
+
     for(i in seq_along(forests)){
         spi <- forests[[i]]$info$species
         tmp_sub <- names(sp_ipms[spi])
@@ -263,7 +265,9 @@ mosaic <- function(forests = list()){
                 sp_ipms[[sp_i]] <- forests[[i]]$species[[sp_i]]$IPM
             }
 
-            forests[[i]]$species[[sp_i]]$IPM <- NULL
+            forests[[i]]$species[[sp_i]]$IPM$IPM <- NULL
+            forests[[i]]$species[[sp_i]]$IPM$fit$fec <- forests[[i]]$species[[sp_i]]$IPM$fit$rec
+            forests[[i]]$species[[sp_i]]$IPM$fit$fec$params_m[c("BATOTSP", "BATOTNonSP")] <- 0
         }
     }
 
@@ -308,36 +312,18 @@ sim_deter_mosaic <- function(Mosaic,
     # Idiot Proof ####
     # validate_forest(Forest) # TEMP dev
     assertCount(tlim)
-    assertCount(equil_dist)
-    assertNumber(equil_diff)
-    assertNumber(equil_time)
-    if (equil_time < tlim || equil_time < equil_dist) {
-        stop("equil_time must be higher or equal to tlim and equil_dist")
-    }
-
-    if(getOption("W_matreex_edist") && equil_dist > 1 && equil_dist < 1000){
-        warning(paste0(
-            "The equil_dist value is low and could lead to inappropriate ",
-            "equilibrium states. A recommended value is 1000. ",
-            "\nThis warning  will be printed once by session and is ",
-            "desactivable with options(W_matreex_edist = FALSE)"
-        ))
-        options(W_matreex_edist = FALSE)
-    }
-
-
-    harvest <- match.arg(harvest)
+    harvest <- match.arg(harvest, c("default", "Uneven", "Even"))
     # assertNumber(targetBA, lower = 0)
     # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
     # assertNumber(targetKg, lower = 0, upper = 1)
-    IPM_cl <- map_chr(Mosaic$sp_ipms, class)
+    IPM_cl <- map_chr(Mosaic$ipms, class)
     if(all(IPM_cl == "ipm") && !is.null(climate)) {
         # no climate needed
         warning(paste0("Because all species are fully integrated on a climate, ",
                        "providing one now is unnecessary"))
         clim_i <- which(IPM_cl == "ipm")[[1]]
-        climate <- t(Forest$species[[clim_i]]$IPM$climatic)
-        climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
+        climate <- t(Mosaic$ipms[[clim_i]]$climatic)
+        climate <-  as.matrix(bind_cols(climate, t = 1:tlim))
     } else
         {
         if(any(IPM_cl == "ipm")){
@@ -347,7 +333,7 @@ sim_deter_mosaic <- function(Mosaic,
                            "climate, so this climate will be used for simulation"))
             }
             clim_i <- which(IPM_cl == "ipm")[[1]]
-            climate <- t(Forest$species[[clim_i]]$IPM$climatic)
+            climate <- t(Mosaic$ipms[[clim_i]]$climatic)
         }
         if(inherits(climate, "data.frame")){
             climate <- as.matrix(climate)
@@ -355,13 +341,13 @@ sim_deter_mosaic <- function(Mosaic,
             climate <- t(climate)
         }
         assertMatrix(climate)
-        if(nrow(climate) != 1 & nrow(climate) < equil_time){
+        if(nrow(climate) != 1 & nrow(climate) < tlim){
             stop(paste0("climate matrix is not defined for each time until",
-                        " equil_time. This matrix require a row per time or ",
+                        " tlim. This matrix require a row per time or ",
                         "single one."))
         }
         if(nrow(climate) == 1){
-            climate <-  as.matrix(bind_cols(climate, t = 1:equil_time))
+            climate <-  as.matrix(bind_cols(climate, t = 1:tlim))
         }
         }
 
@@ -417,23 +403,22 @@ sim_deter_mosaic <- function(Mosaic,
         }
     }
     # correct also decompress integer to double with x * 1e-7 app
-    Mosaic$sp_ipms <- map(Mosaic$sp_ipms, correction.ipm, correction = correction)
+    Mosaic$ipms <- map(Mosaic$ipms, correction.ipm, correction = correction)
 
     ## Initiate variables and populations ####
     landscape <- map(nms_plot,
                      ~ init_forest_env(Mosaic, index = .x,
-                                       tlim = tlim,  equil_time = equil_time,
-                                       SurfEch = SurfEch)
+                                       tlim = tlim, SurfEch = SurfEch)
     )
     # save first pop
     landscape <- map(landscape, ~ save_step_env(.x, t = 1))
 
     # Create sim IPM ####
     sim_clim <- climate[1, , drop = TRUE] # why this line ?
-    landscape <- get_step_env(landscape, Mosaic, t= 1,
-                              climate, correction, disturb_surv)
+    landscape <- map(landscape, ~ get_step_env(.x, Mosaic, t= 1,
+                              climate, correction))
     if (verbose) {
-        message("Starting while loop. Maximum t = ", equil_time)
+        message("Starting while loop. Maximum t = ", tlim)
     }
 
     # While tlim & eq ####
