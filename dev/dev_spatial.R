@@ -14,6 +14,7 @@
 #' by $1/N \times \sum_{k=1}^N \alpha_s *BA_{sk}^{\beta_s}$
 
 
+if(FALSE){
 ## Common values to test on it ####
 
 # library(matreex)
@@ -238,6 +239,15 @@ invasive_AbFa <- forest(
 )
 
 
+rm(AbFa_sim, Abies_ipm, Abies_sim, Abies_sp, Abies_spE, climate_species,
+   e2_BA, e2_dist, Fagus_sp, Fagus_spE0, fit_Abies_alba, fit_Fagus_sylvatica,
+   equil_BA, equil_dist)
+
+
+save.image("dev/dev_mosa.RData")
+
+}
+load("dev/dev_mosa.RData")
 ## Mosaic forest ####
 
 #' The most important thing is to prevent RAM overload
@@ -284,24 +294,26 @@ Mosaic <- mosaic(forests)
 
 names(Mosaic$forests)
 
+source("dev/dev_env.R")
+
 ## Simulations ####
-sim_deter_mosaic <- function(Mosaic,
-                             tlim = 3e3,
-                             harvest = c("default", "Uneven", "Even"),
-                             targetBA = 20,
-                             targetRDI = 0.9,
-                             targetKg = 0.9,
-                             final_harv = 100,
-                             climate = NULL,
-                             # require a disturb table that indicates which plot to disturb
-                             disturbance = NULL,
-                             correction = "none",
-                             SurfEch = 0.03,
-                             verbose = FALSE){
+# sim_deter_mosaic <- function(Mosaic,
+#                              tlim = 3e3,
+#                              harvest = c("default", "Uneven", "Even"),
+#                              targetBA = 20,
+#                              targetRDI = 0.9,
+#                              targetKg = 0.9,
+#                              final_harv = 100,
+#                              climate = NULL,
+#                              # require a disturb table that indicates which plot to disturb
+#                              disturbance = NULL,
+#                              correction = "none",
+#                              SurfEch = 0.03,
+#                              verbose = FALSE){
 
 
     # browser()
-    tlim = 500
+    tlim = 100
     harvest = "default"
     climate = NULL
     disturbance = NULL
@@ -380,10 +392,10 @@ sim_deter_mosaic <- function(Mosaic,
         res <- vector("list", nsp)
         res <- map2(lengths(mesh), names(mesh), function(x, y) {
             tmp <- matrix(
-                data = NA_real_, ncol = tlim + 1,
+                data = NA_real_, ncol = tlim ,
                 nrow = x + 3 + x + 1
             )
-            colnames(tmp) <- c(paste0("t", 1:(tlim+1))) #, "sp")
+            colnames(tmp) <- c(paste0("t", 1:tlim)) #, "sp")
             rownames(tmp) <- c(paste0(y, ".n", 1:x),
                                paste0(y, c(".BAsp", ".BAstand", ".N")),
                                paste0(y, ".h", 1:x), paste0(y,".H"))
@@ -428,32 +440,12 @@ sim_deter_mosaic <- function(Mosaic,
     while (t < tlim ) {
 
         sim_clim <- climate[t, , drop = TRUE]
-        # TODO continue ici
+        # Growth, Disturbance, Harvesting
         landscape <- map(landscape, ~ growth_mortal_env(
-            .x, t = 1, harvest = harvest, run_disturb
+            .x, t = t, harvest = harvest, run_disturb
             ))
-        # actual in dev
-
-        #***********************************************************************
         ### Recruitment ####
-        #' separer la repro de la compet. regrouper la repro et la diviser par
-        #' n patch pour apres appliquer la compet locale.
-
-        #' compute recruitment per plot, mean by species for nplot
-        rec <- map(Forest$species, sp_rec.species, sim_clim)
-
-        recrues <- imap(
-            rec,
-            function(x, .y, basp, banonsp, mesh, SurfEch){
-                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch)
-            }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
-            mesh = meshs, SurfEch = SurfEch)
-
-        # X <- map2(X, recrues, `+`) # gain time
-        X <- sapply(names(X), function(n, x, y) x[[n]] + y[[n]],
-                    X, recrues, simplify = FALSE)
-        #***********************************************************************
-
+        landscape <- recrut_env(landscape, t)
         ## Save BA ####
         landscape <- map(landscape, ~ save_step_env(.x, t = t))
         ## Get sim IPM ####
@@ -468,41 +460,23 @@ sim_deter_mosaic <- function(Mosaic,
         t <- t + 1
     }
 
-    # Format output ####
-    # browser()
-    tmp <- imap(X, function(x, .y, ba, bast, harv){
-        c(x / SurfEch, ba[[.y]], bast[[.y]], sum(x) / SurfEch,
-          harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch)
-    },
-    ba = sim_BAsp[t-1,,drop = FALSE],
-    bast = sim_BAstand[t-1,,drop = FALSE],
-    harv = Harv)
-
-    tmp <- do.call("c", tmp)
-    sim_X[, tlim +1] <- tmp
-
-    colnames(sim_X)[tlim + 1] <- paste0("eqt", t-1)
-
-
-    if (verbose) {
-        message("Simulation ended after time ", ifelse(is.na(the), t-1, the))
-        message(sprintf(
-            "BA stabilized at %.2f with diff of %.2f at time %i",
-            sim_BA[t - 1],
-            diff(range(sim_BA[max(1, t - equil_dist - 1):(t - 1)])),
-            t -1
-        ))
-        tmp <- Sys.time() - start
-        message("Time difference of ", format(unclass(tmp), digits = 3),
-                " ", attr(tmp, "units"))
-    }
-    sim_X <- new_deter_sim(sim_X, mesh = meshs)
-
-    sim_X <- tree_format(sim_X)
-
-    # Return ####
-    # return(sim_X)
-
-    res <- NULL
-    return(res)
-}
+#     # Format output ####
+#     landsim <- map(landscape, function(plot){
+#
+#         tmp <- new_deter_sim(plot$sim_X, mesh = plot$meshs)
+#         return(tree_format(tmp))
+#     })
+#     names(landsim) <- nms_plot
+#
+#     if (verbose) {
+#         message("Simulation ended after time ", ifelse(is.na(the), t-1, the))
+#         tmp <- Sys.time() - start
+#         message("Time difference of ", format(unclass(tmp), digits = 3),
+#                 " ", attr(tmp, "units"))
+#     }
+#
+#     # Return ####
+#     final <- dplyr::bind_rows(landsim, .id = "plot")
+#
+#     return(final)
+# }

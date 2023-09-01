@@ -1,5 +1,5 @@
 # small example ####
-rm(list = ls())
+# rm(list = ls())
 base <- new.env()
 base$X <- 1:5
 base$nsp <- 0
@@ -19,7 +19,6 @@ X
 ls()
 
 detach(base)
-X
 with(a,{
     X <- X +1
 })
@@ -30,6 +29,8 @@ b$X
 fuu <- function(x){
     attach(x)
 }
+
+rm(a, b, base, fuu, foo)
 
 # function for mosaic ####
 
@@ -56,8 +57,8 @@ init_forest_env <- function(Mosaic,
     nsp <- length(res$sp)
 
     res$meshs <- map(Mosaic$ipms, ~ .x$mesh)[res$sp]
-    res$types <- map_chr(species, ~ .x$info["type"])
-    res$stand_above_dth <- map2(res$meshs, species,  ~ .x > .y$harv_lim["dth"])
+    res$types <- map_chr(res$species, ~ .x$info["type"])
+    res$stand_above_dth <- map2(res$meshs, res$species,  ~ .x > .y$harv_lim["dth"])
     res$BAsp <- map(Mosaic$ipms, ~ .x$BA)
 
     sim_X <- init_sim(nsp, tlim, res$meshs)
@@ -76,6 +77,8 @@ init_forest_env <- function(Mosaic,
     res$ct <- map(res$meshs, Buildct, SurfEch = SurfEch)
 
     # Harv cst
+    res$harv_rules <- Mosaic$forests[[index]]$harv_rules
+    res$favoured_species <- Mosaic$forests[[index]]$favoured_sp
     res$alpha <- Mosaic$forests[[index]]$harv_rule["alpha"]
     res$Pmax <- Mosaic$forests[[index]]$harv_rule["Pmax"]
     res$dBAmin <- Mosaic$forests[[index]]$harv_rule["dBAmin"]
@@ -85,7 +88,7 @@ init_forest_env <- function(Mosaic,
     return(res)
 }
 
-x <- res
+# x <- res
 
 save_step_env <- function(x, t){
 
@@ -134,7 +137,178 @@ get_step_env <- function(x, Mosaic, t, climate, correction){
     return(x)
 }
 
+
+# sp_rec ####
+#' sp recruit
+#'
+#' Get species recruitment function
+#'
+#' @param x Species to get the recruitment function from
+#' @param climatic Climate vector is needed for mu_gr object to build the
+#' corresponding recruitment function.
+#' @param regional TRUE/FALSE if we want to use a regional BA for fecundity.
+#'
+#' @name mosaic_rec
+#'
+#' @export
+mosaic_rec <- function(x, climatic, regional, FecnCom){
+    UseMethod("mosaic_rec")
+}
+
+#' @method mosaic_rec ipm
+#' @export
+mosaic_rec.ipm <- function(x, climatic, regional = FALSE,
+                           FecnCom = c("Fecundity", "Competition")){
+
+    if(FecnCom == "Fecundity"){
+        res <- exp_recFun(params = x$fit$fec$params_m, list_covs = climatic, regional = regional)
+    } else {
+        res <- mosa_recFun(params = x$fit$rec$params_m, list_covs = climatic)
+    }
+    return(res)
+}
+
+#' @method mosaic_rec species
+#' @export
+mosaic_rec.species <- function(x, climatic, regional = FALSE,
+                               FecnCom = c("Fecundity", "Competition")){
+
+    res <- mosaic_rec(x = x$IPM, climatic, regional = regional, FecnCom = FecnCom)
+    return(res)
+}
+
+#' Export recruitment function from estimated parameters.
+#'
+#' Rebuild the function to use BASp and BAnonSp for a species.
+#'
+#' @param params Estimated parameters for the fit of the model.
+#' @param list_covs Climatic covariates values.
+#'
+#' @importFrom purrr map
+#' @importFrom rlang expr call2 env_unbind
+#'
+#' @details
+#' Each function has an environment binded with params and list_covs.
+#' I can't remove it and it may be usefull later after all.
+#'
+#' @return
+#' Function with 4 parameters : BATOTSP, BATOTNonSP, mesh and SurfEch
+#'
+#' @examples
+#' params <- c(intercept = -0.864, BATOTSP = -0.018, sgddb = 286.813,
+#' wai = -0.057, wai2 = 0.288 )
+#' list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
+#'
+#' foo <- exp_recFun(params, list_covs)
+#' foo
+#' foo(1, 2, 1:5, 0.03)
+#'
+#' @noRd
+mosa_recFun <- function(params, list_covs){
+
+    df2 <- format_fit(params, list_covs)
+
+    invar <- names(params)[!names(params) %in% names(list_covs)]
+    invar <- invar[! grepl("ntercept", invar)]
+    invar <- invar[! grepl("logBATOTSP", invar)]
+
+    exp_invar <- map(invar, multi, df2)
+    add_invar <- map(exp_invar,
+                     ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
+
+    final_res <- list(
+        expr(final <- exp(res) * distrib ),
+        expr(return(final))
+    )
+    calls <- c(exp_invar, add_invar, final_res)
+
+    empty <- function(distrib, BATOTSP, BATOTNonSP){}
+
+    body(empty)[[2]] <- expr(res <- 0)
+    for(i in seq_along(calls)){
+        body(empty)[[i + 2]] <- calls[[i]]
+    }
+
+    # this is messy and is to remove binded env.
+    env_unbind(env = environment(empty), c("i", "calls", "final_res",
+                                           "add_invar", "exp_invar",
+                                           "invar", "df2", "SurfEch"),
+               inherit = FALSE)
+    # empty
+    return(empty)
+}
+
+
+recrut_env <- function(landscape, t){
+
+    # Dev
+    # t <- 1]
+    # plot <- landscape[[2]]
+    # params <- plot$species[[1]]$IPM$fit$rec$params_m
+    # list_covs <- sim_clim
+    # EoDev
+    all_recrues <- map(landscape, function(plot, t){
+        fec <- map(plot$species, mosaic_rec.species, sim_clim, TRUE, "Fecundity")
+
+        recrues <- imap(
+            fec,
+            function(x, .y, basp, mesh, SurfEch){
+                if(basp[[.y]] == 0){ # if species is absent, no recruitment
+                    return(mesh[[.y]] * 0)
+                }
+                exec(x, 0, basp[[.y]], 0, mesh[[.y]], SurfEch)
+            }, basp = plot$sim_BAsp[t-1,,drop = FALSE],
+            mesh = plot$meshs, SurfEch = plot$SurfEch)
+
+        return(recrues)
+    }, t = t) %>% flatten()
+
+    # regroup all recrues
+    nms_sp <- unique(names(all_recrues))
+    rec <- vector("list", length(nms_sp))
+    names(rec) <- nms_sp
+
+    for(s in seq_along(all_recrues)){
+        spi <- names(all_recrues)[s]
+        if(is.null(rec[[spi]])){
+            rec[[spi]] <- all_recrues[[s]]
+        } else {
+            rec[[spi]] <- rec[[spi]] + all_recrues[[s]]
+        }
+    }
+    # divide total
+    rec <- map(rec, ~ .x / length(landscape) )
+
+    landscape <- map(landscape, function(plot, rec, t){
+        comp <- map(plot$species, mosaic_rec.species, sim_clim, TRUE, "Competition")
+
+        recrues <- imap(
+            comp,
+            function(x, .y, rec, basp, banonsp, recr){
+                exec(x, recr[[.y]], basp[[.y]], banonsp[.y])
+            }, recr = rec, basp = plot$sim_BAsp[t-1,,drop = FALSE],
+            banonsp = plot$sim_BAnonSp)
+
+        plot$X <- sapply(names(plot$X), function(n, x, y) x[[n]] + y[[n]],
+                    plot$X, recrues, simplify = FALSE)
+
+
+        return(plot)
+    }, rec = rec, t = t)
+
+    return(landscape)
+
+}
+
+
 growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
+
+    # Dev
+    # t <- 2
+    # x <- landscape[[1]]
+    # harvest <- "default"
+    # run_disturb <- FALSE
+    # EoDev
 
     ## t size distrib ####
     x$X <- map2(x$X, x$sim_ipm, ~ drop( .y %*% .x ) )# Growth
@@ -165,7 +339,7 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
             map(x$species, `[[`, "disturb_fun"),
             function(f, .y, X, sp, disturb, ...){
                 exec(f, X[[.y]], sp[[.y]], disturb, ...)
-            }, x$X = X, sp = x$species,
+            }, X = x$X, sp = x$species,
             disturb = disturbance[disturbance$t == t, ],
             qmd = qmd, perc_coni = perc_coni
         )
@@ -174,16 +348,19 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
 
     }
 
+
+    browser()
+    print(x$disturb)
     ## Harvest ####
-    if(!x$disturb && t %% Forest$harv_rule["freq"] == 0 &&
+    if(!x$disturb && t %% x$harv_rules["freq"] == 0 &&
        harvest %in% c("Uneven", "Favoured_Uneven")){
         ### Uneven ####
-        BAstandsp <- map2_dbl(x$X, Forest$species, getBAstand, SurfEch)
+        BAstandsp <- map2_dbl(x$X, x$species, getBAstand, SurfEch)
         BAstand <- sum(BAstandsp)
         BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
 
-        sfav <- sum(Forest$favoured_sp)
-        if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(Forest$favoured_sp))){
+        sfav <- sum(x$favoured_sp)
+        if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(x$favoured_sp))){
             print('!!!!!!!!!!!!!!!!!!!!!  WARNING  !!!!!!!!!!!!!!!!!!!!!')
             # warning("No species are favoured in the forest object, harvest mode 'Favoured_Uneven' is replaced with 'Uneven'")
             harvest <- "Uneven"
@@ -194,18 +371,18 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
             Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
             targetBAcut <- Hi * BAstandsp
         } else { # Favoured_Uneven
-            p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
+            p_fav <- sum(BAstandsp[x$favoured_sp])/BAstand
             if(p_fav > 0.5){
                 Hi <- BAcut / BAstand
             }  else {
-                pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
+                pi <- ifelse(x$favoured_sp, p_fav, 1-p_fav)
                 Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
             }
             targetBAcut <- Hi * BAstandsp
         }
 
         x$Harv <- imap(
-            map(Forest$species, `[[`, "harvest_fun"),
+            map(x$species, `[[`, "harvest_fun"),
             function(f, .y, X, sp, bacut, ct, ...){
                 exec(f, X[[.y]], sp[[.y]],
                      targetBAcut = bacut[[.y]],
@@ -215,16 +392,16 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
         )
 
         x$X <- map2(x$X, x$Harv, `-`)
-    } else if(!disturb && harvest == "Even"){
+    } else if(!x$disturb && harvest == "Even"){
         ### Even ####
         if(t %% final_harv == 0){
             x$Harv <- x$X
             x$X <- map2(map(x$species, `[[`, "init_pop"),
-                      x$meshs,
-                      exec, SurfEch = x$SurfEch)
-        } else if(t %% Forest$harv_rule["freq"] == 0){
+                        x$meshs,
+                        exec, SurfEch = x$SurfEch)
+        } else if(t %% x$harv_rule["freq"] == 0){
             x$Harv <- imap(
-                map(Forest$species, `[[`, "harvest_fun"),
+                map(x$species, `[[`, "harvest_fun"),
                 function(f, .y, X, sp, tRDI, tKg, ct, ...){
                     exec(f, X[[.y]], sp[[.y]],
                          targetRDI = tRDI[[.y]],
@@ -239,7 +416,7 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
         } else {
             x$Harv <- map(x$meshs, ~ rep(0, length(.x)))
         }
-    } else if (!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
+    } else if (!x$disturb && t %% x$harv_rules["freq"] == 0 && harvest == "default") {
         ### Nothing ####
         x$Harv <- imap(
             map(x$species, `[[`, "harvest_fun"),
@@ -265,81 +442,10 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
         }
     }
 
+    print(t) ; print(x$index);  print(x$disturb)
+
     ## Return ####
     return(x)
 
 }
 
-
-
-# sp_rec ####
-#' sp recruit
-#'
-#' Get species recruitment function
-#'
-#' @param x Species to get the recruitment function from
-#' @param climatic Climate vector is needed for mu_gr object to build the
-#' corresponding recruitment function.
-#' @param regional TRUE/FALSE if we want to use a regional BA for fecundity.
-#'
-#' @name mosaic_rec
-#'
-#' @export
-mosaic_rec <- function(x, climatic, regional, FecnCom){
-    UseMethod("mosaic_rec")
-}
-
-#' @method mosaic_rec ipm
-#' @export
-mosaic_rec.ipm <- function(x, climatic, regional = FALSE,
-                           FecnCom = c("Fecundity", "Competition")){
-
-    if(FecnCom == "Fecundity"){
-        res <- exp_recFun(params = x$fit$fec$params_m, list_covs = climatic, regional = regional)
-    } else {
-        res <- NULL
-    }
-    return(res)
-}
-
-#' @method mosaic_rec species
-#' @export
-mosaic_rec.species <- function(x, climatic, regional = FALSE,
-                               FecnCom = c("Fecundity", "Competition")){
-
-    res <- mosaic_rec(x = x$IPM, climatic, regional = regional, FecnCom = FecnCom)
-    return(res)
-}
-
-
-recrut_env <- function(landscape){
-
-    # Dev
-    # t <- 1]
-    # plot <- landscape[[2]]
-    # EoDev
-    all_recrues <- map(landscape, function(plot){
-        fec <- map(plot$species, mosaic_rec.species, sim_clim, TRUE, "Fecundity")
-
-        recrues <- imap(
-            fec,
-            function(x, .y, basp, mesh, SurfEch){
-                if(basp[[.y]] == 0){ # if species is absent, no recruitment
-                    return(mesh[[.y]][1:5] * 0)
-                }
-                exec(x, 0, basp[[.y]], 0, mesh[[.y]], SurfEch)[1:5]
-            }, basp = plot$sim_BAsp[t-1,,drop = FALSE],
-            mesh = plot$meshs, SurfEch = plot$SurfEch)
-
-        return(recrues)
-    }) %>% flatten()
-
-    all_recrues
-
-    nms_sp <- unique(names(all_recrues))
-    rec <- vector("list", length(nms_sp))
-    names(sp) <- nms_sp
-
-    sp
-
-}
