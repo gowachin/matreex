@@ -247,8 +247,13 @@ rm(AbFa_sim, Abies_ipm, Abies_sim, Abies_sp, Abies_spE, climate_species,
 save.image("dev/dev_mosa.RData")
 
 }
+
+
+library(dplyr)
+library(ggplot2)
 load("dev/dev_mosa.RData")
 ## Mosaic forest ####
+
 
 #' The most important thing is to prevent RAM overload
 
@@ -257,38 +262,7 @@ forests <- list(A = AbFa_for,
                 B = invasive_AbFa)
 
 
-# each forest require the migration rate I guess
-mosaic <- function(forests = list()){
 
-    sp <- map(forests, ~ .x$info$species) %>% flatten_chr() %>% unique()
-    sp_ipms <- vector("list", length(sp))
-    names(sp_ipms) <- sp
-
-    # TODO write a test where all species are the same in all forests !
-
-    for(i in seq_along(forests)){
-        spi <- forests[[i]]$info$species
-        tmp_sub <- names(sp_ipms[spi])
-
-        for(sp_i in tmp_sub){
-            if(is.null(sp_ipms[[sp_i]])){
-                sp_ipms[[sp_i]] <- forests[[i]]$species[[sp_i]]$IPM
-            }
-
-            forests[[i]]$species[[sp_i]]$IPM$IPM <- NULL
-            forests[[i]]$species[[sp_i]]$IPM$fit$fec <- forests[[i]]$species[[sp_i]]$IPM$fit$rec
-            forests[[i]]$species[[sp_i]]$IPM$fit$fec$params_m[c("BATOTSP", "BATOTNonSP")] <- 0
-        }
-    }
-
-    mosaic <- list(ipms = sp_ipms,
-                   forests = forests)
-
-    class(mosaic) <- "mosaic"
-
-    return(mosaic)
-
-}
 
 Mosaic <- mosaic(forests)
 
@@ -296,187 +270,36 @@ names(Mosaic$forests)
 
 source("dev/dev_env.R")
 
-## Simulations ####
-# sim_deter_mosaic <- function(Mosaic,
-#                              tlim = 3e3,
-#                              harvest = c("default", "Uneven", "Even"),
-#                              targetBA = 20,
-#                              targetRDI = 0.9,
-#                              targetKg = 0.9,
-#                              final_harv = 100,
-#                              climate = NULL,
-#                              # require a disturb table that indicates which plot to disturb
-#                              disturbance = NULL,
-#                              correction = "none",
-#                              SurfEch = 0.03,
-#                              verbose = FALSE){
+# Simulations ####
+res <- sim_deter_mosaic(Mosaic, tlim = 1000, harvest = "default", verbose = TRUE)
+
+res %>%
+    filter(var %in% c("N", "BAsp")) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line() +
+    facet_wrap(plot ~ var, scales = "free_y") +
+    NULL
+
+filter(res, is.na(value))
+res$value
 
 
-    # browser()
-    tlim = 100
-    harvest = "default"
-    climate = NULL
-    disturbance = NULL
-    correction = "none"
-    SurfEch = 0.03
-    verbose = TRUE
-
-    # Idiot Proof ####
-    # validate_forest(Forest) # TEMP dev
-    assertCount(tlim)
-    harvest <- match.arg(harvest, c("default", "Uneven", "Even"))
-    # assertNumber(targetBA, lower = 0)
-    # assertNumber(targetRDI, lower = 0, upper = 1) # FIXME single or species target ?
-    # assertNumber(targetKg, lower = 0, upper = 1)
-    IPM_cl <- map_chr(Mosaic$ipms, class)
-    if(all(IPM_cl == "ipm") && !is.null(climate)) {
-        # no climate needed
-        warning(paste0("Because all species are fully integrated on a climate, ",
-                       "providing one now is unnecessary"))
-        clim_i <- which(IPM_cl == "ipm")[[1]]
-        climate <- t(Mosaic$ipms[[clim_i]]$climatic)
-        climate <-  as.matrix(bind_cols(climate, t = 1:tlim))
-    } else
-        {
-        if(any(IPM_cl == "ipm")){
-            if(!is.null(climate)){
-                warning(
-                    paste0("At least one species is fully integrated on a ",
-                           "climate, so this climate will be used for simulation"))
-            }
-            clim_i <- which(IPM_cl == "ipm")[[1]]
-            climate <- t(Mosaic$ipms[[clim_i]]$climatic)
-        }
-        if(inherits(climate, "data.frame")){
-            climate <- as.matrix(climate)
-        } else if(inherits(climate, "numeric")){
-            climate <- t(climate)
-        }
-        assertMatrix(climate)
-        if(nrow(climate) != 1 & nrow(climate) < tlim){
-            stop(paste0("climate matrix is not defined for each time until",
-                        " tlim. This matrix require a row per time or ",
-                        "single one."))
-        }
-        if(nrow(climate) == 1){
-            climate <-  as.matrix(bind_cols(climate, t = 1:tlim))
-        }
-        }
-
-
-    run_disturb <- !is.null(disturbance)
-    if(run_disturb){
-        # TODO idiot proof disturbance
-        t_disturb <- logical(equil_time)
-        t_disturb[disturbance$t] <- TRUE
-        if(any(disturbance$intensity <= 0 | disturbance$intensity > 1)){
-            warning("Disturbances with intensity outside ]0;1] have been removed")
-            disturbance <- disturbance[disturbance$intensity > 0 &
-                                           disturbance$intensity < 1,]
-            if(nrow(disturbance) == 0){
-                warning("There is no disturbances left with correct intensity.")
-                disturbance <- NULL
-                run_disturb <- FALSE
-            }
-        }
-    }
-
-    correction <- match.arg(correction, c("cut", "none"))
-    assertNumber(SurfEch, lower = 0)
-    assertLogical(verbose, any.missing = FALSE, len = 1)
-
-    start <- Sys.time()
-
-    # Initialisation ####
-    init_sim <- function(nsp, tlim, mesh){ # TODO : set function outside of here
-        res <- vector("list", nsp)
-        res <- map2(lengths(mesh), names(mesh), function(x, y) {
-            tmp <- matrix(
-                data = NA_real_, ncol = tlim ,
-                nrow = x + 3 + x + 1
-            )
-            colnames(tmp) <- c(paste0("t", 1:tlim)) #, "sp")
-            rownames(tmp) <- c(paste0(y, ".n", 1:x),
-                               paste0(y, c(".BAsp", ".BAstand", ".N")),
-                               paste0(y, ".h", 1:x), paste0(y,".H"))
-            return(tmp)
-        })
-        names(res) <- names(mesh)
-        return(res)
-    }
-    nplot <- length(Mosaic$forests)
-    nms_plot <- names(Mosaic$forests)
-    disturb_surv <- TRUE
-
-    ## Modify IPM ####
-    if (correction == "cut") {
-        if (verbose) {
-            message("apply a IPM cut correction")
-        }
-    }
-    # correct also decompress integer to double with x * 1e-7 app
-    Mosaic$ipms <- map(Mosaic$ipms, correction.ipm, correction = correction)
-
-    ## Initiate variables and populations ####
-    landscape <- map(nms_plot,
-                     ~ init_forest_env(Mosaic, index = .x,
-                                       tlim = tlim, SurfEch = SurfEch)
-    )
-    # save first pop
-    landscape <- map(landscape, ~ save_step_env(.x, t = 1))
-
-    # Create sim IPM ####
-    sim_clim <- climate[1, , drop = TRUE] # why this line ?
-    landscape <- map(landscape, ~ get_step_env(.x, Mosaic, t= 1,
-                              climate, correction))
-    if (verbose) {
-        message("Starting while loop. Maximum t = ", tlim)
-    }
-
-    # While tlim & eq ####
-    t <- 2
-    the <- NA_real_ # real time of simulation ending in case of outbound BA
-
-    while (t < tlim ) {
-
-        sim_clim <- climate[t, , drop = TRUE]
-        # Growth, Disturbance, Harvesting
-        landscape <- map(landscape, ~ growth_mortal_env(
-            .x, t = t, harvest = harvest, run_disturb
-            ))
-        ### Recruitment ####
-        landscape <- recrut_env(landscape, t)
-        ## Save BA ####
-        landscape <- map(landscape, ~ save_step_env(.x, t = t))
-        ## Get sim IPM ####
-        landscape <- get_step_env(landscape, Mosaic, t= t, climate, correction)
-        ## Loop Verbose ####
-        if (t %% 500 == 0 && verbose) {
-            message(sprintf(
-                "time %i",
-                t#, diff(range(sim_BA[max(1, t - equil_dist):t]))
-            ))
-        }
-        t <- t + 1
-    }
-
-#     # Format output ####
-#     landsim <- map(landscape, function(plot){
-#
-#         tmp <- new_deter_sim(plot$sim_X, mesh = plot$meshs)
-#         return(tree_format(tmp))
-#     })
-#     names(landsim) <- nms_plot
-#
-#     if (verbose) {
-#         message("Simulation ended after time ", ifelse(is.na(the), t-1, the))
-#         tmp <- Sys.time() - start
-#         message("Time difference of ", format(unclass(tmp), digits = 3),
-#                 " ", attr(tmp, "units"))
-#     }
-#
-#     # Return ####
-#     final <- dplyr::bind_rows(landsim, .id = "plot")
-#
-#     return(final)
-# }
+# testing timing ####
+res <- sim_deter_mosaic(mosaic(list(A = AbFa_for)),
+                        tlim = 1000, harvest = "default", verbose = TRUE)
+# Starting while loop. Maximum t = 1000
+# time 500
+# Simulation ended after time 999
+# Time difference of 14 secs
+res <- sim_deter_mosaic(mosaic(list(A = AbFa_for, B = AbFa_for)),
+                        tlim = 1000, harvest = "default", verbose = TRUE)
+# Starting while loop. Maximum t = 1000
+# time 500
+# Simulation ended after time 999
+# Time difference of 28.2 secs
+res <- sim_deter_mosaic(mosaic(list(A = AbFa_for, B = AbFa_for, C = AbFa_for)),
+                        tlim = 1000, harvest = "default", verbose = TRUE)
+# Starting while loop. Maximum t = 1000
+# time 500
+# Simulation ended after time 999
+# Time difference of 42.5 secs
