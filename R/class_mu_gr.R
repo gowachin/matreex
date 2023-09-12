@@ -18,10 +18,14 @@
 new_mu_gr <- function(mu_gr, BA, mesh, mu_tab, mu_step,
                        fit, species, correction, surv = TRUE, int){
 
+    delay <- unname(fit$info["delay"])
+
+
     mu_gr <- list(mu_gr = mu_gr, BA = BA, mesh = mesh,
                    mu_tab = mu_tab, fit = fit,
                    info = c(species = species, correction = correction,
-                            clim_lab = "mu_gr", step = mu_step, surv = surv),
+                            clim_lab = "mu_gr", step = mu_step, surv = surv,
+                            delay = delay),
                    int = int)
 
     class(mu_gr) <- "mu_gr"
@@ -61,9 +65,9 @@ validate_mu_gr <- function(x){
     # check infos ####
     # assertCharacter(values$info, any.missing = FALSE)
     if(any(names(values$info) != c("species", "correction", "clim_lab",
-                                   "step", "surv"))){
+                                   "step", "surv", "delay"))){
         stop(paste0("species class must have info of elements species, correction",
-                    ", clim_lab, step and surv"))
+                    ", clim_lab, step, surv and delay"))
     }
 
     invisible(x)
@@ -301,7 +305,8 @@ make_mu_gr <- function(species,
     # res <- validate_mu_gr( # TODO validate_mu_gr
     res <- new_mu_gr(
         mu_gr = mu_gr, BA = BA,
-        mesh = seq(L + h / 2, U - h / 2, length.out = m),
+        mesh = delay(seq(L + h / 2, U - h / 2, length.out = m),
+                     as.numeric(fit$info["delay"])),
         mu_tab = mu_tab, mu_step = stepMu,
         fit = fit, species = species, correction = correction,
         surv = IsSurv,
@@ -335,14 +340,14 @@ getRangemu <- function(climate,
     assertIntegerish(BA, lower = 0, upper = 200)
     assertNumeric(mesh, lower = 0)
 
-    climate_species <- climate
     N <- NULL # hack to bind global value
+    n <- nrow(climate)
 
-    fres <- data.frame(min = 1:3, max = 1:3)
-    for (Nc in 1:3) { # TODO replace climate_species for climate, because it's confusing
-        climate <- subset(climate_species, N == Nc, select = -N)
-        climate <- drop(as.matrix(climate)) # we need it as a vector.
-        list_covs <- c(climate, BATOTcomp = 0)
+    fres <- data.frame(min = 1:n, max = 1:3)
+    for (Nc in 1:n) {
+        sub_climate <- subset(climate, N == Nc, select = -N)
+        sub_climate <- drop(as.matrix(sub_climate)) # we need it as a vector.
+        list_covs <- c(sub_climate, BATOTcomp = 0)
         res <- matrix(
             ncol = 2, nrow = length(BA),
             dimnames = list(NULL, c("min", "max"))

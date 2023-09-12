@@ -60,7 +60,7 @@ step_climate <- subset(climate, N ==2, select = -N)
 step_climate <- drop(as.matrix(step_climate))
 Picea_IPM_BA20 <- get_step_IPM(x = mu_Picea_abies, BA = 20, 
                                climate = step_climate, sim_corr = "cut")
-Picea_IPM_BA20[1:5, 1:5]
+Picea_IPM_BA20[12:17, 12:17]
 dim(Picea_IPM_BA20)
 ```
 
@@ -84,7 +84,7 @@ memor_mu %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4) +
+    geom_line(linewidth = .4) + geom_point(size = .4) +
     NULL
 ```
 
@@ -121,7 +121,7 @@ e_memor %>%
     group_by(time) %>% summarise(value = diff(value)) %>%
     ggplot(aes(x = time, y = value)) +
     ylab("BA difference") +
-    geom_line(size = .4, linetype = "dotted") + geom_point(size = .4) +
+    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4) +
     NULL
 ```
 
@@ -216,7 +216,7 @@ memor_clim %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4) +
+    geom_line(linewidth = .4) + geom_point(size = .4) +
     NULL
 ```
 
@@ -258,7 +258,7 @@ res <- do.call("bind_rows", c(diff_list, list(.id = "stepMu")))
 res %>%
     ggplot(aes(x = time, y = value, color = stepMu)) +
     ylab("BA difference") +
-    geom_line(size = .4) +
+    geom_line(linewidth = .4) +
     NULL
 
 res %>% group_by(stepMu) %>%
@@ -304,7 +304,7 @@ memor_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4) +
+    geom_line(linewidth = .4) + geom_point(size = .4) +
     NULL
 ```
 
@@ -322,6 +322,6 @@ memor_msp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4) +
+    geom_line(linewidth = .4) + geom_point(size = .4) +
     NULL
 ```

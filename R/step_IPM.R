@@ -98,6 +98,7 @@ get_step_IPM.mu_gr <- function(x, ...){
     climate <- dots$climate
     sim_corr <- dots$sim_corr
     IsSurv <- dots$IsSurv
+    delay <- as.numeric(mu_gr$info["delay"])
 
     # Idiot Proof ####
     assertClass(mu_gr, "mu_gr")
@@ -106,11 +107,10 @@ get_step_IPM.mu_gr <- function(x, ...){
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
     list_covs <- c(climate, BATOTcomp = BA)
     IPM <- vector("list", length(BA))
-
     # # Precomput constant ####
-    m <- length(mu_gr$mesh)
-    U <- mu_gr$mesh[[m]]
-    L <- mu_gr$mesh[[1]]
+    m <- length(mu_gr$mesh) - delay
+    U <- mu_gr$mesh[[m + delay]]
+    L <- mu_gr$mesh[[delay + 1]]
     h <- (U - L) / m
     N_int <- nrow(mu_gr$mu_gr)
     if(is.null(IsSurv)){
@@ -119,11 +119,12 @@ get_step_IPM.mu_gr <- function(x, ...){
     correction <- mu_gr$info["correction"]
     x_level <- mu_gr$int["gl1"]
     year_delta <- mu_gr$int["year_delta"]
+
     #
     # build weight for GL integration on the two dim
     out1 <- gaussQuadInt(-h / 2, h / 2, x_level) # For x integration
     weights1 <- out1$weights / sum(out1$weights) # equivalent to divided by h
-    mesh_x <- mu_gr$mesh
+    mesh_x <- mu_gr$mesh[-c(1:delay)]
     mesh_sv <- outer(mesh_x, out1$nodes, "+")
     # empty matrix
     # P <- matrix(0, ncol = m, nrow = m)
@@ -151,6 +152,11 @@ get_step_IPM.mu_gr <- function(x, ...){
     ## extract MU ####
     # IDEA round by mu step ???
     index <- findInterval(mu_growth, mu_gr$mu_tab)
+
+    if(any(index == 0)){
+        stop("Simulation climate is out of the mu range. Please remake mu with extreme climates")
+    }
+
     P_LG <- t(mu_gr$mu_gr[index, ])
     P <- sub_diag(matrix = NULL, P_LG, dist = 0, new = TRUE)
     # NEW allow to create new matrix in and don' duplicate on modify
@@ -185,6 +191,7 @@ get_step_IPM.mu_gr <- function(x, ...){
     }
     ## Matrix and exp ####
     res <- Matrix(P, sparse = TRUE)
+    res <- delay(res, delay)
 
     return(res)
 }
