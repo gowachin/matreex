@@ -24,7 +24,6 @@ Imports:
     cli,
     dplyr,
     here,
-    lifecycle,
     Matrix,
     purrr,
     rlang,
@@ -32,6 +31,7 @@ Imports:
     stats,
     tidyr
 Suggests: 
+    lifecycle,
     covr,
     ggplot2,
     knitr,

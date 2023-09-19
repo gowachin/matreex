@@ -156,6 +156,7 @@ test_that("sim_deter_forest warning climate", {
                             replicat = 1)
     model <- forest(species = list(Yggdrasil = ygg))
     warn <- "Because all species are fully integrated on a climate, providing one now is unnecessary"
+
     expect_warning( sim_deter_forest(Forest = model, tlim = 1, equil_time = 2, equil_dist = 1,
                                    correction = "cut", climate = 42)
                   , warn)
@@ -168,8 +169,12 @@ test_that("sim_deter_forest warning climate", {
     ipm_mu <- forest(species = list(tygg = ygg, mu = pice))
 
     warn <- "At least one species is fully integrated on a climate, so this climate will be used for simulation"
-    expect_warning( sim_deter_forest(Forest = ipm_mu, tlim = 1, equil_time = 2, equil_dist = 1,
+
+    expect_warning( {
+        set.seed(42)
+        sim_deter_forest(Forest = ipm_mu, tlim = 1, equil_time = 2, equil_dist = 1,
                                      correction = "cut", climate = 42)
+    }
                     , warn)
 
     fmu <- forest(species = list(mu = pice))
@@ -185,6 +190,7 @@ test_that("sim_deter_forest warning climate", {
     err <- paste0("climate matrix is not defined for each time until",
     " equil_time. This matrix require a row per time or ",
     "single one.")
+
     expect_error( sim_deter_forest(Forest = fmu, tlim = 3, equil_time = 3, equil_dist = 1,
                                      correction = "cut", climate = clim)
                     , err)

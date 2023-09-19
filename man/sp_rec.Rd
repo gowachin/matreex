@@ -4,13 +4,15 @@
 \alias{sp_rec}
 \title{sp recruit}
 \usage{
-sp_rec(x, climatic)
+sp_rec(x, climatic, regional = FALSE)
 }
 \arguments{
 \item{x}{Species to get the recruitment function from}
 
 \item{climatic}{Climate vector is needed for mu_gr object to build the
 corresponding recruitment function.}
+
+\item{regional}{TRUE/FALSE if we want to use a regional BA for fecundity.}
 }
 \description{
 Get species recruitment function

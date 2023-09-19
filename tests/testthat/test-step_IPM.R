@@ -11,11 +11,11 @@ test_that("get_step_IPM.mu_gr works", {
 
     expect_equal(
         get_step_IPM.mu_gr(x = x, BA = 20, climate = climate, sim_corr = "cut"),
-        new("dtCMatrix", i = c(0L, 1L, 1L), p = c(0L, 2L, 3L, 3L),
+        delay(new("dtCMatrix", i = c(0L, 1L, 1L), p = c(0L, 2L, 3L, 3L),
             Dim = c(3L, 3L), Dimnames = list(NULL, NULL),
             x = c(0.0050851898305768, 0.14117072170973,
                   0.00508589219324898),
-            uplo = "L", diag = "N")
+            uplo = "L", diag = "N"), 14)
     )
 
 })

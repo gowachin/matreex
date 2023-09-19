@@ -160,6 +160,12 @@ format_fit <- function(params, list_covs){
 #' @noRd
 exp_recFun <- function(params, list_covs, regional = FALSE){
 
+    # params <- c(intercept = -0.864, BATOTSP = -0.018, BATOTNonSP = 42,
+    #             logBATOTSP = 12, sgddb = 286.813,
+    # wai = -0.057, wai2 = 0.288 )
+    # list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
+
+
     if(regional){
         names(params) <- sub("^logBATOTSP$", "logBAFecSP", names(params))
     }
@@ -184,19 +190,29 @@ exp_recFun <- function(params, list_covs, regional = FALSE){
     )
     calls <- c(exp_invar, add_invar, final_res)
 
-    if(regional){
-        empty <- function(BATOTSP, BAFecSP, BATOTNonSP, mesh, SurfEch = 0.03){}
-    } else {
-        empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03){}
-    }
+    # if(regional){
+    #     empty <- function(BATOTSP, BAFecSP, BATOTNonSP, mesh, SurfEch = 0.03){}
+    # } else {
+    #     empty <- function(BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03){}
+    # }
 
     # IDEA for latter
-    # empty <- function(){}
+    empty <- function(){}
     # arguments <- vector("pairlist", length(invar) + 2)
     # names(arguments) <- c(invar, "mesh", "SurfEch")
     # arguments <- lapply(arguments, function(y) substitute(x, alist(x=)))
-    # arguments$SurfEch <- 0.03
-    # formals(empty) <- arguments
+    # c("BATOTSP", if(TRUE){"BAFecSP"}else{ NULL}, "BATOTNonSP")
+    # c("BATOTSP", if(FALSE){"BAFecSP"}else{ NULL}, "BATOTNonSP")
+    arguments <- setNames(rep(alist(x=), length(invar) + 2 + !regional),
+                          # I really tried to do it nicely but...R is for regrets.
+                          c("BATOTSP", if(regional){"BAFecSP"}else{ NULL},
+                            "BATOTNonSP", "mesh", "SurfEch"))
+                          # c(invar, "mesh", "SurfEch"))
+    arguments$SurfEch <- 0.03
+    formals(empty) <- arguments
+
+    setNames(rep(alist(x=), length(invar) + 2), c(invar, "mesh", "SurfEch"))
+    setNames(vector("pairlist", length(invar) + 2), c(invar, "mesh", "SurfEch"))
 
     body(empty)[[2]] <- call2("<-", expr(intercept), inter)
     body(empty)[[3]] <- expr(res <- 0)

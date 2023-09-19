@@ -32,10 +32,11 @@ test_that("make_mu_gr works", {
                                 0.252024945238924, 0.203411215879399, 0.00993355105319125, 2.86012123207744e-05,
                                 4.68802794462808e-09), dim = c(9L, 3L)),
             BA = 0:200,
-            mesh = c(145.5, 256.5, 367.5, 478.5, 589.5, 700.5, 811.5, 922.5, 1033.5, 1144.5),
+            mesh = delay(c(145.5, 256.5, 367.5, 478.5, 589.5, 700.5,
+                           811.5, 922.5, 1033.5, 1144.5), 14),
             mu_tab = c(-5, -4, -3, -2, -1, 0, 1, 2, 3), fit = f,
             info = c(species = "Picea_abies", correction = "none",
-                     clim_lab = "mu_gr", step = "1", surv = "TRUE"),
+                     clim_lab = "mu_gr", step = "1", surv = "TRUE", delay = "14"),
             int = c(gl1 = 3, gl2 = 10, gl_tresh.U = 1, mb_tresh = 2, mid_level = 5, year_delta = 1)
             ), class = "mu_gr")
     )
@@ -103,7 +104,7 @@ test_that("validate_mu_gr works", {
                          "step", "surv")
     expect_error(
         validate_mu_gr(tmp),
-        "species class must have info of elements species, correction, clim_lab, step and surv"
+        "species class must have info of elements species, correction, clim_lab, step, surv and delay"
     )
 })
 
