@@ -66,9 +66,28 @@ rm(a, b, base, fuu, foo)
 
 # function for mosaic ####
 
+init_sim <- function(nsp, tlim, mesh){ # TODO : set function outside of here
+    res <- vector("list", nsp)
+    res <- map2(lengths(mesh), names(mesh), function(x, y) {
+        tmp <- matrix(
+            data = NA_real_, ncol = tlim ,
+            nrow = x + 3 + x + 1
+        )
+        colnames(tmp) <- c(paste0("t", 1:tlim)) #, "sp")
+        rownames(tmp) <- c(paste0(y, ".n", 1:x),
+                           paste0(y, c(".BAsp", ".BAstand", ".N")),
+                           paste0(y, ".h", 1:x), paste0(y,".H"))
+        return(tmp)
+    })
+    names(res) <- names(mesh)
+    return(res)
+}
+
 init_forest_env <- function(Mosaic,
                             index,
                             tlim,
+                            run_disturb,
+                            disturbance,
                             SurfEch = SurfEch
 ){
 
@@ -94,7 +113,8 @@ init_forest_env <- function(Mosaic,
     res$BAsp <- map(Mosaic$ipms, ~ .x$BA)
 
     sim_X <- init_sim(nsp, tlim, res$meshs)
-    res$sim_X <- do.call("rbind", sim_X)
+    # browser()
+    res$sim_X <- as.data.frame(do.call("rbind", sim_X))
     res$sim_BAstand <- res$sim_BAsp <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, res$sp)
     ))
@@ -107,6 +127,16 @@ init_forest_env <- function(Mosaic,
               exec, SurfEch = SurfEch)
     res$Harv <- map(lengths(res$meshs), ~ rep(0, .x))
     res$ct <- map(res$meshs, Buildct, SurfEch = SurfEch)
+
+    # disturbance
+    # browser()
+    if(run_disturb){
+        res$disturbance <- dplyr::filter(disturbance, plot == res$index)
+        t_disturb <- logical(tlim)
+        t_disturb[res$disturbance$t] <- TRUE
+        res$t_disturb <- t_disturb
+    }
+
 
     # Harv cst
     res$harv_rules <- Mosaic$forests[[index]]$harv_rules
@@ -132,15 +162,28 @@ save_step_env <- function(x, t){
     x$standX <- map2(x$X, x$stand_above_dth, `*`)
     x$sim_BAstand[t, ] <- map2_dbl(x$standX, x$ct, `%*%`)
     x$sim_BA[t] <- sum(x$sim_BAsp[t,])
-    x$sim_BAnonSp <- map2_dbl( - x$sim_BAsp[t, ,drop = FALSE], x$sim_BA[t],  `+`)
+    # browser()
+    #
+    # microbenchmark::microbenchmark(
+    #     simpl = x$sim_BA[t] - unlist(x$sim_BAsp[t, ,drop = TRUE]),
+    #     map = map2_dbl( - x$sim_BAsp[t, ,drop = FALSE], x$sim_BA[t],  `+`)
+    # )
+    #
+    # str(map2_dbl( - x$sim_BAsp[t, ,drop = FALSE], x$sim_BA[t],  `+`))
+    # str( - unlist(x$sim_BAsp[t, ,drop = TRUE]) + x$sim_BA[t])
 
-    tmp <- imap(x$X, function(x, .y, ba, bast, harv){
-        c(x / SurfEch , ba[[.y]], bast[[.y]], sum(x) / SurfEch,
-          harv[[.y]] / SurfEch, sum(harv[[.y]]) / SurfEch )
+    x$sim_BAnonSp <- x$sim_BA[t] - unlist(x$sim_BAsp[t, ,drop = TRUE])
+    # x$sim_BAnonSp <- map2_dbl( - x$sim_BAsp[t, ,drop = FALSE], x$sim_BA[t],  `+`)
+
+
+
+    tmp <- imap(x$X, function(x, .y, ba, bast, harv, surf){
+        c(x / surf , ba[[.y]], bast[[.y]], sum(x) / surf,
+          harv[[.y]] / surf, sum(harv[[.y]]) / surf)
     },
     ba = x$sim_BAsp[t,, drop = FALSE],
     bast = x$sim_BAstand[t,,drop = FALSE],
-    harv = x$Harv )
+    harv = x$Harv, surf = x$SurfEch )
     tmp <- do.call("c", tmp)
 
     x$sim_X[, t] <- tmp
@@ -164,7 +207,6 @@ get_step_env <- function(x, Mosaic, t, climate, correction){
         x = .x, BA = x$sim_BA[t], climate = climate, sim_corr = correction,
         IsSurv = x$disturb_surv
     ))
-
 
     return(x)
 }
@@ -271,7 +313,7 @@ mosa_recFun <- function(params, list_covs){
 }
 
 
-recrut_env <- function(landscape, t){
+recrut_env <- function(landscape, t, sim_clim){
 
     # Dev
     # t <- 1]
@@ -333,7 +375,7 @@ recrut_env <- function(landscape, t){
 }
 
 
-growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
+growth_mortal_env <- function(x, t = 1, harvest, run_disturb, verbose){
 
     # Dev
     # t <- 2
@@ -345,15 +387,16 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
     ## t size distrib ####
     x$X <- map2(x$X, x$sim_ipm, ~ drop( .y %*% .x ) )# Growth
 
+    # browser()
     ## Disturbance ####
-    if(FALSE && run_disturb && t_disturb[t]){ # TODO edit the distribution table
+    if(run_disturb && x$t_disturb[t]){ # TODO edit the distribution table
         x$disturb <- TRUE
 
         if (verbose) {
             message(sprintf(
                 "Plot %s time %i | Disturbance : %s I = %.2f",
-                x$index, t, disturbance[disturbance$t == t, "type"],
-                disturbance[disturbance$t == t, "intensity"]
+                x$index, t, x$disturbance[x$disturbance$t == t, "type"],
+                x$disturbance[x$disturbance$t == t, "intensity"]
             )
             )
         }
@@ -366,17 +409,17 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
         sp_stem <- map_dbl(x$X, ~ sum(.x) / total_stem)
         perc_coni <- sum(sp_stem[names(x$types[x$types == "Coniferous"])])
 
-        Disturb <- imap(
+        x$Disturb <- imap(
             # FIXME The correct distubr_fun() require the mesh from species...damn
             map(x$species, `[[`, "disturb_fun"),
             function(f, .y, X, sp, disturb, ...){
                 exec(f, X[[.y]], sp[[.y]], disturb, ...)
             }, X = x$X, sp = x$species,
-            disturb = disturbance[disturbance$t == t, ],
+            disturb = x$disturbance[x$disturbance$t == t, ],
             qmd = qmd, perc_coni = perc_coni
         )
 
-        x$X <- map2(x$X, Disturb, `-`)
+        x$X <- map2(x$X, x$Disturb, `-`)
 
     }
 
@@ -456,7 +499,7 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
         )
 
         x$X <- map2(x$X, x$Harv, `-`)
-    } else if(disturb){
+    } else if(x$disturb){
         x$Harv <- x$Disturb
         x$disturb <- FALSE
     } else {
@@ -465,8 +508,8 @@ growth_mortal_env <- function(x, t = 1, harvest, run_disturb){
 
     # Is there a disturbance ?
     if(run_disturb ){ # IDEA rewrite this ?
-        if(t_disturb[t+1]){
-            x$disturb_surv <- disturbance[disturbance$t == t+1, "IsSurv"]
+        if(x$t_disturb[t+1]){
+            x$disturb_surv <- x$disturbance[x$disturbance$t == t+1, "IsSurv"]
         } else {
             x$disturb_surv <- TRUE
         }
@@ -548,9 +591,11 @@ sim_deter_mosaic <- function(Mosaic,
 
     run_disturb <- !is.null(disturbance)
     if(run_disturb){
+
+        assertList(disturbance, len = length(Mosaic$forests))
+
+        disturbance <- dplyr::bind_rows(disturbance, .id = "plot")
         # TODO idiot proof disturbance
-        t_disturb <- logical(equil_time)
-        t_disturb[disturbance$t] <- TRUE
         if(any(disturbance$intensity <= 0 | disturbance$intensity > 1)){
             warning("Disturbances with intensity outside ]0;1] have been removed")
             disturbance <- disturbance[disturbance$intensity > 0 &
@@ -570,22 +615,7 @@ sim_deter_mosaic <- function(Mosaic,
     start <- Sys.time()
 
     # Initialisation ####
-    init_sim <- function(nsp, tlim, mesh){ # TODO : set function outside of here
-        res <- vector("list", nsp)
-        res <- map2(lengths(mesh), names(mesh), function(x, y) {
-            tmp <- matrix(
-                data = NA_real_, ncol = tlim ,
-                nrow = x + 3 + x + 1
-            )
-            colnames(tmp) <- c(paste0("t", 1:tlim)) #, "sp")
-            rownames(tmp) <- c(paste0(y, ".n", 1:x),
-                               paste0(y, c(".BAsp", ".BAstand", ".N")),
-                               paste0(y, ".h", 1:x), paste0(y,".H"))
-            return(tmp)
-        })
-        names(res) <- names(mesh)
-        return(res)
-    }
+
     nplot <- length(Mosaic$forests)
     nms_plot <- names(Mosaic$forests)
     disturb_surv <- TRUE
@@ -602,6 +632,8 @@ sim_deter_mosaic <- function(Mosaic,
     ## Initiate variables and populations ####
     landscape <- map(nms_plot,
                      ~ init_forest_env(Mosaic, index = .x,
+                                       run_disturb = run_disturb,
+                                       disturbance = disturbance,
                                        tlim = tlim, SurfEch = SurfEch)
     )
     # save first pop
@@ -624,15 +656,15 @@ sim_deter_mosaic <- function(Mosaic,
         sim_clim <- climate[t, , drop = TRUE]
         # Growth, Disturbance, Harvesting
         landscape <- map(landscape, ~ growth_mortal_env(
-            .x, t = t, harvest = harvest, run_disturb
+            .x, t = t, harvest = harvest, run_disturb, verbose
         ))
         ### Recruitment ####
-        landscape <- recrut_env(landscape, t)
+        landscape <- recrut_env(landscape, t, sim_clim)
         ## Save BA ####
         landscape <- map(landscape, ~ save_step_env(.x, t = t))
         ## Get sim IPM ####
         landscape <-  map(landscape,
-                          ~ get_step_env(.x, Mosaic, t= t, climate, correction))
+                          ~ get_step_env(.x, Mosaic, t= t, climate = sim_clim, correction))
         ## Loop Verbose ####
         if (t %% 500 == 0 && verbose) {
             message(sprintf(
@@ -646,7 +678,7 @@ sim_deter_mosaic <- function(Mosaic,
     # Format output ####
     landsim <- map(landscape, function(plot){
 
-        tmp <- new_deter_sim(plot$sim_X, mesh = plot$meshs)
+        tmp <- new_deter_sim(as.matrix(plot$sim_X), mesh = plot$meshs)
         return(tree_format(tmp))
     })
     names(landsim) <- nms_plot

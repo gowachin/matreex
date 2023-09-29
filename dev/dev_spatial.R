@@ -250,28 +250,70 @@ save.image("dev/dev_mosa.RData")
 
 
 library(dplyr)
+library(purrr)
 library(ggplot2)
+devtools::load_all()
 load("dev/dev_mosa.RData")
+source("dev/dev_env.R")
 ## Mosaic forest ####
-
-
 #' The most important thing is to prevent RAM overload
-
-
 forests <- list(A = AbFa_for,
                 B = invasive_AbFa)
-
-
-
-
 Mosaic <- mosaic(forests)
-
 names(Mosaic$forests)
 
-source("dev/dev_env.R")
+disturb <- list(A = data.frame(type = "storm", intensity = 0.2,
+                                          IsSurv = FALSE, t = 100),
+                B = data.frame(type = "storm", intensity = 0.2,
+                               IsSurv = FALSE, t = 900))
+
 
 # Simulations ####
-res <- sim_deter_mosaic(Mosaic, tlim = 1000, harvest = "default", verbose = TRUE)
+# profvis::profvis({
+    res <- sim_deter_mosaic(Mosaic, tlim = 1000, harvest = "default",
+                            disturbance = NULL,
+                            verbose = TRUE)
+# })
+
+
+disturb_fun <- function(x, species, disturb = NULL, ...){
+
+    dots <- list(...)
+    qmd <- dots$qmd
+    size <- species$IPM$mesh
+    coef <- species$disturb_coef
+    if(any(disturb$type %in% coef$disturbance)){
+        coef <- subset(coef, disturbance == disturb$type)
+    } else {
+        stop(sprintf("The species %s miss this disturbance type (%s) parameters",
+                     sp_name(species), disturb$type))
+    }
+
+    # edits for delay
+    size[size == 0] <- min(size[size !=0])
+
+    logratio <-  log(size / qmd)
+    dbh.scaled = coef$dbh.intercept + size * coef$dbh.slope
+    logratio.scaled = coef$logratio.intercept + logratio * coef$logratio.slope
+    Pkill <- plogis(coef$a0 + coef$a1 * logratio.scaled +
+                        coef$b * disturb$intensity ^(coef$c * dbh.scaled))
+
+    return(x* Pkill) # always return the mortality distribution
+}
+
+Mosaic$forests$A$species$Abies_alba$disturb_fun <- disturb_fun
+Mosaic$forests$A$species$Fagus_sylvatica$disturb_fun <- disturb_fun
+
+Mosaic$forests$A$species$Abies_alba$disturb_coef <- filter(
+    matreex::disturb_coef, species == "Abies_alba")
+
+Mosaic$forests$A$species$Fagus_sylvatica$disturb_coef <- filter(
+    matreex::disturb_coef, species == "Fagus_sylvatica")
+
+res <- sim_deter_mosaic(Mosaic, tlim = 1000, harvest = "default",
+                        disturbance = disturb,
+                        verbose = TRUE)
+
 
 res %>%
     filter(var %in% c("N", "BAsp")) %>%
@@ -285,6 +327,13 @@ res$value
 
 
 # testing timing ####
+sim_deter_forest(AbFa_for, tlim = 1000, harvest = "default", verbose = TRUE)
+# Starting while loop. Maximum t = 10000
+# time 500 | BA diff : 5.01
+# time 1000 | BA diff : 1.16
+# Simulation ended after time 1160
+# BA stabilized at 56.42 with diff of 1.00 at time 1160
+# Time difference of 14 secs
 res <- sim_deter_mosaic(mosaic(list(A = AbFa_for)),
                         tlim = 1000, harvest = "default", verbose = TRUE)
 # Starting while loop. Maximum t = 1000
