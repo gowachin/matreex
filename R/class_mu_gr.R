@@ -343,7 +343,7 @@ getRangemu <- function(climate,
     N <- NULL # hack to bind global value
     n <- nrow(climate)
 
-    fres <- data.frame(min = 1:n, max = 1:3)
+    fres <- data.frame(min = 1:n, max = 1:n)
     for (Nc in 1:n) {
         sub_climate <- subset(climate, N == Nc, select = -N)
         sub_climate <- drop(as.matrix(sub_climate)) # we need it as a vector.

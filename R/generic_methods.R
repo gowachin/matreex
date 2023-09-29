@@ -226,6 +226,19 @@ delay.dtCMatrix <- function(x, delay = 0){
 #' @export
 delay.dgCMatrix <- delay.dtCMatrix
 
+#' Delay dsCMatrix
+#'
+#' Adding a topleft corner to a matrix filled with 0.
+#' @inheritParams delay
+#' @method delay dsCMatrix
+#' @examples
+#' x <- new("dtCMatrix", i = c(0L, 1L, 2L, 1L, 2L, 2L), p = c(0L, 3L,  5L, 6L),
+#'          Dim = c(3L, 3L), x = c(0.1, 0.2, 0.3, 0.1, 0.2, 0.1), uplo = "L", diag = "N")
+#' x <- delay(x, 2)
+#' delay(x, -1)
+#' @export
+delay.dsCMatrix <- delay.dtCMatrix
+
 
 # Correction ####
 #' Add correction states to a system

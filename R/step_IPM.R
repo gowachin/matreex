@@ -36,14 +36,15 @@ get_step_IPM.ipm <- function(x, ...){
     }
 
     # Idiot Proof ####
-    assertClass(ipm, "ipm")
-    assertNumber(BA, lower = 0, upper = 200)
+    # assertClass(ipm, "ipm")
+    # assertNumber(BA, lower = 0, upper = 200)
     # ::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::
 
     BAsp <- ipm$BA
 
-    low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
-    high_id <- which(BAsp == min(BAsp[BAsp > BA]))
+
+    low_id <- max(BAsp[which(BAsp <= BA)])
+    high_id <- min(BAsp[which(BAsp > BA)])
 
     delta <- diff(BAsp[c(low_id, high_id)])
     w <- (BA - BAsp[low_id]) / delta
