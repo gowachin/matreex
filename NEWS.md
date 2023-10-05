@@ -1,5 +1,21 @@
 # matreex (development version)
 
+# matreex 0.4.0 dev
+
+## News
+
+* Disturbance use a mixture effect in case of biotic disturbance. #17
+
+## Breaking changes
+
+## Documentation
+
+* New vignette about disturbance after completion of the model by Julien and Jasper. #17
+
+## Datasets
+
+* Update of the disturbance coefficient by Julien.
+
 # matreex 0.3.0
 
 ## News
