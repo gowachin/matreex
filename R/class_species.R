@@ -37,7 +37,7 @@ new_species <- function(IPM, init_pop,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                         rdi_coef = NULL,
                         disturb_coef = NULL,
-                        type = c("Broadleaf", "Coniferous")
+                        type = c("Undefined", "Broadleaf", "Coniferous")
                         ){
 
     type <- match.arg(type)
@@ -161,7 +161,7 @@ species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
                     disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
                     rdi_coef = NULL, disturb_coef = NULL,
-                    type = c("Broadleaf", "Coniferous")){
+                    type = c("Undefined", "Broadleaf", "Coniferous")){
 
     type <- match.arg(type)
 

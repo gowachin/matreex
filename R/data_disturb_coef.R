@@ -2,6 +2,6 @@
 #'
 #' @name disturb_coef
 #'
-#' @source Computations from Julien Barrere
+#' @source https://doi.org/10.1111/gcb.16630
 #'
 "disturb_coef"

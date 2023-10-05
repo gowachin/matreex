@@ -425,11 +425,9 @@ sim_deter_forest.forest  <- function(Forest,
             qmd <- QMD(size = unlist(meshs), n = unlist(X))
             # TODO remove unborn size from X before computations
 
-            # TODO compute percentage of coniferous (relative share in number of stems)
             total_stem <- purrr::reduce(X, sum, .init = 0)
             sp_stem <- map_dbl(X, ~ sum(.x) / total_stem)
             perc_coni <- sum(sp_stem[names(types[types == "Coniferous"])])
-            # browser()
 
             Disturb <- imap(
                 map(Forest$species, `[[`, "disturb_fun"),

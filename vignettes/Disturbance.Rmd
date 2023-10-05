@@ -179,7 +179,7 @@ disturb_picea %>%
     filter(var %in% c("BAsp", "H"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4)
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 <!--
@@ -226,10 +226,10 @@ Fagus_ipm <- make_IPM(
     verbose = TRUE
 )
 Fagus_sp <- species(
-    IPM = Abies_ipm, init_pop = def_initBA(30),
+    IPM = Fagus_ipm, init_pop = def_initBA(30),
     disturb_fun = disturb_fun, 
     harvest_fun = Uneven_harv,
-    disturb_coef = filter(matreex::disturb_coef, species == "Fagus_sylvatica",)
+    disturb_coef = filter(matreex::disturb_coef, species == "Fagus_sylvatica")
 )
 ```
 
@@ -251,7 +251,7 @@ disturb_PiFa %>%
     filter(var %in% c("BAsp", "H"), time > 450 & time < 600, ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4)
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 
@@ -277,7 +277,7 @@ Fagus_sp$info["type"] <- "Broadleaf"
 An alternative disturbance function is provided by the package as `disturb_fun_mixt()`, to accept the input of the coniferous percentage computed at the plot scale before disturbing each species and to modify the mortality probability (`Pkill`) if the species is a coniferous.
 
 ```{r mixture_disturb}
-disturb_fun_mixt
+matreex::disturb_fun_mixt
 # Giving the new disturb_fun
 Picea_sp$disturb_fun <- disturb_fun_mixt
 Fagus_sp$disturb_fun <- disturb_fun_mixt
@@ -286,11 +286,11 @@ Fagus_sp$disturb_fun <- disturb_fun_mixt
 This is an example simulation. This is important to have a biotic disturbance as well as to 
 
 ```{r jasper_sim}
-disturb <- data.frame(type = "biotic", intensity = 0.2, IsSurv = FALSE, t = 600)
+disturb <- data.frame(type = "biotic", intensity = 0.2, IsSurv = FALSE, t = 500)
 set.seed(42)
 mixture_PiFa <- sim_deter_forest.forest(
     forest(species = list(Picea = Picea_sp, Fagus = Fagus_sp)), 
-    tlim = 1500, equil_dist = 250, equil_time = 1500,
+    tlim = 1000, equil_dist = 250, equil_time = 1000,
     disturbance  = disturb,
     harvest = "Uneven", targetBA = 30,
     verbose = TRUE, correction = "cut")
@@ -299,7 +299,7 @@ mixture_PiFa %>%
     filter(var %in% c("BAsp", "N"), ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4)
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 I compare the two simulations in order to check the presence of the effect. As seen above in messages, the mortality is multiplied by 0.74, which we see here with the blue line under the red one for *Picea abies*.
@@ -308,11 +308,10 @@ I compare the two simulations in order to check the presence of the effect. As s
 
 ```{r comparaison}
 bind_rows(mixture = mixture_PiFa, basic =  disturb_PiFa, .id = "jasper") %>% 
-    filter(var == "h", time == 600) %>%
+    filter(var == "h", time == 500) %>%
     ggplot(aes(x = mesh, y = value, color = jasper)) + 
     facet_wrap(~ species, scales = "free_y") +
-    geom_line(size = .4) + geom_point(size = .4) +
-    NULL
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 
