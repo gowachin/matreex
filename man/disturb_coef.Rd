@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 64 rows and 10 columns.
 }
 \source{
-Computations from Julien Barrere
+https://doi.org/10.1111/gcb.16630
 }
 \usage{
 disturb_coef

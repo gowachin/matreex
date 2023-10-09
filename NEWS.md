@@ -6,11 +6,15 @@
 
 * Disturbance use a mixture effect in case of biotic disturbance. #17
 
+* Favoured species for Uneven harvest model.
+
 ## Breaking changes
+
+* `mu_sgr` class now use the delay as normal IPMs. Previous object may not work. 
 
 ## Documentation
 
-* New vignette about disturbance after completion of the model by Julien and Jasper. #17
+* New vignette `Disturbance.Rmd` after completion of the model by Julien and Jasper. #17
 
 ## Datasets
 

@@ -6,6 +6,9 @@ devtools::document('.')
 devtools::test()
 devtools::check()
 
+pkgdown::init_site()
+pkgdown::build_home()
+
 
 # change name
 # grep "matreex" -r ./*

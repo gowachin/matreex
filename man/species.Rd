@@ -15,7 +15,7 @@ species(
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
   rdi_coef = NULL,
   disturb_coef = NULL,
-  type = c("Broadleaf", "Coniferous")
+  type = c("Undefined", "Broadleaf", "Coniferous")
 )
 }
 \arguments{
