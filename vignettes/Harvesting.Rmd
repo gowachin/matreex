@@ -10,8 +10,6 @@ vignette: >
   %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib 
 link-citations: true
-editor_options: 
-  chunk_output_type: console
 ---
 
 ```{r, include = FALSE}

@@ -12,11 +12,6 @@ bibliography: references.bib
 link-citations: true
 ---
 
-<style>
-body {
-text-align: justify}
-</style>
-
 ```{r, include = FALSE}
 # load_all()
 knitr::opts_chunk$set(
@@ -27,7 +22,7 @@ options(cli.progress_show_after = 600)
 # 10 minutes before showing a cli progress bar
 ```
 
-This vignette illustrates the basic functions used to run simulations projecting the population of size-structured trees with `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities.  Different modules allow also to simulate harvesting and disturbances. To project forward the dynamic of size-structured tree populations, this package relies on **integrated projection models** (later named IPM).
+This vignette illustrates the basic functions used to run simulations projecting the population of size-structured trees with `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities. Different modules allow also to simulate harvesting and disturbances. To project forward the dynamic of size-structured tree populations, this package relies on **integrated projection models** (later named IPM).
 
 
 # Rapid description of the Integral Projection Model

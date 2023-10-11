@@ -12,7 +12,6 @@ R/old_Sim_NonDem.R
 ^outputSim$
 
 vignettes/building_ipm.Rmd
-vignettes/harvesting.Rmd
 
 vignettes/.*.log
 ^pkgdown$
