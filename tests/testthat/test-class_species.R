@@ -20,7 +20,7 @@ test_that("new_species works", {
                          rdi_coef = NULL, disturb_coef = NULL,
                          recruit_fun = exp_recFun(params = IPM$fit$rec$params_m,
                                                   list_covs = IPM$climatic),
-                         info = c(species = "Yggdrasil", clim_lab = "1", type = "Broadleaf")),
+                         info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined")),
                          class = "species"))
 
     class(IPM) <- "mu_gr"
@@ -33,7 +33,7 @@ test_that("new_species works", {
             harv_lim = c(dth = 175, dha = 575, hmax = 1),
             disturb_fun = def_disturb,
             rdi_coef = NULL, disturb_coef = NULL, recruit_fun = "to define",
-            info = c(species = "Yggdrasil", clim_lab = "1", type = "Broadleaf")),
+            info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined")),
             class = "species")
     )
 
@@ -125,7 +125,8 @@ test_that("old_ipm2species works", {
                 disturbance = "biotic", species = "Yggdrasil",
                 a0 = -5.81, a1 = 0, b = 2.9, c = 0.0052,
                 dbh.intercept = -0.787, dbh.slope = 0.00793,
-                logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L)
+                logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L),
+            type = "Broadleaf"
             )
     )
 
@@ -141,7 +142,8 @@ test_that("old_ipm2species works", {
                 disturbance = "biotic", species = "Yggdrasil",
                 a0 = -5.81, a1 = 0, b = 2.9, c = 0.0052,
                 dbh.intercept = -0.787, dbh.slope = 0.00793,
-                logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L)
+                logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L),
+            type = "Broadleaf"
         )
     )
 

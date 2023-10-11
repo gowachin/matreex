@@ -17,3 +17,5 @@ vignettes/harvesting.Rmd
 vignettes/.*.log
 ^pkgdown$
 ^\.github$
+^doc$
+^Meta$

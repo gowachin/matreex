@@ -9,6 +9,8 @@ devtools::check()
 pkgdown::init_site()
 pkgdown::build_home()
 
+devtools::build_vignettes()
+
 
 # change name
 # grep "matreex" -r ./*

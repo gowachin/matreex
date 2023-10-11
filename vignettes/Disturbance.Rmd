@@ -28,7 +28,7 @@ options(cli.progress_show_after = 600)
 ```
 
 
-This vignette illustrates how to use disturbance scenarii with `{matreex}` package. A disturbance scenario provides the timing and intensity at which some type of disturbance will affect mortality of trees in each size classes. The tree killed by the disturbance are saved within the harvested output.
+This vignette illustrates how to use disturbance scenarii with `{matreex}` package. A disturbance scenario provides the timing and intensity at which different types of disturbance (storm, fire and biotic) will affect tree mortality in each size class. The tree killed by the disturbance are saved within the harvested output.
 
 The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
 
@@ -45,9 +45,6 @@ The first step is the IPM integration and species object creation. This part is 
 library(matreex)
 library(dplyr)
 library(ggplot2)
-
-# Loading all functions of the package
-devtools::load_all() # TODO remove
 
 # Load fitted model for a species
 # fit_species # list of all species in dataset
@@ -94,12 +91,13 @@ Picea_equil <- filter(Picea_sim, var == "n", equil) %>% pull(value)
 
 We define a disturbance by few parameters used later in the formula. Details on the model definition and dataset used can be found in @Barrere2023.
 
-* $I$, its intensity between 0 and 1.
+The calibration of the equations of disturbance mortality implemented in the package is described in details in @Barrere2023. We characterize a disturbance in the simulations with two variables:
 
-* $type$, the class of disturbance. This is a label in `"storm"`, `"fire"` and `"biotic"`.
-This is not used in the formula but to filter species parameters fitted.
+- $I$, its intensity between 0 and 1.
 
-We can set all of this in a data.frame object. A last column column named **IsSurv** is used to tell the simulation if the survival part of the IPM is needed during a disturbance. In the case of @Barrere2023, the data does not allow differentiation between disturbance mortality and background mortality. Therefore, we need to deactivate baseline mortality so that it is not applied twice.
+- $type$, the class of disturbance. This is a label in `"storm"`, `"fire"` and `"biotic"`. This is used to filter species parameters fitted, which were estimated separately for each disturbance type.
+
+These variables are set in a data.frame object. A last column named **IsSurv** is used to inform whether the survival part of the IPM (competition-induced mortality) is needed during a disturbance. In @Barrere2023, the model does not differentiate disturbance mortality and background mortality. Therefore, we recommend to deactivate baseline mortality to avoid an overestimation of mortality. 
 
 ```{r}
 ex_disturb <- data.frame(type = "storm", intensity = 0.5, IsSurv = FALSE)
@@ -108,7 +106,7 @@ ex_disturb <- data.frame(type = "storm", intensity = 0.5, IsSurv = FALSE)
 
 ## Impact on population
 
-The disturbance impact on the population result from parameters computed in @Barrere2023. They compose a function that takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance. A set of parameters was made for each type of disturbance and species.
+The disturbance impact on the population is calculated from parameters estimated in @Barrere2023. The disturbance mortality equation takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance as inputs. A set of parameters is associated to each type of disturbance and species.
 
 $$
 dqm = \sqrt{\frac{\sum_{i=1}^m size_i^2 \times value_i}{\sum_{i=1}^m value_i}} \\
@@ -117,19 +115,20 @@ dbh.scaled = dbh.intercept + size \times dbh.slope \\
 logratio.scaled = logratio.intercept + logratio \times logratio.slope \\
 X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times logratio.scaled + b \times I^{c \times dbh.scaled}))^t 
 $$
-The parameters are estimated with Bayesian computations. The mean of all estimations are stored inside the package for each combination of species and disturbance type.
+
+The parameters are estimated with Bayesian computations. The mean of all posterior estimations are stored inside the package for each combination of species and disturbance type.
 
 ```{r data_pkg}
 (Picea_coefs <- filter(matreex::disturb_coef, species == "Picea_abies"))
 Picea_sp$disturb_coef <- Picea_coefs
 ```
 
-Linked with this set of parameters, we need to provide a disturbance function to the species we want to simulate. *The species is initiated with a default empty function that will throw warnings.* The function also require the quadratic mean diameter of the species.
+Along with this set of parameters, we need to provide a disturbance function to the species we want to simulate. *The species is initiated with a default empty function that will throw warnings.* The function also require the quadratic mean diameter of the population.
 
 ```{r debug_fun, eval = FALSE, echo=FALSE}
 x <- Picea_equil
 species <- Picea_sp
-disturb <- data.frame(type = "storm", intensity = 0.7, IsSurv = FALSE)
+disturb <- data.frame(type = "storm", intensity = 0.7, IsSurv = FALSE, time = 500)
 qmd <-QMD(Picea_sp$IPM$mesh, x)
 ```
 
@@ -154,7 +153,7 @@ legend("topright", c("Distribution", "After Disturbance"),
        lty = c(1, 1), col = c(1, 2))
 ```
 
-Any user can define the `disturb_fun()` function they need and provide parameters for the wanted species. Obviously, this type of modification have not been thoroughly tested and thus is more prone to error so don't hesitate to contact `{matreex}` maintainer in case of trouble.
+Any user can define the `disturb_fun()` function they need and provide parameters for the wanted species. Obviously, this type of modification have not been thoroughly tested and thus is more prone to error so don’t hesitate to contact `{matreex}` maintainer in this eventuality.
 
 ## Simulations
 
@@ -194,7 +193,7 @@ time <- 1500
                        IsSurv = FALSE, t = 600))
 forest_d <- forest(species = list(Abies = delay(Abies_alba, 5)))
 set.seed(42)
-memor_d <- sim_deter_forest.forest(forest_d, tlim = time,
+memor_d <- sim_deter_forest(forest_d, tlim = time,
                                  equil_dist = 250, equil_time = time,
                                  disturbance  = disturb,
                                  harvest = "Uneven", targetBA = 30,
@@ -211,7 +210,7 @@ memor_d %>%
 
 ## Multispecific simulations 
 
-Multi-specific simulations are performed like the simulations previously illustrated. We also change the harvesting model to illustrate other kind of simulations.
+Plurispecific simulations are performed by creating species object and attributing disturbance function to each species individually as previously illustrated. The disturbance dataframe is common to all species included in the simulations. We also change the harvesting model to illustrate other kind of simulations.
 
 ```{r abies_ipm}
 data("fit_Fagus_sylvatica")
@@ -257,16 +256,16 @@ disturb_PiFa %>%
 
 ## Linear stabilizing effect of species mixture
 
-When mixing coniferous and broadleaf species, an additional effect needs to be taken into account based on the survival models by @Brandl2020. This mixture effect is a linear function scaled to the data used to compute disturbance coefficient present in the package (@Barrere2023).
+When simulating the effect of biotic disturbances on forests mixing coniferous and broadleaf species, an additional effect can be taken into account based on the survival models developped by @Brandl2020. This mixture effect is a linear function scaled to the data used to compute disturbance coefficient present in the package (@Barrere2023).
 
-To include this effect, the probability of disturbance mortality is multiplied by the effect and the share of conifers.
+To include this effect, the probability of disturbance mortality is multiplied by the linear function linking the share of conifer to biotic mortality.
 
 $$
 f_{mixture.effect}\left(share.conifers\right) = 0.4767 + 0.6015 \cdot share.conifers \\
 h_{new}\left(share.conifers\right) = h_{disturb} \cdot f_{mixture.effect}\left(share.conifers\right)
 $$
 
-To compute the share of conifers, each species must have a type as shown below. This can be set when creating the species object or edited later :
+To compute the share of conifers, the type (broadleaf or conifer) of each species needs to be set as shown below. This can be set when creating the species object or edited later :
 
 ```{r type}
 Picea_sp$info["type"]
@@ -283,12 +282,12 @@ Picea_sp$disturb_fun <- disturb_fun_mixt
 Fagus_sp$disturb_fun <- disturb_fun_mixt
 ```
 
-This is an example simulation. This is important to have a biotic disturbance as well as to 
+This is an example simulation. Note that it is imperative to apply this mixture effect with biotic disturbance types only, since this effect was only calibrated for biotic mortality. 
 
 ```{r jasper_sim}
 disturb <- data.frame(type = "biotic", intensity = 0.2, IsSurv = FALSE, t = 500)
 set.seed(42)
-mixture_PiFa <- sim_deter_forest.forest(
+mixture_PiFa <- sim_deter_forest(
     forest(species = list(Picea = Picea_sp, Fagus = Fagus_sp)), 
     tlim = 1000, equil_dist = 250, equil_time = 1000,
     disturbance  = disturb,
