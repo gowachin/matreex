@@ -18,4 +18,10 @@ vignettes/.*.log
 ^pkgdown$
 ^\.github$
 ^doc$
+^docs$
 ^Meta$
+
+inst/fig/matreex_hex2.svg
+inst/fig/image2734.png
+inst/fig/ipm.svg
+inst/fig/RR.svg

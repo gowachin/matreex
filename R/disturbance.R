@@ -14,6 +14,8 @@
 #' @details
 #' Delayed mesh cells takes the value of the minimal mesh size.
 #'
+#' @importFrom stats plogis
+#'
 #' @export
 disturb_fun <- function(x, species, disturb = NULL, ...){
 
@@ -21,6 +23,7 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
     qmd <- dots$qmd
     size <- species$IPM$mesh
     coef <- species$disturb_coef
+    disturbance <- NULL # hack rm the note in devtools::check() about unbinded
     if(any(disturb$type %in% coef$disturbance)){
         coef <- subset(coef, disturbance == disturb$type)
     } else {
@@ -48,6 +51,8 @@ disturb_fun <- function(x, species, disturb = NULL, ...){
 #' @details
 #' Delayed mesh cells takes the value of the minimal mesh size.
 #'
+#' @importFrom stats plogis
+#'
 #' @export
 disturb_fun_mixt <- function(x, species, disturb = NULL, ...){
 
@@ -56,6 +61,7 @@ disturb_fun_mixt <- function(x, species, disturb = NULL, ...){
     coni_perc <- dots$perc_coni # New
     size <- species$IPM$mesh
     coef <- species$disturb_coef
+    disturbance <- NULL # hack rm the note in devtools::check() about unbinded
     if(any(disturb$type %in% coef$disturbance)){
         coef <- subset(coef, disturbance == disturb$type)
     } else {
