@@ -12,4 +12,5 @@ dev/dev_replace_oldipm.R
 vignettes/harvesting.Rmd
 
 /doc/
+/docs/
 /Meta/
