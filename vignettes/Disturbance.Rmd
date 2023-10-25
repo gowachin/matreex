@@ -110,6 +110,7 @@ where $dqm$ is the quadratic diameter, $m$ is the number of size classes, and $n
 $$
 logratio_i = log(\frac{dbh_i}{dqm}) \\
 $$
+In the original model fitted in @Barrere2023, $logratio$ and $dbh$ were centered and scaled. The linear parameters $logratio.intercept$, $logratio.slope$, $dbh.intercept$ and dbh.slope$ are used to apply the same transformation for these two variables: 
 $$
 dbh.scaled_i = dbh.intercept + dbh_i \times dbh.slope \\
 $$
