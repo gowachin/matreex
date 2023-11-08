@@ -100,17 +100,28 @@ ex_disturb <- data.frame(type = "storm", intensity = 0.5, IsSurv = FALSE)
 
 ## Impact on population
 
-The disturbance impact on the population is calculated from parameters estimated in @Barrere2023. The disturbance mortality equation takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance as inputs. A set of parameters is associated to each type of disturbance and species.
+The disturbance impact on the population is calculated from parameters estimated in @Barrere2023. The disturbance mortality equation takes the size distribution, quadratic diameter of the species, intensity ($I$) and duration ($t$) of the disturbance as inputs. A set of parameters is associated to each type of disturbance and species. This is computed with the following equations:
 
 $$
-dqm = \sqrt{\frac{\sum_{i=1}^m size_i^2 \times value_i}{\sum_{i=1}^m value_i}} \\
-logratio = log(\frac{size}{dqm}) \\
-dbh.scaled = dbh.intercept + size \times dbh.slope \\
-logratio.scaled = logratio.intercept + logratio \times logratio.slope \\
-X_{t+1} = X_t \times (1 - plogis(a_0 + a_1 \times logratio.scaled + b \times I^{c \times dbh.scaled}))^t 
+dqm = \sqrt{\frac{\sum_{i=1}^m dbh_i^2 \times n_i}{\sum_{i=1}^m n_i}} \\
+$$
+where $dqm$ is the quadratic diameter, $m$ is the number of size classes, and $n_i$ is the number of trees in the size class and $dbh_i$ is the mean diameter of the size class (in the model the number of trees is a continuous density per area).
+
+$$
+logratio_i = log(\frac{dbh_i}{dqm}) \\
+$$
+In the original model fitted in @Barrere2023, $logratio$ and $dbh$ were centered and scaled. The linear parameters $logratio.intercept$, $logratio.slope$, $dbh.intercept$ and dbh.slope$ are used to apply the same transformation for these two variables: 
+$$
+dbh.scaled_i = dbh.intercept + dbh_i \times dbh.slope \\
+$$
+$$
+logratio.scaled_i = logratio.intercept + logratio_i \times logratio.slope \\
+$$
+$$
+Pdeath_{i,t} = 1- (1 - logist(a_0 + a_1 \times logratio.scaled_i + b \times I*dbh.scaled^{c }))^t 
 $$
 
-The parameters are estimated with Bayesian computations. The mean of all posterior estimations are stored inside the package for each combination of species and disturbance type.
+Where, $Pdeath_{i,t}$ is the disturbance probability of mortality over $t$ years of the individual $i$, of dbh $dbh_i$. The parameters are estimated with Bayesian computations. The mean of all posterior estimations are stored inside the package for each combination of species and disturbance type.
 
 ```{r data_pkg}
 (Picea_coefs <- filter(matreex::disturb_coef, species == "Picea_abies"))
@@ -250,15 +261,17 @@ disturb_PiFa %>%
 
 ## Linear stabilizing effect of species mixture
 
-When simulating the effect of biotic disturbances on forests mixing coniferous and broadleaf species, an additional effect can be taken into account based on the survival models developped by @Brandl2020. This mixture effect is a linear function scaled to the data used to compute disturbance coefficient present in the package (@Barrere2023).
+When simulating the effect of biotic disturbances on forests mixing coniferous and broadleaf species, an additional effect can be taken into account based on the survival models developed by @Brandl2020. This mixture effect is a linear function, and the mean of the function has been scaled to match the average mortality disturbance estimated by @Barrere2023 for the average share of conifers in the fitting data.
 
 To include this effect, the probability of disturbance mortality is multiplied by the linear function linking the share of conifer to biotic mortality.
 
 $$
 f_{mixture.effect}\left(share.conifers\right) = 0.4767 + 0.6015 \cdot share.conifers \\
-h_{new}\left(share.conifers\right) = h_{disturb} \cdot f_{mixture.effect}\left(share.conifers\right)
 $$
-
+$$
+Pdeath_{new}\left(share.conifers\right) = Pdeath_{disturb} \cdot f_{mixture.effect}\left(share.conifers\right)
+$$
+where h
 To compute the share of conifers, the type (broadleaf or conifer) of each species needs to be set as shown below. This can be set when creating the species object or edited later :
 
 ```{r type}
@@ -295,7 +308,7 @@ mixture_PiFa %>%
     geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
-I compare the two simulations in order to check the presence of the effect. As seen above in messages, the mortality is multiplied by 0.74, which we see here with the blue line under the red one for *Picea abies*.
+I compare the two simulations in order to check the presence of a mixture effect. As seen above in messages, the mortality is multiplied by 0.74, which we see here with the blue line under the red one for *Picea abies*.
 
 *Yes, the disturbance mortality is saved in the harvest variable since there is no harvest when there is a disturbance.*
 

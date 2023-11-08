@@ -26,14 +26,13 @@ options(cli.progress_show_after = 600)
 
 The idea is to add recruitment from a regional pool with a constant proportion of species and add the recruit produced with a migration rate.
 
-The recruitment function for a species $s$ is edited such that :
+The recruitment function for a species $s$ in a single path ($R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}$) is modified to account for the flaw of seed from a regional pool as follow:
 
 $$
-R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}\\
 R_s = [(1-m)\alpha BA_s^\beta +  m \alpha BA_r^\beta] \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}
 $$
 
-$BA_s$ is the local basal area of the species, $BA_r$ is the regional basal area of the species and $BA_h$ is the local basal area of other species. $\alpha$, $\beta$, $\delta$ and $\epsilon$ are parameters fitted for each species. $m \in R: 0 \leq m \leq 1$ 
+$BA_s$ is the local basal area of the species, $BA_r$ is the regional basal area of the species and $BA_h$ is the local basal area of other species. $\alpha$, $\beta$, $\delta$ and $\epsilon$ are parameters fitted for each species. $m \in R: 0 \leq m \leq 1$ is the migration rate controlling the relative proportion of seed coming from the regional pool. The basal area of the species in the regional pool are fixed.
 
 To simplify, the recruitment is impacted by regional fecundity, but the competition is still local.
 
@@ -89,7 +88,7 @@ AbFa_sim <- sim_deter_forest(
 )
 ```
 
-Now forest class require to have regional abundance, that is basal area and migration rate.
+Now forest class require to have species regional abundance expressed in term of basal area and migration rate.
 These values are required to follow the order of the species.
 
 ```{r edit_forest}

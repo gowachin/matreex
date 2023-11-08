@@ -1,7 +1,7 @@
 No forest is an island
 ================
 Maxime Jaunatre
-2023-08-31
+2023-10-20
 
 ## Introduction
 
@@ -22,13 +22,13 @@ library(dplyr)
     ## 
     ## Attaching package: 'dplyr'
     ## 
-    ## The following objects are masked from 'package:stats':
-    ## 
-    ##     filter, lag
-    ## 
     ## The following object is masked from 'package:testthat':
     ## 
     ##     matches
+    ## 
+    ## The following objects are masked from 'package:stats':
+    ## 
+    ##     filter, lag
     ## 
     ## The following objects are masked from 'package:base':
     ## 
@@ -98,7 +98,7 @@ Abies_ipm <- make_IPM(
 
     ## Loop done.
 
-    ## Time difference of 1.26 mins
+    ## Time difference of 43.8 secs
 
 ``` r
 Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(30))
@@ -125,9 +125,9 @@ Abies_sim <- sim_deter_forest(
 
     ## Simulation ended after time 2000
 
-    ## BA stabilized at 48.60 with diff of 0.00 at time 2000
+    ## BA stabilized at 48.59 with diff of 0.00 at time 2000
 
-    ## Time difference of 11.1 secs
+    ## Time difference of 5.84 secs
 
 ``` r
 data("fit_Fagus_sylvatica")
@@ -150,7 +150,7 @@ Fagus_ipm <- make_IPM(
 
     ## Loop done.
 
-    ## Time difference of 49.3 secs
+    ## Time difference of 31.8 secs
 
 ``` r
 Fagus_sp <- species(IPM = Fagus_ipm, init_pop = def_initBA(30))
@@ -169,7 +169,7 @@ AbFa_sim <- sim_deter_forest(
 
     ## time 500 | BA diff : 0.03
 
-    ## time 1000 | BA diff : 0.01
+    ## time 1000 | BA diff : 0.00
 
     ## time 1500 | BA diff : 0.00
 
@@ -179,7 +179,7 @@ AbFa_sim <- sim_deter_forest(
 
     ## BA stabilized at 56.62 with diff of 0.00 at time 2000
 
-    ## Time difference of 19.6 secs
+    ## Time difference of 9.59 secs
 
 Now forest class require to have regional abundance, that is basal area
 and migration rate. These values are required to follow the order of the
@@ -339,7 +339,7 @@ params <- fit_Abies_alba$rec$params_m
 matreex:::exp_recFun(params, list_covs)
 ```
 
-    ## function (BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03) 
+    ## function (BATOTSP, BATOTNonSP, mesh, SurfEch = 0.03, `NA`, `NA`) 
     ## {
     ##     intercept <- -0.336241732611141
     ##     res <- 0
@@ -355,7 +355,7 @@ matreex:::exp_recFun(params, list_covs)
     ##     final <- exp(res) * SurfEch/0.03 * distrib
     ##     return(final)
     ## }
-    ## <environment: 0x5620e1118788>
+    ## <environment: 0x179dac7d8>
 
 ``` r
 matreex:::exp_recFun(params, list_covs, regional = TRUE)
@@ -377,7 +377,7 @@ matreex:::exp_recFun(params, list_covs, regional = TRUE)
     ##     final <- exp(res) * SurfEch/0.03 * distrib
     ##     return(final)
     ## }
-    ## <environment: 0x5620de61a310>
+    ## <environment: 0x15f5c3580>
 
 \*This edit highlight that our simulation are heavily dependant on the
 basal area for competition and not very open for other competition
@@ -424,7 +424,7 @@ regional_sim <- sim_deter_forest(
 
     ## BA stabilized at 48.59 with diff of 0.00 at time 500
 
-    ## Time difference of 3.11 secs
+    ## Time difference of 1.64 secs
 
 ``` r
 isol_sim <- sim_deter_forest(
@@ -452,7 +452,7 @@ isol_sim <- sim_deter_forest(
 
     ## BA stabilized at 48.59 with diff of 0.00 at time 500
 
-    ## Time difference of 2.7 secs
+    ## Time difference of 1.51 secs
 
 ``` r
 regional_pool <- dplyr::bind_rows(regional = regional_sim, isolation = isol_sim,
@@ -507,9 +507,9 @@ sp2_sim <- sim_deter_forest(
 
     ## Simulation ended after time 500
 
-    ## BA stabilized at 56.64 with diff of 0.00 at time 500
+    ## BA stabilized at 56.63 with diff of 0.00 at time 500
 
-    ## Time difference of 5.31 secs
+    ## Time difference of 2.77 secs
 
 ``` r
 sp2_sim %>%
@@ -563,7 +563,7 @@ invas_sim <- sim_deter_forest(
 
     ## BA stabilized at 57.53 with diff of 0.58 at time 500
 
-    ## Time difference of 5.3 secs
+    ## Time difference of 2.71 secs
 
 ``` r
 invas_sim %>%
@@ -613,7 +613,7 @@ rand_sim <- sim_deter_forest(
 
     ## BA stabilized at 56.63 with diff of 0.00 at time 2000
 
-    ## Time difference of 23.1 secs
+    ## Time difference of 11.1 secs
 
 ``` r
 works <- dplyr::bind_rows(regional = rand_sim, isolation = AbFa_sim,
