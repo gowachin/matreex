@@ -108,8 +108,7 @@ These values are required to follow the order of the species.
 #'   \item{dBAmin}{the minimum BA to perform cut}
 #'   \item{freq}{Frequence at which the harvest will be executed.}
 #' }
-#' @param regional_abundance list of vector with size distribution for each species.
-#' This is not a direct species relative abundance, but I don't know how to implement this...help ,
+#' @param regional_abundance Numeric vector of regional basal area for each species. Values are in the same order as the species list given to the function.
 #' @param migration_rate numeric vector with a migration rate in percentage between 1 et and 0.
 #'
 #' @importFrom purrr map_chr
@@ -279,7 +278,7 @@ regional_sim <- sim_deter_forest(
 isol_sim <- sim_deter_forest(
     forest(
         species = list(Abies = Abies_spE),
-        regional_abundance = list(Abies = equil_dist),
+        regional_abundance = equil_BA,
         migration_rate = c(Abies = 0)
     ),
     tlim = comp_time,
