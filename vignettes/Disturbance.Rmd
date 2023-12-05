@@ -271,7 +271,7 @@ $$
 $$
 Pdeath_{new}\left(share.conifers\right) = Pdeath_{disturb} \cdot f_{mixture.effect}\left(share.conifers\right)
 $$
-where h
+
 To compute the share of conifers, the type (broadleaf or conifer) of each species needs to be set as shown below. This can be set when creating the species object or edited later :
 
 ```{r type}

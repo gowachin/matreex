@@ -29,9 +29,9 @@ sub_diag <- function(matrix, fill, dist = 0, new = FALSE) {
     if(new){
         # matrix <- matrix(0, nrow = ncol(fill), ncol = ncol(fill))
         matrix <- numeric(nc^2)
-        dim(matrix) <- rep(nc, 2)
+        dim(matrix) <- c(nc, nc)
     } else {
-        assertMatrix(matrix, ncols = ncol(fill), min.rows = 1)
+        assertMatrix(matrix, ncols = nc, min.rows = 1)
     }
     assertCount(dist)
 
@@ -45,7 +45,7 @@ sub_diag <- function(matrix, fill, dist = 0, new = FALSE) {
 
     for (k in 1:(nc - dist)) {
         sel <- (k:min(k+nr, nrm_dist)) + dist
-        matrix[sel, k] <- fill[1:length(sel), k]
+        matrix[sel, k] <- fill[seq_along(sel), k]
     }
 
     return(matrix)

@@ -465,6 +465,52 @@ Picea_sim_f20  %>%
     geom_line(linewidth = .2) + geom_point(size = 0.4)
 ```
 
+```{r jasper, echo = FALSE, eval = FALSE}
+
+
+data("fit_Abies_alba")
+
+Abies_ipm <- make_IPM(
+    species = "Abies_alba", 
+    climate = climate, # this variable is defined at the top of the doc.
+    fit = fit_Abies_alba,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:200, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+
+data(rdi_coef)
+rdi_Ab <- drop(as.matrix(
+    rdi_coef[rdi_coef$species == "Abies_alba",c("intercept", "slope")]
+))
+
+Abies_sp <- species(
+    IPM = Abies_ipm, init_pop = def_init_even,
+    harvest_fun = Even_harv, rdi_coef = rdi_Ab,
+    harv_lim = c(dth = 175, dha = 575, hmax = 1)
+)
+
+Jasper_for_Even <- forest(
+    species = list(Picea = Picea_Even, Abies = Abies_sp),
+    harv_rules = c(Pmax = 0.25, dBAmin = 3,
+                   freq = 10, alpha = 1))
+set.seed(42) # The seed is here for initial population random functions.
+Jasper_sim_f20 <- sim_deter_forest(
+    Jasper_for_Even,
+    tlim = 200,
+    equil_time = 200, equil_dist = 10, equil_diff = 1,
+    harvest = "Even", targetRDI = 0.55, targetKg = 0.6,
+    final_harv = 150,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+Jasper_sim_f20  %>%
+    dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+```
 
 # References
 

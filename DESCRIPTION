@@ -1,18 +1,16 @@
 Package: matreex
-Title: LESSEM internal package for simulation of forest dynamic depending
-    on climatic variables
+Title: matreex: Simulation IPM for forest dynamic depending on climatic variables 
+    from Kunstler et al (2020)
 Version: 0.3.0
 Authors@R: c(
-    person("Anne", "Baranger", , "anne.baranger@inrae.fr", role = "aut"),
+    person("Maxime", "Jaunatre", , "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
     person("Julien", "Barrere", , "julien.barrere@inrae.fr", role = "aut"),
     person("Thomas", "Cordonnier", , "thomas.cordonnier@inrae.fr", role = "aut"),
     person("Arnaud", "Guyennon", , "arnaud.guyennon@inrae.fr", role = "aut"),
-    person("Maxime", "Jaunatre", , "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
-    person("Valentin", "Journe", , "valentin.journe@inrae.fr", role = "aut"),
-    person("Georges", "Kunstler", , "georges.kunstler@inrae.fr", role = "aut"),
     person("Bjoern", "Reineking", , "bjoern.reineking@inrae.fr", role = "aut"),
     person("Laura", "Touzot", , "laura.touzot@inrae.fr", role = "aut"),
-    person("INRAE", role = "cph")
+    person("INRAE", role = "cph"),
+    person("Georges", "Kunstler", , "georges.kunstler@inrae.fr", role = "aut")
   )
 Description: 
     The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.
@@ -46,5 +44,6 @@ Config/testthat/edition: 3
 Encoding: UTF-8
 LazyData: true
 LazyDataCompression: bzip2
+URL: https://github.com/gowachin/matreex
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
