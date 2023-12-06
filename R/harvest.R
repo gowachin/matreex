@@ -172,6 +172,22 @@ RDI <- function(x, RDI_int, RDI_slo, meshcm2, tx){
     return(drop(res))
 }
 
+
+#' @noRd
+RDI_sp <- function(x, species, SurfEch){
+
+    x <- x / SurfEch
+    tx <- sum(x)
+    meshcm2 <- (species$IPM$mesh / 10) ^2
+    RDIcoef <- species$rdi_coef
+    RDI_int <- RDIcoef[["intercept"]]
+    RDI_slo <- RDIcoef[["slope"]]
+
+    res <- tx / exp(RDI_int + RDI_slo / 2 * log(meshcm2 %*% x / tx))
+
+    return(drop(res))
+}
+
 #' Compute the harvest curve for even stand (Pcut)
 #'
 #' @param x is the size distribution
@@ -287,4 +303,79 @@ Even_harv <- function(x,
     )
 
     return(x * Pcut)
+}
+
+
+#
+getPcutEven_dev <- function(x,
+                            sp, meshs,
+                            targetRDI=0.65,
+                            targetKg=0.9,
+                            SurfEch = 0.03){
+
+    # assertNumeric(x, lower = 0)
+    assertNumber(targetRDI, lower = 0)
+    assertNumber(targetKg, lower = 0)
+
+    RDIcoef = map(sp, ~.x$rdi_coef)
+
+    x <- map(x, ~ .x / SurfEch)
+    N <- lengths(meshs)
+    tx <- map_dbl(x, sum)
+    meshcm2 <- map(meshs, ~ (.x / 10) ^ 2)
+
+
+    # RDI_int <- RDIcoef[["intercept"]]
+    RDI_int <- map_dbl(sp, ~ .x$rdi_coef[["intercept"]])
+    # RDI_slo <- RDIcoef[["slope"]]
+    RDI_slo <- map_dbl(sp, ~ .x$rdi_coef[["slope"]])
+
+    # Early return if RDI < targetRDI
+    # rdi <- RDI(x, RDI_int, RDI_slo, meshcm2, tx)
+
+    # browser()
+
+    getCostFunc <- function(Par, meshcm2, N, tx, RDI_int, RDI_slo, x,
+                            targetRDI, targetKg) {
+        # Dg2 <- meshcm2 %*% x / tx
+        Dg2 <- sum(map2_dbl(meshcm2, x, `%*%`)) / sum(tx)
+        hmax <- Par[1]
+        k <- Par[2]
+        Pc <- map(N, ~ hmax * (1:.x)^(-k))
+        # if(sum(x*Pc) <= 0){
+        if( sum(map2_dbl(x, Pc, ~ sum(.x * .y))) <= 0){
+            return(.9) # escape if no harvest
+        }
+        # Dgcut2 <- meshcm2 %*% (x * Pc) / sum(x * Pc)
+        tmp <- map2(x, Pc, `*`)
+        Dgcut2 <- sum(map2_dbl(meshcm2, tmp, `%*%`)) / sum(map_dbl(tmp, sum))
+        Kg <- Dgcut2 / Dg2
+        # RDI <- RDI(x = x * (1 - Pc), RDI_int, RDI_slo, meshcm2, tx)
+        rdi_sp <- imap(x, function(x, .y, Pc, RDI_int, RDI_slo, meshcm2, tx){
+            RDI(x = x * (1 - Pc[[.y]]), RDI_int[[.y]], RDI_slo[[.y]], meshcm2[[.y]], tx[[.y]])
+        },
+        Pc = Pc, RDI_int = RDI_int, RDI_slo = RDI_slo, meshcm2 = meshcm2, tx = tx)
+        RDI <- sum(unlist(rdi_sp))
+        # print(RDI)
+        # cat(sprintf(
+        # "hmax %.5f, k %.5f, error : %.5f \nKg : %.2f / Target :%.2f \nRDI : %.2f / Target :%.2f \n",
+        # hmax, k,  (Kg-targetKg)^2 + (RDI-targetRDI)^2, Kg, targetKg, RDI, targetRDI)
+        # )
+        return((Kg - targetKg)^2 + (RDI - targetRDI)^2)
+    }
+
+    ParOpt <- optim(
+        fn = getCostFunc,
+        meshcm2 = meshcm2, N = N, tx = tx,
+        RDI_int = RDI_int, RDI_slo = RDI_slo,
+        x = x, targetRDI = targetRDI, targetKg = targetKg,
+
+        par = c(0.1, 0.1), method = "L-BFGS-B",
+        upper = c(.99, 1), lower = c(0, 1e-10)
+    )$par
+
+    # Pcut <- ParOpt[1] * (1:N)^(-ParOpt[2])
+    Pcut <-map(N, ~ ParOpt[1] * (1:.x)^(-ParOpt[2]))
+
+    return(Pcut)
 }

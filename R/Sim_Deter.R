@@ -132,7 +132,8 @@ sim_deter_forest  <- function(Forest,
                              disturbance = NULL,
                              correction = "none",
                              SurfEch = 0.03,
-                             verbose = FALSE) {
+                             verbose = FALSE,
+                             dev = FALSE) {
     UseMethod("sim_deter_forest")
 }
 
@@ -153,7 +154,8 @@ sim_deter_forest.species  <- function(Forest,
                               disturbance = NULL,
                               correction = "none",
                               SurfEch = 0.03,
-                              verbose = FALSE) {
+                              verbose = FALSE,
+                              dev = FALSE) {
     sim_deter_forest(
         Forest = forest(species = list(Forest)),
         tlim = tlim,
@@ -171,7 +173,8 @@ sim_deter_forest.species  <- function(Forest,
         disturbance = disturbance,
         correction = correction,
         SurfEch = SurfEch,
-        verbose = verbose
+        verbose = verbose,
+        dev = dev
     )
 }
 
@@ -192,7 +195,8 @@ sim_deter_forest.forest  <- function(Forest,
                                      disturbance = NULL,
                                      correction = "none",
                                      SurfEch = 0.03,
-                                     verbose = FALSE) {
+                                     verbose = FALSE,
+                                     dev = FALSE) {
     # browser()
     # tlim = 500
     # equil_dist = 500
@@ -208,8 +212,8 @@ sim_deter_forest.forest  <- function(Forest,
     # verbose = FALSE
 
     # TEMP dev
-    targetRDI <- map_dbl(Forest$species, ~ targetRDI)
-    targetKg <- map_dbl(Forest$species, ~ targetKg)
+    # targetRDI <- map_dbl(Forest$species, ~ targetRDI)
+    # targetKg <- map_dbl(Forest$species, ~ targetKg)
     # TEMP dev
 
     # Idiot Proof ####
@@ -496,17 +500,46 @@ sim_deter_forest.forest  <- function(Forest,
                           meshs,
                           exec, SurfEch = SurfEch)
             } else if(t %% Forest$harv_rule["freq"] == 0){
-                Harv <- imap(
-                    map(Forest$species, `[[`, "harvest_fun"),
-                    function(f, .y, X, sp, tRDI, tKg, ct, ...){
-                        exec(f, X[[.y]], sp[[.y]],
-                             targetRDI = tRDI[[.y]],
-                             targetKg = tKg[[.y]],
-                             ct = ct[[.y]],
-                             ...)
-                    }, X = X, sp = Forest$species, tRDI = targetRDI,
-                    tKg = targetKg, ct = ct, t = t, SurfEch = SurfEch
-                )
+
+                if(dev){
+
+                    rdi_sp <- map2_dbl(X, Forest$species, RDI_sp,
+                                       SurfEch = SurfEch)
+                    rdi <- sum(rdi_sp)
+
+                    if (rdi < targetRDI) {
+                        # cat(sprintf("rdi: %.2f\n", rdi))
+                        Harv <- map(meshs, ~ rep(0, length(.x)))
+                    } else {
+
+                        # browser()
+
+                        Pcut <- getPcutEven_dev(x = X, sp = Forest$species,
+                                              meshs = meshs,
+                                              targetRDI = targetRDI,
+                                              targetKg = targetKg,
+                                              SurfEch = SurfEch
+                        )
+
+                        # Pcut <- 0
+                        Harv <- map2(X, Pcut, ~ .x * .y)
+                    }
+
+
+                } else {
+                    Harv <- imap(
+                        map(Forest$species, `[[`, "harvest_fun"),
+                        function(f, .y, X, sp, tRDI, tKg, ct, ...){
+                            exec(f, X[[.y]], sp[[.y]],
+                                 targetRDI = tRDI[[.y]],
+                                 targetKg = tKg[[.y]],
+                                 ct = ct[[.y]],
+                                 ...)
+                        }, X = X, sp = Forest$species, tRDI = targetRDI,
+                        tKg = targetKg, ct = ct, t = t, SurfEch = SurfEch
+                    )
+                }
+
                 X <- map2(X, Harv, `-`)
 
             } else {
