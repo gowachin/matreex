@@ -527,7 +527,7 @@ Jasper_sim_f20_dev <- sim_deter_forest(
     Jasper_for_Even_dev,
     tlim = 400,
     equil_time = 400, equil_dist = 10, equil_diff = 1,
-    harvest = "Even", targetRDI = 0.55, targetKg = 0.6,
+    harvest = "Even", targetRDI = 0.95, targetKg = 0.6,
     final_harv = 200,
     SurfEch = 0.03,
     verbose = TRUE, 
