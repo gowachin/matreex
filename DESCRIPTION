@@ -3,14 +3,14 @@ Title: matreex: Simulation IPM for forest dynamic depending on climatic variable
     from Kunstler et al (2020)
 Version: 0.3.0
 Authors@R: c(
-    person("Maxime", "Jaunatre", , "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
-    person("Julien", "Barrere", , "julien.barrere@inrae.fr", role = "aut"),
-    person("Thomas", "Cordonnier", , "thomas.cordonnier@inrae.fr", role = "aut"),
-    person("Arnaud", "Guyennon", , "arnaud.guyennon@inrae.fr", role = "aut"),
-    person("Bjoern", "Reineking", , "bjoern.reineking@inrae.fr", role = "aut"),
-    person("Laura", "Touzot", , "laura.touzot@inrae.fr", role = "aut"),
+    person("Maxime", "Jaunatre", comment = c(ORCID = "0009-0002-2816-1677"), email = "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
+    person("Julien", "Barrere", comment = c(ORCID = "0000-0002-6686-726X"), email = "julien.barrere@inrae.fr", role = "aut"),
+    person("Thomas", "Cordonnier", comment = c(ORCID = "0000-0003-3684-4662"), email = "thomas.cordonnier@inrae.fr", role = "aut"),
+    person("Arnaud", "Guyennon", comment = c(ORCID = "0000-0003-2178-3801"), email = "arnaud.guyennon@inrae.fr", role = "aut"),
+    person("Bjoern", "Reineking", comment = c(ORCID = "0000-0001-5277-9181"), email = "bjoern.reineking@inrae.fr", role = "aut"),
+    person("Laura", "Touzot", comment = c(ORCID = "0000-0003-0445-554X"), email = "laura.touzot@inrae.fr", role = "aut"),
     person("INRAE", role = "cph"),
-    person("Georges", "Kunstler", , "georges.kunstler@inrae.fr", role = "aut")
+    person("Georges", "Kunstler", comment = c(ORCID = "0000-0002-2544-1940"), email = "georges.kunstler@inrae.fr", role = "aut")
   )
 Description: 
     The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.
