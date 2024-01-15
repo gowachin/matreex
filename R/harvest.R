@@ -167,6 +167,10 @@ Uneven_harv <- function(x,
 #'
 #' @noRd
 RDI <- function(x, RDI_int, RDI_slo, meshcm2, tx){
+
+    # print(RDI_int)
+    # print(RDI_slo)
+    # print(tx)
     res <- sum(x) / exp(RDI_int + RDI_slo / 2 * log(meshcm2 %*% x / tx))
 
     return(drop(res))
@@ -176,9 +180,13 @@ RDI <- function(x, RDI_int, RDI_slo, meshcm2, tx){
 #' @noRd
 RDI_sp <- function(x, species, SurfEch){
 
+    meshcm2 <- (species$IPM$mesh / 10) ^2
+    lag <- meshcm2 > 0
+
+    x <- x[lag]
+    meshcm2 <- meshcm2[lag]
     x <- x / SurfEch
     tx <- sum(x)
-    meshcm2 <- (species$IPM$mesh / 10) ^2
     RDIcoef <- species$rdi_coef
     RDI_int <- RDIcoef[["intercept"]]
     RDI_slo <- RDIcoef[["slope"]]
@@ -217,10 +225,15 @@ getPcutEven <- function(x,
     assertNumber(targetRDI, lower = 0)
     assertNumber(targetKg, lower = 0)
 
-    x <- x / SurfEch
-    N <- length(mesh)
-    tx <- sum(x)
     meshcm2 <- (mesh / 10) ^ 2
+    lag <- meshcm2 > 0
+
+    x <- x[lag]
+    meshcm2 <- meshcm2[lag]
+    x <- x / SurfEch
+    N <- length(meshcm2)
+    tx <- sum(x)
+
     RDI_int <- RDIcoef[["intercept"]]
     RDI_slo <- RDIcoef[["slope"]]
 
@@ -245,8 +258,8 @@ getPcutEven <- function(x,
       Kg <- Dgcut2 / Dg2
       RDI <- RDI(x = x * (1 - Pc), RDI_int, RDI_slo, meshcm2, tx)
       # cat(sprintf(
-          # "hmax %.5f, k %.5f, error : %.5f \nKg : %.2f / Target :%.2f \nRDI : %.2f / Target :%.2f \n",
-          # hmax, k,  (Kg-targetKg)^2 + (RDI-targetRDI)^2, Kg, targetKg, RDI, targetRDI)
+      # "hmax %.5f, k %.5f, error : %.5f \nKg : %.2f / Target :%.2f \nRDI : %.2f / Target :%.2f \n",
+      # hmax, k,  (Kg-targetKg)^2 + (RDI-targetRDI)^2, Kg, targetKg, RDI, targetRDI)
       # )
       return((Kg - targetKg)^2 + (RDI - targetRDI)^2)
     }
@@ -262,6 +275,7 @@ getPcutEven <- function(x,
     )$par
 
     Pcut <- ParOpt[1] * (1:N)^(-ParOpt[2])
+    Pcut <- delay.numeric(Pcut, sum(!lag))
 
     return(Pcut)
 }
@@ -319,14 +333,24 @@ getPcutEven_dev <- function(x,
 
     RDIcoef = map(sp, ~.x$rdi_coef)
 
-    x <- map(x, ~ .x / SurfEch)
-    N <- lengths(meshs)
-    tx <- map_dbl(x, sum)
     meshcm2 <- map(meshs, ~ (.x / 10) ^ 2)
+    lag <- map(meshcm2, ~ .x > 0)
+    del <- map_dbl(lag, ~ sum(!.x))
+
+    x <- map2(x, lag, ~ .x[.y])
+    meshcm2 <- map2(meshcm2, lag, ~ .x[.y])
+
+    x <- map(x, ~ .x / SurfEch)
+    N <- lengths(meshcm2)
+    tx <- map_dbl(x, sum)
 
     RDI_int <- map_dbl(sp, ~ .x$rdi_coef[["intercept"]])
     RDI_slo <- map_dbl(sp, ~ .x$rdi_coef[["slope"]])
 
+
+    err <- 0
+    eRDI <- 0
+    eKg <- 0
 
     getCostFunc <- function(Par, meshcm2, N, tx, RDI_int, RDI_slo, x,
                             targetRDI, targetKg) {
@@ -342,14 +366,21 @@ getPcutEven_dev <- function(x,
         Kg <- Dgcut2 / Dg2
         rdi_sp <- imap(x, function(x, .y, Pc, RDI_int, RDI_slo, meshcm2, tx){
             RDI(x = x * (1 - Pc[[.y]]), RDI_int[[.y]], RDI_slo[[.y]],
-                meshcm2[[.y]], tx[[.y]])
+                meshcm2[[.y]], sum(x * (1 - Pc[[.y]])))
         },
         Pc = Pc, RDI_int = RDI_int, RDI_slo = RDI_slo, meshcm2 = meshcm2, tx = tx)
         RDI <- sum(unlist(rdi_sp))
         # cat(sprintf(
-        # "hmax %.5f, k %.5f, error : %.5f \nKg : %.2f / Target :%.2f \nRDI : %.2f / Target :%.2f \n",
-        # hmax, k,  (Kg-targetKg)^2 + (RDI-targetRDI)^2, Kg, targetKg, RDI, targetRDI)
+        # "error : %.5f \nKg : %.3f / Target :%.2f \nRDI : %.3f / Target :%.2f \n",
+        # (Kg-targetKg)^2 + (RDI-targetRDI)^2, Kg, targetKg, RDI, targetRDI)
         # )
+        # cat(sprintf(
+        # "par 1 : %.5f | par 2 : %.5f \n",
+        # Par[1], Par[2])
+        # )
+        err <<- (Kg - targetKg)^2 + (RDI - targetRDI)^2
+        eRDI <<- RDI
+        eKg <<- Kg
         return((Kg - targetKg)^2 + (RDI - targetRDI)^2)
     }
 
@@ -362,9 +393,16 @@ getPcutEven_dev <- function(x,
         par = c(0.1, 0.1), method = "L-BFGS-B",
         upper = c(.99, 1), lower = c(0, 1e-10)
     )$par
-
-    # Pcut <- ParOpt[1] * (1:N)^(-ParOpt[2])
+    cat(sprintf(
+    "error : %.5f \nKg : %.4f / Target :%.2f | RDI : %.4f / Target :%.2f \n",
+    err, eKg, targetKg, eRDI, targetRDI)
+    )
+    # cat(sprintf(
+    #     "final Par 1 : %.5f Par 2 : %.5f \n",
+    #     ParOpt[1], ParOpt[2])
+    # )
     Pcut <-map(N, ~ ParOpt[1] * (1:.x)^(-ParOpt[2]))
+    Pcut <- map2(Pcut, del, ~ delay.numeric(.x, .y))
 
     return(Pcut)
 }

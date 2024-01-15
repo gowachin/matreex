@@ -8,7 +8,7 @@ load_all()
 # rm(list = ls())
 sim_rdikg <- function(sim, rdi_c = NULL){
 
-    # DEV ####
+    # # DEV ####
     # forest = Jasper_for_Even_dev
     # sim = Jasper_sim_f20_dev
     # rdi_c = NULL
@@ -79,29 +79,56 @@ sim_rdikg <- function(sim, rdi_c = NULL){
 x <- sim_rdikg(sim = Jasper_sim_f20_dev,
          rdi_c = NULL)
 
-load_all()
-set.seed(42) # The seed is here for initial population random functions.
-Picea_sim_f20 <- sim_deter_forest(
-    Picea_for_Even,
-    tlim = 100,
-    equil_time = 100, equil_dist = 10, equil_diff = 1,
-    harvest = "Even", targetRDI = 0.6, targetKg = 0.1,
-    final_harv = 150,
-    SurfEch = 0.03,
-    verbose = TRUE
-)
-# Picea_sim_f20  %>%
-    # dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
-    # ggplot(aes(x = time, y = value)) +
-    # facet_wrap(~ var, scales = "free_y") +
-    # geom_line(linewidth = .2) + geom_point(size = 0.4)
+Jasper_sim_f20_dev %>%
+    filter(var %in% c("N", "BAsp", "H")) %>%
+    select(species, time, var, value) %>%
+    bind_rows(x) %>%
+    filter(var != "Dgcut2") %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line() + #geom_point() +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_hline(yintercept = 0.9, color = "red") +
+    geom_hline(yintercept = 0.9, color = "green") +
+     NULL
 
-x <- sim_rdikg(sim = Picea_sim_f20,
-                rdi_c = NULL)
 
-x %>%
-    ggplot(aes(x = time, y = value)) +
-    geom_line() + geom_point() +
-    facet_wrap(~ var, scales = "free_y")
-    NULL
+t <- Jasper_sim_f20_dev %>%
+    filter(var == "H", value > 0) %>%
+    pull(time) %>% unique()
 
+x <- x %>%
+    filter(time %in% t, species == "All", var %in% c("Kg", "rdi")) %>%
+    pivot_wider(names_from = var, values_from = value)
+
+for(i in 1:nrow(x)){
+    cat(sprintf(
+        "Kg : %.4f | RDI : %.4f \n",
+        x$Kg[i], x$rdi[i])
+    )
+}
+
+#' yeay ça marche mais du coup question, est-ce que c'est valable pour la version d'origine ?
+# N <- length(mesh)
+# Dg1 <- mesh^2 %*% (x*(1-Pc)) / N
+# RDI <- sum(x*(1-Pc)) / exp(RDIcoef$rqIntercept + RDIcoef$rqSlope/2*log(Dg1))
+
+
+# load_all()
+# set.seed(42) # The seed is here for initial population random functions.
+# Picea_sim_f20 <- sim_deter_forest(
+#     Picea_for_Even,
+#     tlim = 100,
+#     equil_time = 100, equil_dist = 10, equil_diff = 1,
+#     harvest = "Even", targetRDI = 0.6, targetKg = 0.1,
+#     final_harv = 150,
+#     SurfEch = 0.03,
+#     verbose = TRUE
+# )
+# # Picea_sim_f20  %>%
+#     # dplyr::filter(var %in% c("BAsp", "N", "H"), ! equil) %>%
+#     # ggplot(aes(x = time, y = value)) +
+#     # facet_wrap(~ var, scales = "free_y") +
+#     # geom_line(linewidth = .2) + geom_point(size = 0.4)
+#
+# x <- sim_rdikg(sim = Picea_sim_f20,
+#                 rdi_c = NULL)

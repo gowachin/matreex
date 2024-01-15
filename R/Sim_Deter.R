@@ -467,19 +467,15 @@ sim_deter_forest.forest  <- function(Forest,
                 targetBAcut <- Hi * BAstandsp
             } else { # Favoured_Uneven
                 p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
-                # cat(p_fav)
+
                 if(p_fav > 0.5){
-                    # ici qu'il faut modifier en fait !
-                    # cat(" - let's fav \n")
                     Hi <- BAcut / BAstand
                 }  else {
-                    # cat(" \n")
                     pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
                     Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
                 }
                 targetBAcut <- Hi * BAstandsp
             }
-            # browser()
 
             Harv <- imap(
                 map(Forest$species, `[[`, "harvest_fun"),
@@ -507,17 +503,15 @@ sim_deter_forest.forest  <- function(Forest,
                     rdi <- sum(rdi_sp)
 
                     if (rdi < targetRDI) {
-                        # cat(sprintf("rdi: %.2f\n", rdi))
                         Harv <- map(meshs, ~ rep(0, length(.x)))
                     } else {
-                        # browser()
                         Pcut <- getPcutEven_dev(x = X, sp = Forest$species,
                                               meshs = meshs,
                                               targetRDI = targetRDI,
                                               targetKg = targetKg,
                                               SurfEch = SurfEch
                         )
-                        # Pcut <- 0
+
                         Harv <- map2(X, Pcut, ~ .x * .y)
                     }
 
