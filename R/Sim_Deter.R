@@ -118,28 +118,6 @@ Buildct <- function(mesh, SurfEch= 0.03){
 #' @name sim_deter_forest
 #' @export
 sim_deter_forest  <- function(Forest,
-                             tlim = 3e3,
-                             equil_dist = 250,
-                             equil_diff = 1,
-                             equil_time = 1e4,
-                             harvest = c("default", "Uneven", "Even",
-                                         "Favoured_Uneven"),
-                             targetBA = 20,
-                             targetRDI = 0.9,
-                             targetKg = 0.9,
-                             final_harv = 100,
-                             climate = NULL,
-                             disturbance = NULL,
-                             correction = "none",
-                             SurfEch = 0.03,
-                             verbose = FALSE,
-                             dev = FALSE) {
-    UseMethod("sim_deter_forest")
-}
-
-#' @method sim_deter_forest species
-#' @export
-sim_deter_forest.species  <- function(Forest,
                               tlim = 3e3,
                               equil_dist = 250,
                               equil_diff = 1,
@@ -154,8 +132,28 @@ sim_deter_forest.species  <- function(Forest,
                               disturbance = NULL,
                               correction = "none",
                               SurfEch = 0.03,
-                              verbose = FALSE,
-                              dev = FALSE) {
+                              verbose = FALSE) {
+    UseMethod("sim_deter_forest")
+}
+
+#' @method sim_deter_forest species
+#' @export
+sim_deter_forest.species  <- function(Forest,
+                                      tlim = 3e3,
+                                      equil_dist = 250,
+                                      equil_diff = 1,
+                                      equil_time = 1e4,
+                                      harvest = c("default", "Uneven", "Even",
+                                                  "Favoured_Uneven"),
+                                      targetBA = 20,
+                                      targetRDI = 0.9,
+                                      targetKg = 0.9,
+                                      final_harv = 100,
+                                      climate = NULL,
+                                      disturbance = NULL,
+                                      correction = "none",
+                                      SurfEch = 0.03,
+                                      verbose = FALSE) {
     sim_deter_forest(
         Forest = forest(species = list(Forest)),
         tlim = tlim,
@@ -195,8 +193,7 @@ sim_deter_forest.forest  <- function(Forest,
                                      disturbance = NULL,
                                      correction = "none",
                                      SurfEch = 0.03,
-                                     verbose = FALSE,
-                                     dev = FALSE) {
+                                     verbose = FALSE) {
     # browser()
     # tlim = 500
     # equil_dist = 500
@@ -497,38 +494,22 @@ sim_deter_forest.forest  <- function(Forest,
                           exec, SurfEch = SurfEch)
             } else if(t %% Forest$harv_rule["freq"] == 0){
 
-                # if(dev){
-                    rdi_sp <- map2_dbl(X, Forest$species, RDI_sp,
-                                       SurfEch = SurfEch)
-                    rdi <- sum(rdi_sp)
+                rdi_sp <- map2_dbl(X, Forest$species, RDI_sp,
+                                   SurfEch = SurfEch)
+                rdi <- sum(rdi_sp)
 
-                    if (rdi < targetRDI) {
-                        Harv <- map(meshs, ~ rep(0, length(.x)))
-                    } else {
-                        Pcut <- getPcutEven_dev(x = X, sp = Forest$species,
-                                              meshs = meshs,
-                                              targetRDI = targetRDI,
-                                              targetKg = targetKg,
-                                              SurfEch = SurfEch
-                        )
+                if (rdi < targetRDI) {
+                    Harv <- map(meshs, ~ rep(0, length(.x)))
+                } else {
+                    Pcut <- getPcutEven(x = X, sp = Forest$species,
+                                            meshs = meshs,
+                                            targetRDI = targetRDI,
+                                            targetKg = targetKg,
+                                            SurfEch = SurfEch
+                    )
 
-                        Harv <- map2(X, Pcut, ~ .x * .y)
-                    }
-
-                # } else {
-                #     Harv <- imap(
-                #         map(Forest$species, `[[`, "harvest_fun"),
-                #         function(f, .y, X, sp, tRDI, tKg, ct, ...){
-                #             exec(f, X[[.y]], sp[[.y]],
-                #                  targetRDI = tRDI[[.y]],
-                #                  targetKg = tKg[[.y]],
-                #                  ct = ct[[.y]],
-                #                  ...)
-                #         }, X = X, sp = Forest$species, tRDI = targetRDI,
-                #         tKg = targetKg, ct = ct, t = t, SurfEch = SurfEch
-                #     )
-                # }
-
+                    Harv <- map2(X, Pcut, ~ .x * .y)
+                }
                 X <- map2(X, Harv, `-`)
 
             } else {

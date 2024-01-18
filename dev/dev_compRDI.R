@@ -1,10 +1,10 @@
-load("dev/evforest.Rds")
-load("dev/evsim.Rds")
+# load("dev/evforest.Rds")
+# load("dev/evsim.Rds")
 
 library(purrr)
 library(dplyr)
 library(ggplot2)
-load_all()
+# load_all()
 # rm(list = ls())
 sim_rdikg <- function(sim, rdi_c = NULL){
 
@@ -37,7 +37,7 @@ sim_rdikg <- function(sim, rdi_c = NULL){
         group_modify(~ data.frame(rdi = RDI(
             x = .x$value,
             RDI_int = unique(.x$intercept), RDI_slo = unique(.x$slope),
-            meshcm2 = .x$size, tx = sum(.x$value))))# %>%
+            meshcm2 = .x$size)))# %>%
 
     rdi_val <- rdi_sp %>%
         group_by(time) %>%
@@ -76,36 +76,36 @@ sim_rdikg <- function(sim, rdi_c = NULL){
 }
 
 
-x <- sim_rdikg(sim = Jasper_sim_f20_dev,
-         rdi_c = NULL)
-
-Jasper_sim_f20_dev %>%
-    filter(var %in% c("N", "BAsp", "H")) %>%
-    select(species, time, var, value) %>%
-    bind_rows(x) %>%
-    filter(var != "Dgcut2") %>%
-    ggplot(aes(x = time, y = value, color = species)) +
-    geom_line() + #geom_point() +
-    facet_wrap(~ var, scales = "free_y") +
-    geom_hline(yintercept = 0.9, color = "red") +
-    geom_hline(yintercept = 0.9, color = "green") +
-     NULL
-
-
-t <- Jasper_sim_f20_dev %>%
-    filter(var == "H", value > 0) %>%
-    pull(time) %>% unique()
-
-x <- x %>%
-    filter(time %in% t, species == "All", var %in% c("Kg", "rdi")) %>%
-    pivot_wider(names_from = var, values_from = value)
-
-for(i in 1:nrow(x)){
-    cat(sprintf(
-        "Kg : %.4f | RDI : %.4f \n",
-        x$Kg[i], x$rdi[i])
-    )
-}
+# x <- sim_rdikg(sim = Jasper_sim_f20_dev,
+#          rdi_c = NULL)
+#
+# Jasper_sim_f20_dev %>%
+#     filter(var %in% c("N", "BAsp", "H")) %>%
+#     select(species, time, var, value) %>%
+#     bind_rows(x) %>%
+#     filter(var != "Dgcut2") %>%
+#     ggplot(aes(x = time, y = value, color = species)) +
+#     geom_line() + #geom_point() +
+#     facet_wrap(~ var, scales = "free_y") +
+#     geom_hline(yintercept = 0.9, color = "red") +
+#     geom_hline(yintercept = 0.9, color = "green") +
+#      NULL
+#
+#
+# t <- Jasper_sim_f20_dev %>%
+#     filter(var == "H", value > 0) %>%
+#     pull(time) %>% unique()
+#
+# x <- x %>%
+#     filter(time %in% t, species == "All", var %in% c("Kg", "rdi")) %>%
+#     pivot_wider(names_from = var, values_from = value)
+#
+# for(i in 1:nrow(x)){
+#     cat(sprintf(
+#         "Kg : %.4f | RDI : %.4f \n",
+#         x$Kg[i], x$rdi[i])
+#     )
+# }
 
 #' yeay ça marche mais du coup question, est-ce que c'est valable pour la version d'origine ?
 # N <- length(mesh)
