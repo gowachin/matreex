@@ -171,8 +171,7 @@ sim_deter_forest.species  <- function(Forest,
         disturbance = disturbance,
         correction = correction,
         SurfEch = SurfEch,
-        verbose = verbose,
-        dev = dev
+        verbose = verbose
     )
 }
 

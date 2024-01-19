@@ -71,7 +71,7 @@ Harvesting scenario are defined at different levels: at the species level with t
 | -- | -- | -- | -- | -- |
 | default | `def_harv()` <br> or custom by user. | $\emptyset$ | `harv_rules["freq"]` | $\emptyset$ |
 | Uneven | `Uneven_harv()` | `harv_lim` | `harv_rules` | `targetBA` |
-| Even  <br> *in active dev* | `Even_harv()` | `rdi_coef` | `harv_rules` <!--`FinalHarvT`--> | `targetRDI` <br> `targetKg` |
+| Even | `Even_harv()` | `rdi_coef` | `harv_rules` | `targetRDI` <br> `targetKg` <br> `final_harv` |
 
 Short example : When using an Uneven scenario, each species needs to use the `Uneven_harv()` function with `harv_lim` parameters. The forest will need to have `harv_rules` parameters. The `sim_deter_forest()` require `targetBA` argument. If `targetRDI` is defined, it will not be used.
 
@@ -431,13 +431,13 @@ The last parameter for an even harvested simulation is the final cut time. The s
 
 ## Multispecific case
 
-Because the species parameters are given in @Aussenac2021 for a single species stand, computing $n_{max}$ and $Dg$ for multispecific stands in not straight forward. 
+Because the species parameters are given in @Aussenac2021 for a single species stand, computing $N_{max}$ and $Dg$ for multispecific stands is not straightforward. 
 
 The stand RDI is the sum of the RDI of each species : $RDI_{stand} = \sum_{s=1}^{S} N_s / N_{max,s}$
 
 The mean quadratic diameter is computed with all species at once :
 
-$$Dg^2 = \frac{\sum_{s=1}^{S} \sum_{n=1}^{mesh} d_{s,n} \cdot DBH_{s,n}^2}{\sum_{s=1}^{S} N_{s}}$$
+$$Dg^2 = \frac{\sum_{s=1}^{S} \sum_{n=1}^{m} n_{s,n} \cdot dbh_{s,n}^2}{\sum_{s=1}^{S} N_{s}}$$
 
 ## Examples
 
@@ -520,7 +520,6 @@ Jasper_sim_f20_dev <- sim_deter_forest(
 An additionnal function of the package is available for computing $Kg$ and $RDI$ after the simulations along time.
 
 ```{r Comp_rdi}
-source("dev/dev_compRDI.R")
 rdi_kg <- sim_rdikg(sim = Jasper_sim_f20_dev, rdi_c = NULL)
 
 Jasper_sim_f20_dev %>%

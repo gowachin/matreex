@@ -213,33 +213,24 @@ RDI_sp <- function(x, species, SurfEch){
 #'
 #' @family functions that defines harvest rules for a species.
 #'
+#' @details
+#' Even harvest is done at the stand level with the getPcutEven function
+#' to acomodate with the multispecific case.
+#'
+#'
 #' @export
 Even_harv <- function(x,
                       species,
                       ...) {
 
-    dots <- list(...)
-    targetRDI <- dots$targetRDI
-    targetKg <- dots$targetKg
-    ct <- dots$ct
-    SurfEch <- ifelse(is.null(dots$SurfEch), 0.03, dots$SurfEch)
-
-    Pcut <- getPcutEven(
-        x = x,
-        mesh = species$IPM$mesh,
-        RDIcoef = species$rdi_coef,
-        targetRDI = targetRDI, targetKg = targetKg,
-        SurfEch = SurfEch
-    )
-
-    return(x * Pcut)
+    return(x)
 }
 
 
 #' Compute the harvest curve for even stand (Pcut)
 #'
 #' @param x is the size distribution
-#' @param sp species element for the rdi intercept and slope values.
+#' @param sp species list for the rdi intercept and slope values.
 #' @param mesh all possible states of a population, based on an IPM.
 #' Minimal and maximal values are respectively U and L, for a total number of
 #' m states.
@@ -248,17 +239,18 @@ Even_harv <- function(x,
 #' @param targetRDI is the target RDI
 #' @param SurfEch Value of plot size surface in ha
 #'
-#' #' @details
-#' If RDI < targetRDI, this function will return a Pcut of 0 for all sizes.
+#' @details
+#' During simulation, if RDI < targetRDI, this function is not called and
+#' Pcut will be 0 for all sizes.
 #'
 #' @importFrom stats optim
 #'
 #' @noRd
 getPcutEven <- function(x,
-                            sp, meshs,
-                            targetRDI=0.65,
-                            targetKg=0.9,
-                            SurfEch = 0.03){
+                        sp, meshs,
+                        targetRDI=0.65,
+                        targetKg=0.9,
+                        SurfEch = 0.03){
 
     # assertNumeric(x, lower = 0)
     assertNumber(targetRDI, lower = 0)
@@ -340,4 +332,82 @@ getPcutEven <- function(x,
     Pcut <- map2(Pcut, del, ~ delay.numeric(.x, .y))
 
     return(Pcut)
+}
+
+#' Compute RDI and Kg from simulations output
+#'
+#' @param sim simulation output table.
+#' @param rdi_c rdic coefficients for all species. Named vector. If NULL
+#' (default, the values are taken from matreex::rdi_coef)
+#'
+#' @importFrom dplyr filter select mutate group_by group_modify left_join summarise bind_rows
+#' @importFrom tidyr pivot_longer pivot_wider replace_na
+#'
+#' @export
+sim_rdikg <- function(sim, rdi_c = NULL){
+
+    # DEV
+    # forest = Jasper_for_Even_dev
+    # sim = Jasper_sim_f20_dev
+    # rdi_c = NULL
+    #********
+
+    sp <- unique(sim$species)
+
+    if(is.null(rdi_c)){
+        rdi_c <- matreex::rdi_coef
+        if(! all(sp %in% rdi_c$species)){
+            stop("A simulated species is not present in the mackage rdi coefficient. Please provide the rdi_coef argument.")
+        }
+    }
+    rdi_c <- filter(rdi_c, species %in% sp)
+
+    sim <- sim %>%
+        filter(size > 0, ! equil) %>%
+        select(- equil, -mesh) %>%
+        mutate(size = (size / 10)^2)
+    # Compute rdi
+    rdi_sp <- sim %>%
+        filter(var == "n") %>%
+        left_join(rdi_c, by = "species") %>%
+        group_by(species, time) %>%
+        group_modify(~ data.frame(rdi = RDI(
+            x = .x$value,
+            RDI_int = unique(.x$intercept), RDI_slo = unique(.x$slope),
+            meshcm2 = .x$size)))# %>%
+
+    rdi_val <- rdi_sp %>%
+        group_by(time) %>%
+        summarise(rdi = sum(rdi), species = "All") %>%
+        select(species, time, rdi) %>%
+        bind_rows(rdi_sp) %>%
+        pivot_longer(rdi, names_to = "var")
+
+    # Compute Kg
+    tmp <- sim %>%
+        filter(var %in% c("n", "h")) %>%
+        tidyr::pivot_wider(names_from = var, values_from = value)
+    kg_val <- tmp %>%
+        group_by(time, species) %>%
+        mutate(X = n + h) %>%
+        summarise(
+            surfx = drop(size %*% X),
+            tx = sum(X),
+            surfcut = drop(size %*% h),
+            tcut = sum(h),
+            .groups = "drop") %>%
+        group_by(time) %>%
+        summarise(
+            Dg2 = sum(surfx) / sum(tx),
+            Dgcut2 = sum(surfcut) / sum(tcut),
+            Kg = Dgcut2 / Dg2)  %>%
+        replace_na(list(Kg = 0)) %>%
+        mutate(species = "All") %>%
+        select(species, time, Dg2, Dgcut2, Kg) %>%
+        pivot_longer(cols = c("Dg2", "Dgcut2", "Kg"), names_to = "var")
+
+    # output all
+    res <- bind_rows(rdi_val, kg_val)
+
+    return(res)
 }
