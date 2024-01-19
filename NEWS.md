@@ -4,17 +4,29 @@
 
 ## News
 
+* Mutlispecific even harvesting functionnality. #24
+
+* `sim_rdikg()` function to compute RDI and Kg after simulations. #24
+
 * Disturbance use a mixture effect in case of biotic disturbance. #17
 
 * Favoured species for Uneven harvest model.
 
+* Spatial effects are under development. #15
+
 ## Breaking changes
 
-* `mu_sgr` class now use the delay as normal IPMs. Previous object may not work. 
+* `mu_sgr` class now use the delay as normal IPMs. Previous object may not work.
+
+* `Even_harv()` function is not used, `getPcutEven()` is called directly.
 
 ## Documentation
 
 * New vignette `Disturbance.Rmd` after completion of the model by Julien and Jasper. #17
+
+* Completions of `Harvesting.Rmd` after completion of the model by Jasper. #24
+
+* New files for metadat and HAL upload in prevision.
 
 ## Datasets
 
