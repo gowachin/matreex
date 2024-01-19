@@ -501,13 +501,13 @@ Abies_sp <- species(
 ```
 
 ```{r Multisp_sim}
-Jasper_for_Even_dev <- forest(
+PiAb_for_Even_dev <- forest(
     species = list(Picea = Picea_Even, Abies = Abies_sp),
     harv_rules = c(Pmax = 0.25, dBAmin = 3,
                    freq = 10, alpha = 1))
 set.seed(42) # The seed is here for initial population random functions.
-Jasper_sim_f20_dev <- sim_deter_forest(
-    Jasper_for_Even_dev,
+PiAb_sim_f20_dev <- sim_deter_forest(
+    PiAb_for_Even_dev,
     tlim = 200,
     equil_time = 200, equil_dist = 10, equil_diff = 1,
     harvest = "Even", targetRDI = 0.9, targetKg = 0.9,
@@ -520,9 +520,9 @@ Jasper_sim_f20_dev <- sim_deter_forest(
 An additionnal function of the package is available for computing $Kg$ and $RDI$ after the simulations along time.
 
 ```{r Comp_rdi}
-rdi_kg <- sim_rdikg(sim = Jasper_sim_f20_dev, rdi_c = NULL)
+rdi_kg <- sim_rdikg(sim = PiAb_sim_f20_dev, rdi_c = NULL)
 
-Jasper_sim_f20_dev %>%
+PiAb_sim_f20_dev %>%
     filter(var %in% c("N", "BAsp", "H")) %>%
     select(species, time, var, value) %>%
     bind_rows(rdi_kg) %>%
