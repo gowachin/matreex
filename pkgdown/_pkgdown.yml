@@ -56,6 +56,14 @@ reference:
   contents:
     - Uneven_harv
     - Even_harv
+    - sim_rdikg
+
+- title: Disturbance
+  desc: >
+    Function for disturbance models during simulations.
+  contents:
+    - disturb_fun
+    - disturb_fun_mixt
 
 
 - title: Example dataset
@@ -63,6 +71,7 @@ reference:
   contents:
     - fit_species
     - lag_species
+    - tree_type
     - disturb_coef
     - rdi_coef
     - climate_species
@@ -127,3 +136,4 @@ reference:
     - summary.species
     - delay.dgCMatrix
     - delay.dtCMatrix
+    - delay.dsCMatrix
