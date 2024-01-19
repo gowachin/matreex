@@ -1,7 +1,6 @@
 # {matreex} <img src="man/figures/logo.png" align="right" height="138" />
 <!-- badges: start -->
 [![R build status](https://github.com/gowachin/matreex/workflows/R-CMD-check/badge.svg)](https://github.com/gowachin/matreex/actions?workflow=R-CMD-check)
-[![Lifecycle: stable](https://img.shields.io/badge/lifecycle-stable-brightgreen.svg)](https://lifecycle.r-lib.org/articles/stages.html#stable)
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
 [![](https://img.shields.io/badge/devel%20version-0.3.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gowachin/matreex/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gowachin/matreex)

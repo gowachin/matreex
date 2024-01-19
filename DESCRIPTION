@@ -1,6 +1,5 @@
 Package: matreex
-Title: matreex: Simulation IPM for forest dynamic depending on climatic variables 
-    from Kunstler et al (2020)
+Title: matreex: Simulation IPM for forest dynamic depending on climatic variables from Kunstler et al (2020)
 Version: 0.3.0
 Authors@R: c(
     person("Maxime", "Jaunatre", comment = c(ORCID = "0009-0002-2816-1677"), email = "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
