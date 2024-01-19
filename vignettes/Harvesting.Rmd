@@ -474,10 +474,10 @@ Picea_sim_f20  %>%
     geom_line(linewidth = .2) + geom_point(size = 0.4)
 ```
 
-```{r make_IPM_Abies, echo = FALSE}
+This chunk is used to add another species *Abies alba* and is no different than the creation of *Picea abies* species.
 
+```{r make_IPM_Abies}
 data("fit_Abies_alba")
-
 Abies_ipm <- make_IPM(
     species = "Abies_alba", 
     climate = climate, # this variable is defined at the top of the doc.
@@ -520,9 +520,9 @@ PiAb_sim_f20_dev <- sim_deter_forest(
 An additionnal function of the package is available for computing $Kg$ and $RDI$ after the simulations along time.
 
 ```{r Comp_rdi}
-rdi_kg <- sim_rdikg(sim = PiAb_sim_f20_dev, rdi_c = NULL)
+rdi_kg <- sim_rdikg(sim = Jasper_sim_f20_dev, rdi_c = NULL)
 
-PiAb_sim_f20_dev %>%
+Jasper_sim_f20_dev %>%
     filter(var %in% c("N", "BAsp", "H")) %>%
     select(species, time, var, value) %>%
     bind_rows(rdi_kg) %>%
