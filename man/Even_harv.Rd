@@ -24,6 +24,10 @@ species.}
 \description{
 Perform the harvest Even
 }
+\details{
+Even harvest is done at the stand level with the getPcutEven function
+to acomodate with the multispecific case.
+}
 \seealso{
 Other functions that defines harvest rules for a species.: 
 \code{\link{Uneven_harv}()},

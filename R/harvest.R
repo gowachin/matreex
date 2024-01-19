@@ -363,47 +363,47 @@ sim_rdikg <- function(sim, rdi_c = NULL){
     rdi_c <- filter(rdi_c, species %in% sp)
 
     sim <- sim %>%
-        filter(size > 0, ! equil) %>%
-        select(- equil, -mesh) %>%
-        mutate(size = (size / 10)^2)
+        filter(.data$size > 0, ! .data$equil) %>%
+        select(- c("equil", "mesh")) %>%
+        mutate(size = (.data$size / 10)^2)
     # Compute rdi
     rdi_sp <- sim %>%
-        filter(var == "n") %>%
+        filter(.data$var == "n") %>%
         left_join(rdi_c, by = "species") %>%
-        group_by(species, time) %>%
+        group_by(.data$species, .data$time) %>%
         group_modify(~ data.frame(rdi = RDI(
             x = .x$value,
             RDI_int = unique(.x$intercept), RDI_slo = unique(.x$slope),
             meshcm2 = .x$size)))# %>%
 
     rdi_val <- rdi_sp %>%
-        group_by(time) %>%
-        summarise(rdi = sum(rdi), species = "All") %>%
-        select(species, time, rdi) %>%
+        group_by(.data$time) %>%
+        summarise(rdi = sum(.data$rdi), species = "All") %>%
+        select(c("species", "time", "rdi")) %>%
         bind_rows(rdi_sp) %>%
-        pivot_longer(rdi, names_to = "var")
+        pivot_longer(cols = "rdi", names_to = "var")
 
     # Compute Kg
     tmp <- sim %>%
-        filter(var %in% c("n", "h")) %>%
-        tidyr::pivot_wider(names_from = var, values_from = value)
+        filter(.data$var %in% c("n", "h")) %>%
+        tidyr::pivot_wider(names_from = "var", values_from = "value")
     kg_val <- tmp %>%
-        group_by(time, species) %>%
-        mutate(X = n + h) %>%
+        group_by(.data$time, .data$species) %>%
+        mutate(X = .data$n + .data$h) %>%
         summarise(
-            surfx = drop(size %*% X),
-            tx = sum(X),
-            surfcut = drop(size %*% h),
-            tcut = sum(h),
+            surfx = drop(.data$size %*% .data$X),
+            tx = sum(.data$X),
+            surfcut = drop(.data$size %*% .data$h),
+            tcut = sum(.data$h),
             .groups = "drop") %>%
-        group_by(time) %>%
+        group_by(.data$time) %>%
         summarise(
-            Dg2 = sum(surfx) / sum(tx),
-            Dgcut2 = sum(surfcut) / sum(tcut),
-            Kg = Dgcut2 / Dg2)  %>%
+            Dg2 = sum(.data$surfx) / sum(.data$tx),
+            Dgcut2 = sum(.data$surfcut) / sum(.data$tcut),
+            Kg = .data$Dgcut2 / .data$Dg2)  %>%
         replace_na(list(Kg = 0)) %>%
         mutate(species = "All") %>%
-        select(species, time, Dg2, Dgcut2, Kg) %>%
+        select(c("species", "time", "Dg2", "Dgcut2", "Kg")) %>%
         pivot_longer(cols = c("Dg2", "Dgcut2", "Kg"), names_to = "var")
 
     # output all

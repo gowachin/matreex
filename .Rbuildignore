@@ -1,6 +1,7 @@
 ^treeforce\.Rproj$
 ^\.Rproj\.user$
 ^LICENSE\.md$
+^AUTHORS$
 
 ^dev$
 ^data-raw$
