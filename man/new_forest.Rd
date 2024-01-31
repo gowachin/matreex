@@ -18,6 +18,8 @@ new_forest(
 \item{Pmax}{maximum proportion of BAcut / BA}
 \item{dBAmin}{the minimum BA to perform cut}
 \item{freq}{Frequence at which the harvest will be executed.}
+\item{alpha}{parameter for uneven harvest, allowing to target more cuts
+for abundant species or not. See Harvesting vignette.}
 }}
 
 \item{favoured_sp}{Logical named vector to tell if species are favoured during

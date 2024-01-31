@@ -1,16 +1,15 @@
 ---
 title: "Harvesting models"
 package: matreex
-output: 
-    pdf_document:
-    rmarkdown::html_vignette:
-    github_document:
-vignette: >
-  %\VignetteIndexEntry{Harvesting models}
-  %\VignetteEncoding{UTF-8}
-  %\VignetteEngine{knitr::rmarkdown}
-bibliography: references.bib 
-link-citations: true
+output:
+  html_document:
+    df_print: paged
+  rmarkdown::html_vignette: null
+  github_document: null
+  pdf_document: null
+vignette: "%\\VignetteIndexEntry{Harvesting models} %\\VignetteEncoding{UTF-8} %\\VignetteEngine{knitr::rmarkdown}\n"
+bibliography: references.bib
+link-citations: yes
 ---
 
 ```{r, include = FALSE}
@@ -197,7 +196,7 @@ Note that stand basal area $BA_{stand}$ is computed only considering trees with 
 Each tree harvest probability only depends on its diameter ($d$).
 There is a minimum diameter for harvest ($d_{th}$), harvest probability then increases with diameter until $d_{ha}$ after which harvest probability is constant.
 
-We therefore considered the harvesting function (which associates a $dbh$ to an harvesting probability)
+We therefore considered the harvesting function (which associates a $dbh$ to an harvesting probability, building on the approach used in previous model such as @guillemot2014). 
 
 $$
 h(d) = \left\lbrace
@@ -210,7 +209,7 @@ h(d) = \left\lbrace
 $$
 
 The maximum harvesting for large tree $h_{max}$ can be tuned so that the probability for a large tree to be harvested approaches  1 (for instance $p = 0.999$) after several harvesting operations:
-$h_{max} =  1 - \sqrt[n]{1-p}$ with $n$ the number of harvesting operations. Parameter $k$ defines how quickly the harvesting rate increase from $d_{th}$  to $d_{ha}$ (building on the approach used in previous model such as @guillemot2014).
+$h_{max} =  1 - \sqrt[n]{1-p}$ with $n$ the number of harvesting operations. Parameter $k$ defines how quickly the harvesting rate increase from $d_{th}$  to $d_{ha}$.
 
 ```{r setplot_val, echo = FALSE}
 library(latex2exp)
@@ -383,7 +382,7 @@ rdi_coef <- drop(as.matrix(
 rdi_coef
 ```
 
-From this, we can compute the density index $RDI = N / N_{max}$ with $N$ the number of stems.
+From this, we can compute the density index $RDI = N / N_{max}$ with $N$ the number of stems (@Reineke1933).
 
 The algorithm present in `Even_harv` is triggered if $RDI > targetRDI$ and then harvest trees depending on their diameters.
 
@@ -508,7 +507,7 @@ PiAb_sim_f20 <- sim_deter_forest(
 
 An additional function of the package is available for computing $Kg$ and $RDI$ after the simulations along time.
 
-```{r Comp_rdi, fig.cap="Dashed lines represent RDI and Kg targets. Both values where set to 0.9."}
+```{r Comp_rdi, fig.cap="Summary variables for mutlispecific simulation with even harvesting function. Harvest frequence of 10 years and a final harvest at 150y. Dashed lines represent RDI and Kg targets. Both values where set to 0.9."}
 rdi_kg <- sim_rdikg(sim = PiAb_sim_f20, rdi_c = NULL)
 
 PiAb_sim_f20 %>%
@@ -519,7 +518,8 @@ PiAb_sim_f20 %>%
     ggplot(aes(x = time, y = value, color = species)) +
     geom_line() +
     facet_wrap(~ var, scales = "free_y") +
-    geom_hline(yintercept = 0.9, linetype = "dashed")
+    geom_hline(data = data.frame(yint=0.9,var=c("Kg", "rdi")), 
+               aes(yintercept = yint), linetype = "dashed")
 ```
 
 # References
