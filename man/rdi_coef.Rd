@@ -5,15 +5,18 @@
 \alias{rdi_coef}
 \title{Species Rdi intercept and slope.}
 \format{
-An object of class \code{data.frame} with 28 rows and 3 columns.
+An object of class \code{data.frame} with 28 rows and 4 columns.
 }
 \source{
-https://10.12688/openreseurope.13671.2
+Personnal contact with Patrick Vallet
 }
 \usage{
 rdi_coef
 }
 \description{
 Species Rdi intercept and slope.
+}
+\details{
+Missing values for Quercus faginea from french NFI
 }
 \keyword{datasets}

@@ -32,6 +32,8 @@
 
 * Update of the disturbance coefficient by Julien.
 
+* Update of the rdi coefficient by Patrick.
+
 # matreex 0.3.0
 
 ## News
