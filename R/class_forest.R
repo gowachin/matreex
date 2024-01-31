@@ -8,6 +8,8 @@
 #'   \item{Pmax}{maximum proportion of BAcut / BA}
 #'   \item{dBAmin}{the minimum BA to perform cut}
 #'   \item{freq}{Frequence at which the harvest will be executed.}
+#'   \item{alpha}{parameter for uneven harvest, allowing to target more cuts
+#'   for abundant species or not. See Harvesting vignette.}
 #' }
 #' @param favoured_sp Logical named vector to tell if species are favoured during
 #' Uneven harvesting or not. If not NULL, the species names should be the same as
@@ -21,6 +23,12 @@ new_forest <- function(species = list(),
                                       freq = 1, alpha = 1),
                        favoured_sp = c()
                        ){
+
+    def <- c(Pmax = 0.25, dBAmin = 3, freq = 1, alpha = 1)
+    harv_rules <- harv_rules[match.arg(names(harv_rules), names(def),
+                                       several.ok = TRUE)]
+    def[names(harv_rules)] <- harv_rules
+    harv_rules <- def
 
     sp <- names(species) <- map_chr(species, sp_name)
     forest <- list(
