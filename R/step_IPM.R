@@ -42,9 +42,8 @@ get_step_IPM.ipm <- function(x, ...){
 
     BAsp <- ipm$BA
 
-
-    low_id <- max(BAsp[which(BAsp <= BA)])
-    high_id <- min(BAsp[which(BAsp > BA)])
+    low_id <- which(BAsp == max(BAsp[BAsp <= BA]))
+    high_id <- which(BAsp == min(BAsp[BAsp > BA]))
 
     delta <- diff(BAsp[c(low_id, high_id)])
     w <- (BA - BAsp[low_id]) / delta
