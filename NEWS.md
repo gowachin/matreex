@@ -4,7 +4,7 @@
 
 ## News
 
-* Mutlispecific even harvesting functionnality. #24
+* Mutlispecific even harvesting functionality. #24
 
 * `sim_rdikg()` function to compute RDI and Kg after simulations. #24
 
@@ -26,9 +26,11 @@
 
 * Completions of `Harvesting.Rmd` after completion of the model by Jasper. #24
 
-* New files for metadat and HAL upload in prevision.
+* New files for metadata and HAL upload in prevision.
 
 ## Datasets
+
+* Update of the recruitment fit models by Julien #26.
 
 * Update of the disturbance coefficient by Julien.
 
