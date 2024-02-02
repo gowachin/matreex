@@ -1,6 +1,6 @@
 # matreex (development version)
 
-# matreex 0.4.0 dev
+# matreex 0.4.0
 
 ## News
 

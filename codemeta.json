@@ -6,7 +6,7 @@
   "name": "matreex: matreex: Simulation IPM for forest dynamic depending on climatic variables from Kunstler et al (2020)",
   "codeRepository": "https://github.com/gowachin/matreex",
   "license": "https://spdx.org/licenses/MIT",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "programmingLanguage": {
     "@type": "ComputerLanguage",
     "name": "R",

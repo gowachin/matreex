@@ -1,13 +1,13 @@
 ---
 title: "Harvesting models"
 package: matreex
-output:
-  html_document:
-    df_print: paged
-  rmarkdown::html_vignette: null
-  github_document: null
-  pdf_document: null
-vignette: "%\\VignetteIndexEntry{Harvesting models} %\\VignetteEncoding{UTF-8} %\\VignetteEngine{knitr::rmarkdown}\n"
+output: 
+    github_document:
+    rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Harvesting models}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
 bibliography: references.bib
 link-citations: yes
 ---

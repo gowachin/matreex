@@ -17,9 +17,8 @@ Main methods have been developped for [Kunstler *et al* (2020)](https://doi.org/
 This package relies on very few packages listed below, that you can install with the following code.
 
 ```
-deps <- c('checkmate', 'Matrix', 'here', 'dplyr', 
-          'rlang', 'tidyr', 'purrr', 'cli', 
-          'statmod')
+deps <- c('checkmate', 'cli', 'dplyr', 'here', 'Matrix', 
+          'purrr', 'rlang', 'statmod', 'stats', 'tidyr')
 for (i in deps ){
   if(!require(i,character.only = TRUE))
     install.packages(i)
@@ -32,56 +31,22 @@ for (i in deps ){
 Be aware that anyone who installs directly from GitHub will need to explicitly request vignettes, e.g. with devtools::install_github(dependencies = TRUE, build_vignettes = TRUE).
 -->
 
-You can install the `{matreex}` package from [gitlab](https://gitlab.com/gowachin/matreex) with :
-
-```
-# install.packages("remotes")
-remotes::install_gitlab("gowachin/matreex")
-```
-
-<!--
-```
-# or
-# install.packages("devtools")
-# devtools::install_gitlab('https://gitlab.com/gowachin/matreex')
-```
--->
-
-<!--**Note : You need to have your gitlab/github account logged on your local computer because the current repository is in private. See [these answers](https://stackoverflow.com/questions/21171142/how-to-install-r-package-from-private-repo-using-devtools-install-github) for more information.**-->
-
-*Github repository is only a mirror from gitlab. If you are added in the github repo, the code below will do it !*
+You can install the `{matreex}` package from [github](https://github.com/gowachin/matreex) with :
 
 ```
 # install.packages("remotes")
 remotes::install_github("gowachin/matreex")
 ```
 
-<!--
-```
-# or
-# install.packages("devtools")
-# devtools::install_github('https://gitlab.com/gowachin/matreex')
-```
--->
-
 ### Development version
 
-You can install the development version of {matreex} from gitlab with :
+You can install the development version of {matreex} from github with :
 
 ```
 # install.packages("remotes")
-remotes::install_gitlab("gowachin/matreex", ref = "dev")
-# or
-# remotes::install_github("gowachin/matreex", ref = "dev")
+remotes::install_github("gowachin/matreex", ref = "dev")
 ```
 
-<!--
-```
-# or
-# install.packages("devtools")
-# devtools::install_gitlab('https://gitlab.com/gowachin/matreex', ref = "dev")
-```
--->
 
 **If you install the development version of this package, please check the NEWS.md or [changelog](https://gowachin.github.io/matreex/news/index.html) regularly. The package is in active development and some changes may break your code !**
 
@@ -91,9 +56,11 @@ remotes::install_gitlab("gowachin/matreex", ref = "dev")
 
 A second [vignette about harvesting](https://gowachin.github.io/matreex/articles/Harvesting.html) module is also available. 
 
+A third [vignette about disturbance](https://gowachin.github.io/matreex/articles/Disturbance.html) module is also available. 
+
 ## Support
 
-Issues are centralized on [the gitlab project.](https://gitlab.com/gowachin/matreex/-/issues). 
+Issues are centralized on [the github project.](https://github.com/gowachin/matreex/issues). 
 
 ## Roadmap
 
