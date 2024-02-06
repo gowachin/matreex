@@ -47,6 +47,9 @@ get_step_IPM.ipm <- function(x, ...){
 
     delta <- diff(BAsp[c(low_id, high_id)])
     w <- (BA - BAsp[low_id]) / delta
+    if(w < 0 | w > 1){
+        stop("Error in mixing step IPMs. Contact dev.")
+    }
 
     res <- ipm$IPM[[low_id]] * (1  - w) + ipm$IPM[[high_id]] * w
 
