@@ -358,7 +358,7 @@ recrut_env <- function(landscape, t, sim_clim){
 
         recrues <- imap(
             comp,
-            function(x, .y, rec, basp, banonsp, recr){
+            function(x, .y, recr, basp, banonsp, recr){
                 exec(x, recr[[.y]], basp[[.y]], banonsp[.y])
             }, recr = rec, basp = plot$sim_BAsp[t-1,,drop = FALSE],
             banonsp = plot$sim_BAnonSp)

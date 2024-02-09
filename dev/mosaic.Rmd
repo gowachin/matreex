@@ -26,7 +26,7 @@ options(cli.progress_show_after = 600)
 
 The idea is to add recruitment from a regional pool with a constant proportion of species and add the recruit produced with a migration rate.
 
-The recruitment function for a species $s$ in a single path ($R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}$) is modified to account for the flaw of seed from a regional pool as follow:
+The recruitment function for a species $s$ in a single patch ($R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}$) is modified to account for the flaw of seed from a regional pool as follow:
 
 $$
 R_s = [(1-m)\alpha BA_s^\beta +  m \alpha BA_r^\beta] \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}
@@ -243,7 +243,7 @@ matreex:::exp_recFun(params, list_covs)
 matreex:::exp_recFun(params, list_covs, regional = TRUE)
 ```
 
-*This edit highlight that our simulation are heavily dependant on the basal area for competition and not very open for other competition indices.
+*This edit highlight that our simulation are heavily dependant on the basal area for competition and not very open for other competition indices.*
 
 ### Simulations
 
@@ -395,3 +395,44 @@ works %>%
 ```
 
 
+```{r}
+
+```
+
+<!--
+looking for species with negative values for fecundity
+
+library(matreex)
+
+data_species <- function(x){
+    
+    res <- data(list = paste0("fit_", x))
+    fit <- eval(parse(text=paste0("fit_", x)))
+    return(fit)
+}
+
+res <- vector("list", length(fit_species))
+names(res) <- fit_species
+
+for (sp in fit_species){
+    
+    # sp = "Abies_alba"
+    fit <- data_species(sp)
+    res[[sp]] <- fit$rec$params_m[c("BATOTNonSP", "BATOTSP", "logBATOTSP")]
+}
+
+res <- as.data.frame(
+    do.call("rbind", res)
+)
+res$sp <- row.names(res)
+row.names(res) <- NULL
+
+var <- "logBATOTSP"
+
+plot(1:length(res$sp), res[, var], xlab = "species", ylab = var)
+text(1:length(res$sp), res[, var], res$sp, pos = 4, srt = 90)
+abline(h = 0, lty = 2)
+
+
+res[res[,var] < 0, "sp"]
+-->

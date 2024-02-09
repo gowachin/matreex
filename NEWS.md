@@ -1,16 +1,14 @@
-# matreex (development version)
-
 # matreex 0.4.0
 
 ## News
 
 * Mutlispecific even harvesting functionality. #24
 
-* `sim_rdikg()` function to compute RDI and Kg after simulations. #24
+* `sim_rdikg()` function to compute $RDI$ and $Kg$ after simulations. #24
 
 * Disturbance use a mixture effect in case of biotic disturbance. #17
 
-* Favoured species for Uneven harvest model.
+* Favored species for Uneven harvest model.
 
 * Spatial effects are under development. #15
 
@@ -24,17 +22,17 @@
 
 * New vignette `Disturbance.Rmd` after completion of the model by Julien and Jasper. #17
 
-* Completions of `Harvesting.Rmd` after completion of the model by Jasper. #24
+* Update of `Harvesting.Rmd` after completion of the model by Jasper. #24
 
 * New files for metadata and HAL upload in prevision.
 
 ## Datasets
 
-* Update of the recruitment fit models by Julien #26.
+* Update of the recruitment fit models by Julien. #26
 
 * Update of the disturbance coefficient by Julien.
 
-* Update of the rdi coefficient by Patrick.
+* Update of `rdi` coefficients by Patrick.
 
 # matreex 0.3.0
 
