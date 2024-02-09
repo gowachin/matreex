@@ -10,6 +10,9 @@
     <loc>/LICENSE.html</loc>
   </url>
   <url>
+    <loc>/articles/Disturbance.html</loc>
+  </url>
+  <url>
     <loc>/articles/Harvesting.html</loc>
   </url>
   <url>
@@ -67,6 +70,9 @@
     <loc>/reference/delay.dgCMatrix.html</loc>
   </url>
   <url>
+    <loc>/reference/delay.dsCMatrix.html</loc>
+  </url>
+  <url>
     <loc>/reference/delay.dtCMatrix.html</loc>
   </url>
   <url>
@@ -77,6 +83,12 @@
   </url>
   <url>
     <loc>/reference/disturb_coef.html</loc>
+  </url>
+  <url>
+    <loc>/reference/disturb_fun.html</loc>
+  </url>
+  <url>
+    <loc>/reference/disturb_fun_mixt.html</loc>
   </url>
   <url>
     <loc>/reference/fit_data.html</loc>
@@ -136,6 +148,9 @@
     <loc>/reference/sim_deter_forest.html</loc>
   </url>
   <url>
+    <loc>/reference/sim_rdikg.html</loc>
+  </url>
+  <url>
     <loc>/reference/sp_name.html</loc>
   </url>
   <url>
@@ -155,5 +170,8 @@
   </url>
   <url>
     <loc>/reference/tree_format.html</loc>
+  </url>
+  <url>
+    <loc>/reference/tree_type.html</loc>
   </url>
 </urlset>
