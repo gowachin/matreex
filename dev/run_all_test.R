@@ -4,10 +4,12 @@ devtools::load_all('.')
 devtools::document('.')
 # attachment::att_amend_desc()
 devtools::test()
+# devtools::check(vignettes = FALSE)
 devtools::check()
 
 pkgdown::init_site()
 pkgdown::build_home()
+pkgdown::build_site()
 
 devtools::build_vignettes()
 
