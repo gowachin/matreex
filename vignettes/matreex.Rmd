@@ -386,11 +386,11 @@ Picea_sim_k  %>%
     dplyr::mutate(time = time + 150) %>% 
     ggplot(aes(x = time, y = value)) +
     geom_line(linewidth = .4) + ylab("BA") +
-    geom_rect(mapping = aes(xmin = prev_equil - 50, xmax = prev_equil, 
+    geom_rect(mapping = aes(xmin = max(Picea_sim$time) - 50, xmax = max(Picea_sim$time), 
                                      ymin = max(value-1), ymax = max(value)),
                        alpha = 0.002, fill = "blue") +
     geom_text(aes(label = "False equilibrium", 
-                  x = prev_equil - 25, y = max(value) - 3), size = 4) 
+                  x = max(Picea_sim$time) - 25, y = max(value) - 3), size = 4) 
 ```
 
 
