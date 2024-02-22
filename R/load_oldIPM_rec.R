@@ -211,9 +211,6 @@ exp_recFun <- function(params, list_covs, regional = FALSE){
     arguments$SurfEch <- 0.03
     formals(empty) <- arguments
 
-    setNames(rep(alist(x=), length(invar) + 2), c(invar, "mesh", "SurfEch"))
-    setNames(vector("pairlist", length(invar) + 2), c(invar, "mesh", "SurfEch"))
-
     body(empty)[[2]] <- call2("<-", expr(intercept), inter)
     body(empty)[[3]] <- expr(res <- 0)
     for(i in seq_along(calls)){

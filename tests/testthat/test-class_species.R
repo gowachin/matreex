@@ -20,7 +20,7 @@ test_that("new_species works", {
                          rdi_coef = NULL, disturb_coef = NULL,
                          recruit_fun = exp_recFun(params = IPM$fit$rec$params_m,
                                                   list_covs = IPM$climatic),
-                         info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined")),
+                         info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined", mat_size = 0)),
                          class = "species"))
 
     class(IPM) <- "mu_gr"
@@ -33,7 +33,7 @@ test_that("new_species works", {
             harv_lim = c(dth = 175, dha = 575, hmax = 1),
             disturb_fun = def_disturb,
             rdi_coef = NULL, disturb_coef = NULL, recruit_fun = "to define",
-            info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined")),
+            info = c(species = "Yggdrasil", clim_lab = "1", type = "Undefined", mat_size = 0)),
             class = "species")
     )
 
@@ -73,7 +73,7 @@ test_that("validate_species ipm works", {
     names(tmp$info) <- c("sp", "clim_lab")
     expect_error(
         validate_species(tmp),
-        "species class must have info of elements species, clim_lab and type"
+        "species class must have info of elements species, clim_lab, type and mat_size"
     )
 
     class(x$IPM) <- "mu_growth"
@@ -126,7 +126,7 @@ test_that("old_ipm2species works", {
                 a0 = -5.81, a1 = 0, b = 2.9, c = 0.0052,
                 dbh.intercept = -0.787, dbh.slope = 0.00793,
                 logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L),
-            type = "Broadleaf"
+            type = "Broadleaf", mat_size = 0
             )
     )
 
@@ -143,7 +143,8 @@ test_that("old_ipm2species works", {
                 a0 = -5.81, a1 = 0, b = 2.9, c = 0.0052,
                 dbh.intercept = -0.787, dbh.slope = 0.00793,
                 logratio.intercept = 0.468, logratio.slope = 2.92, row.names = 64L),
-            type = "Broadleaf"
+            type = "Broadleaf",
+            mat_size = 0
         )
     )
 

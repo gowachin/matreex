@@ -324,7 +324,8 @@ sim_deter_forest.forest  <- function(Forest,
 
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
     types <- map_chr(Forest$species, ~ .x$info["type"])
-    stand_above_mat <- map2(meshs, Forest$species, ~ .x >= 0) # TODO replace 0 with .y$maturity
+    stand_above_mat <- map2(meshs, Forest$species,
+                            ~ .x >= as.numeric(.y$info["mat_size"]))
     stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
     # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 

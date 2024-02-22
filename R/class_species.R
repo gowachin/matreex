@@ -15,6 +15,7 @@
 #' @param disturb_coef Species coefficient  for disturbance reaction. These
 #' values and names are highly dependent on the disturbance function.
 #' \code{BAtarget}, \code{ct} and \code{t}.
+#' Fitted values are associated to this package, see details.
 #' Should return a population state as it's take it in input, with less
 #' population than before. Unless you want zombie trees. It represent the
 #' distribution of the population to harvest
@@ -26,9 +27,13 @@
 #' }
 #' @param rdi_coef Coefficient for RDI curve used in even harvest.
 #' The model require the intercept and slope.
+#' Fitted values are associated to this package, see details.
+#' @param mat_size Size above which the individual of this species are mature
+#' and contribute to fecundity.
+#' Fitted values are associated to this package, see details.
 #' @param type Type of the tree, choosing between "Broadleaf" and "Coniferous".
 #' This value is only used during biotic disturbance with a specific disturb_fun.
-#' This is experimental
+#' This is experimental.
 #'
 #' @keywords internal
 #' @export
@@ -37,6 +42,7 @@ new_species <- function(IPM, init_pop,
                         harv_lim = c(dth = 175, dha = 575, hmax = 1),
                         rdi_coef = NULL,
                         disturb_coef = NULL,
+                        mat_size = NULL,
                         type = c("Undefined", "Broadleaf", "Coniferous")
                         ){
 
@@ -50,6 +56,24 @@ new_species <- function(IPM, init_pop,
     } else {
         stop("IPM must either be an ipm or mu_gr object.")
     }
+    if(is.null(mat_size)){
+        mat_size <- 0
+    } else if (mat_size == "sp"){
+        mat_size <- subset(matreex::species_maturity, species == sp_name(IPM))$dbh_mat_mm
+    }
+
+    if(!is.null(rdi_coef)){
+        if(rdi_coef[[1]] == "sp"){
+            rdi_coef <- subset(matreex::rdi_coef, species == sp_name(IPM))
+        }
+    }
+
+    if(!is.null(disturb_coef)){
+        if(disturb_coef[[1]] == "sp"){
+            disturb_coef <- subset(matreex::disturb_coef, species == sp_name(IPM))
+        }
+    }
+
 
     species <- list(
         IPM = IPM, init_pop = init_pop,
@@ -57,7 +81,8 @@ new_species <- function(IPM, init_pop,
         disturb_fun = disturb_fun,
         rdi_coef = rdi_coef, disturb_coef = disturb_coef,
         recruit_fun = rec,
-        info = c(species = sp_name(IPM), clim_lab = climatic(IPM), type = type)
+        info = c(species = sp_name(IPM), clim_lab = climatic(IPM), type = type,
+                 mat_size = mat_size)
     )
 
     class(species) <- "species"
@@ -113,8 +138,8 @@ validate_species <- function(x){
     }
     # check infos ####
     assertCharacter(values$info, any.missing = FALSE)
-    if(any(names(values$info) != c("species", "clim_lab", "type"))){
-        stop("species class must have info of elements species, clim_lab and type")
+    if(any(names(values$info) != c("species", "clim_lab", "type", "mat_size"))){
+        stop("species class must have info of elements species, clim_lab, type and mat_size")
     }
 
     invisible(x)
@@ -154,6 +179,12 @@ validate_species <- function(x){
 #'   }
 #' }
 #'
+#' Fitted values for rdi_coef, disturb_coef and mat_size are associated with
+#' the package with the names \code{data("rdi_coef")} \code{data("disturb_coef")}
+#' and \code{data("species_maturity")}. When using the \code{species()} function
+#' providing \code{species(..., rdi_coef = "sp")} allow the function to load the
+#' data from the package if the species is present in \code{data("fit_species")}.
+#'
 #' @aliases harvest_fun init_pop recruit_fun
 #'
 #' @export
@@ -161,6 +192,7 @@ species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
                     disturb_fun = def_disturb,
                     harv_lim = c(dth = 175, dha = 575, hmax = 1),
                     rdi_coef = NULL, disturb_coef = NULL,
+                    mat_size = NULL,
                     type = c("Undefined", "Broadleaf", "Coniferous")){
 
     type <- match.arg(type)
@@ -169,6 +201,7 @@ species <- function(IPM, init_pop = def_init, harvest_fun = def_harv,
         IPM = IPM, init_pop = init_pop, harvest_fun = harvest_fun,
         disturb_fun = disturb_fun,
         harv_lim = harv_lim, rdi_coef = rdi_coef, disturb_coef = disturb_coef,
+        mat_size = mat_size,
         type = type
     ))
 
@@ -240,9 +273,13 @@ old_ipm2species <- function(species, climatic = 1,
     type <- matreex::tree_type
     type <- type[type$species == species, "type"]
 
+    mat <- matreex::species_maturity
+    mat_size <- mat[mat$species == species,"dbh_mat_mm"]
+
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
         disturb_fun  = disturb, rdi_coef = rdi, disturb_coef = disturb_c,
+        mat_size = mat_size,
         type = type
     )
 

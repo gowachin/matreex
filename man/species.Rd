@@ -15,6 +15,7 @@ species(
   harv_lim = c(dth = 175, dha = 575, hmax = 1),
   rdi_coef = NULL,
   disturb_coef = NULL,
+  mat_size = NULL,
   type = c("Undefined", "Broadleaf", "Coniferous")
 )
 }
@@ -41,18 +42,24 @@ parameters. Default is \code{def_disturb}.}
 }}
 
 \item{rdi_coef}{Coefficient for RDI curve used in even harvest.
-The model require the intercept and slope.}
+The model require the intercept and slope.
+Fitted values are associated to this package, see details.}
 
 \item{disturb_coef}{Species coefficient  for disturbance reaction. These
 values and names are highly dependent on the disturbance function.
 \code{BAtarget}, \code{ct} and \code{t}.
+Fitted values are associated to this package, see details.
 Should return a population state as it's take it in input, with less
 population than before. Unless you want zombie trees. It represent the
 distribution of the population to harvest}
 
+\item{mat_size}{Size above which the individual of this species are mature
+and contribute to fecundity.
+Fitted values are associated to this package, see details.}
+
 \item{type}{Type of the tree, choosing between "Broadleaf" and "Coniferous".
 This value is only used during biotic disturbance with a specific disturb_fun.
-This is experimental}
+This is experimental.}
 }
 \description{
 Species are defined by an IPM which is a transition matrix from size between
@@ -81,6 +88,12 @@ harvest rate of 0.6 percent. Other functions are
 \code{\link[matreex]{Uneven_harv}} and \code{\link[matreex]{Even_harv}}.
 }
 }
+
+Fitted values for rdi_coef, disturb_coef and mat_size are associated with
+the package with the names \code{data("rdi_coef")} \code{data("disturb_coef")}
+and \code{data("species_maturity")}. When using the \code{species()} function
+providing \code{species(..., rdi_coef = "sp")} allow the function to load the
+data from the package if the species is present in \code{data("fit_species")}.
 }
 \seealso{
 Other functions for initiating species population during simulation: 
