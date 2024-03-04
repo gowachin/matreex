@@ -148,7 +148,7 @@ take few minutes !</strong></p>
 <span><span class="co">#&gt; GL integration occur on 32 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 53.5 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 54.3 secs</span></span></code></pre></div>
 <p>Harvesting scenario are defined at different levels: at the species
 level with the species harvesting function and its associated
 parameters, at the forest level with a set of parameters, and at the
@@ -213,10 +213,9 @@ will not be used.</p>
 <h3 id="presentation">Presentation<a class="anchor" aria-label="anchor" href="#presentation"></a>
 </h3>
 <p>The default scenario is based on <span class="citation">Kunstler et
-al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span>.
-This mean there is a constant harvest rate triggered each year. This
-harvest rate is uniform over the size distribution. This is the scenario
-used by default.</p>
+al. (<a href="#ref-kunstler2021">2021</a>)</span>. This mean there is a
+constant harvest rate triggered each year. This harvest rate is uniform
+over the size distribution. This is the scenario used by default.</p>
 <p>This rate is coded in <code><a href="../reference/def_harv.html">def_harv()</a></code> function as shown below
 and the frequency (each year) is given in
 <code>harv_rules["freq"]</code>. Note that the harvesting is applied to
@@ -231,7 +230,7 @@ all size class except the age-classes used in delay (with
 <span><span class="co">#&gt;     rate &lt;- 0.006 * (ct &gt; 0)</span></span>
 <span><span class="co">#&gt;     return(x * rate)</span></span>
 <span><span class="co">#&gt; }</span></span>
-<span><span class="co">#&gt; &lt;bytecode: 0x560af01aae90&gt;</span></span>
+<span><span class="co">#&gt; &lt;bytecode: 0x55b68c1bc728&gt;</span></span>
 <span><span class="co">#&gt; &lt;environment: namespace:matreex&gt;</span></span>
 <span><span class="va">Picea_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/species.html">species</a></span><span class="op">(</span>IPM <span class="op">=</span> <span class="va">Picea_ipm</span>, init_pop <span class="op">=</span> <span class="fu"><a href="../reference/def_initBA.html">def_initBA</a></span><span class="op">(</span><span class="fl">30</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="va">Picea_for</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/forest.html">forest</a></span><span class="op">(</span>species <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html" class="external-link">list</a></span><span class="op">(</span>Picea <span class="op">=</span> <span class="va">Picea_sp</span><span class="op">)</span>, </span>
@@ -250,7 +249,7 @@ additional parameter.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 200</span></span>
 <span><span class="co">#&gt; Simulation ended after time 200</span></span>
 <span><span class="co">#&gt; BA stabilized at 44.68 with diff of 1.12 at time 200</span></span>
-<span><span class="co">#&gt; Time difference of 1.05 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.11 secs</span></span></code></pre></div>
 <p>Once the simulation is done, we can extract the basal area and the
 number of individual at each step of the simulation, but also a new
 variable <span class="math inline">\(H\)</span>. This is the sum of
@@ -287,7 +286,7 @@ triggered, the value returned is 0.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 50</span></span>
 <span><span class="co">#&gt; Simulation ended after time 50</span></span>
 <span><span class="co">#&gt; BA stabilized at 32.94 with diff of 0.81 at time 50</span></span>
-<span><span class="co">#&gt; Time difference of 0.257 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.265 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -324,7 +323,7 @@ class.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 250</span></span>
 <span><span class="co">#&gt; Simulation ended after time 250</span></span>
 <span><span class="co">#&gt; BA stabilized at 28.63 with diff of 5.08 at time 250</span></span>
-<span><span class="co">#&gt; Time difference of 1.29 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.28 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -377,7 +376,7 @@ probability then increases with diameter until <span class="math inline">\(d_{ha
 constant.</p>
 <p>We therefore considered the harvesting function (which associates a
 <span class="math inline">\(dbh\)</span> to an harvesting probability,
-building on the approach used in previous model such as <span class="citation">Guillemot et al. (<a href="#ref-guillemot2014" role="doc-biblioref">2014</a>)</span>).</p>
+building on the approach used in previous model such as <span class="citation">Guillemot et al. (<a href="#ref-guillemot2014">2014</a>)</span>).</p>
 <p><span class="math display">\[
 h(d) = \left\lbrace
 \begin{array}{ll}
@@ -391,7 +390,7 @@ d_{th}\leq d &lt; d_{ha} \\
 <p>The maximum harvesting for large tree <span class="math inline">\(h_{max}\)</span> can be tuned so that the
 probability for a large tree to be harvested approaches 1 (for instance
 <span class="math inline">\(p = 0.999\)</span>) after several harvesting
-operations: <span class="math inline">\(h_{max} = 1 -
+operations: <span class="math inline">\(h_{max} =  1 -
 \sqrt[n]{1-p}\)</span> with <span class="math inline">\(n\)</span> the
 number of harvesting operations. Parameter <span class="math inline">\(k\)</span> defines how quickly the harvesting rate
 increase from <span class="math inline">\(d_{th}\)</span> to <span class="math inline">\(d_{ha}\)</span>.</p>
@@ -497,7 +496,7 @@ favoured/other species.</p>
 species to be favoured are already dominant).</p>
 <p>If <span class="math inline">\(p_q &lt; 0.5\)</span>, we compute
 <span class="math inline">\(P_{cut,q}=f(p_q) P_{cut}\)</span> and <span class="math inline">\(P_{cut,1-q}=f(1-p_q) P_{cut}\)</span> with <span class="math inline">\(\alpha &gt; 1\)</span>. By definition, we will get
-<span class="math inline">\(P_{cut,q} \leq P_{cut}\)</span>.</p>
+<span class="math inline">\(P_{cut,q} \leq  P_{cut}\)</span>.</p>
 <p>We then apply for each species <span class="math inline">\(s\)</span>
 the harvest rate <span class="math inline">\(P_{cut,s} =
 P_{cut,q}\)</span> or <span class="math inline">\(P_{cut,s}=P_{cut,1-q}\)</span> depending on which
@@ -537,7 +536,7 @@ below <code>dth</code> are excluded from computations.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 260</span></span>
 <span><span class="co">#&gt; Simulation ended after time 260</span></span>
 <span><span class="co">#&gt; BA stabilized at 22.70 with diff of 2.93 at time 260</span></span>
-<span><span class="co">#&gt; Time difference of 1.35 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.37 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"BAstand"</span>, <span class="st">"N"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -568,7 +567,7 @@ thinning during the forest developpment till the final harvest. Thinning
 harvest are based on the distance to a self-thinning boundary. This
 self-thinning boundary is given for each species following :</p>
 <p><span class="math display">\[N_{max} = e^{intercept+slope \cdot
-log(Dg)}\]</span> The species parameters are given in <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021" role="doc-biblioref">2021</a>)</span> and inside the package with
+log(Dg)}\]</span> The species parameters are given in <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021">2021</a>)</span> and inside the package with
 <code>rdi_coef</code> table. <span class="math inline">\(Dg\)</span> is
 the mean quadratic diameter of trees.</p>
 <div class="sourceCode" id="cb9"><pre class="downlit sourceCode r">
@@ -579,7 +578,7 @@ the mean quadratic diameter of trees.</p>
 <span><span class="va">rdi_coef</span></span>
 <span><span class="co">#&gt; intercept     slope </span></span>
 <span><span class="co">#&gt;  12.51155  -1.65234</span></span></code></pre></div>
-<p>From this, we can compute the density index <span class="math inline">\(RDI = N / N_{max}\)</span> with <span class="math inline">\(N\)</span> the number of stems (<span class="citation">Reineke (<a href="#ref-Reineke1933" role="doc-biblioref">1933</a>)</span>).</p>
+<p>From this, we can compute the density index <span class="math inline">\(RDI = N / N_{max}\)</span> with <span class="math inline">\(N\)</span> the number of stems (<span class="citation">Reineke (<a href="#ref-Reineke1933">1933</a>)</span>).</p>
 <p>The algorithm present in <code>Even_harv</code> is triggered if <span class="math inline">\(RDI &gt; targetRDI\)</span> and then harvest trees
 depending on their diameters.</p>
 <p>The degree of preference for small trees in the thinning harvest will
@@ -613,11 +612,12 @@ harvesting.</strong></p>
 <div class="section level3">
 <h3 id="multispecific-case-1">Multispecific case<a class="anchor" aria-label="anchor" href="#multispecific-case-1"></a>
 </h3>
-<p>Because the species parameters are given in <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021" role="doc-biblioref">2021</a>)</span> for a single species stand,
+<p>Because the species parameters are given in <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021">2021</a>)</span> for a single species stand,
 computing <span class="math inline">\(N_{max}\)</span> and <span class="math inline">\(Dg\)</span> for multispecific stands is not
 straightforward.</p>
 <p>The most simple approach to deal with is to sum the partial RDi of
-each species (which ignore interactive effect in the <span class="math inline">\(N_{max}\)</span> between species) as done in <span class="citation">Río et al. (<a href="#ref-delRo2015" role="doc-biblioref">2015</a>)</span> and <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021" role="doc-biblioref">2021</a>)</span>.</p>
+each species (which ignore interactive effect in the <span class="math inline">\(N_{max}\)</span> between species) as done in <span class="citation">Río et al. (<a href="#ref-delRo2015">2015</a>)</span>
+and <span class="citation">Aussenac et al. (<a href="#ref-Aussenac2021">2021</a>)</span>.</p>
 <p>The stand RDI is the sum of the RDI of each species : <span class="math inline">\(RDI_{stand} = \sum_{s=1}^{S} N_s /
 N_{max,s}\)</span></p>
 <p>The mean quadratic diameter is computed with all species at once
@@ -654,7 +654,7 @@ frequency of harvest will be used. The different targets
 <span><span class="co">#&gt; Starting while loop. Maximum t = 100</span></span>
 <span><span class="co">#&gt; Simulation ended after time 100</span></span>
 <span><span class="co">#&gt; BA stabilized at 42.66 with diff of 5.50 at time 100</span></span>
-<span><span class="co">#&gt; Time difference of 0.845 secs</span></span>
+<span><span class="co">#&gt; Time difference of 0.859 secs</span></span>
 <span><span class="va">Picea_sim_f20</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op"><a href="https://rdrr.io/r/base/match.html" class="external-link">%in%</a></span> <span class="fu"><a href="https://rdrr.io/r/base/c.html" class="external-link">c</a></span><span class="op">(</span><span class="st">"BAsp"</span>, <span class="st">"N"</span>, <span class="st">"H"</span><span class="op">)</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
@@ -678,7 +678,7 @@ no different than the creation of <em>Picea abies</em> species.</p>
 <span><span class="co">#&gt; GL integration occur on 24 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 38.8 secs</span></span>
+<span><span class="co">#&gt; Time difference of 38.1 secs</span></span>
 <span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/utils/data.html" class="external-link">data</a></span><span class="op">(</span><span class="va">rdi_coef</span><span class="op">)</span></span>
 <span><span class="va">rdi_Ab</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/drop.html" class="external-link">drop</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/matrix.html" class="external-link">as.matrix</a></span><span class="op">(</span></span>
@@ -705,7 +705,7 @@ no different than the creation of <em>Picea abies</em> species.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 200</span></span>
 <span><span class="co">#&gt; Simulation ended after time 200</span></span>
 <span><span class="co">#&gt; BA stabilized at 28.00 with diff of 8.73 at time 200</span></span>
-<span><span class="co">#&gt; Time difference of 1.82 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.98 secs</span></span></code></pre></div>
 <p>An additional function of the package is available for computing
 <span class="math inline">\(Kg\)</span> and <span class="math inline">\(RDI\)</span> after the simulations along time.</p>
 <div class="sourceCode" id="cb14"><pre class="downlit sourceCode r">
@@ -733,7 +733,7 @@ Dashed lines represent RDI and Kg targets. Both values where set to 0.9.
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-Aussenac2021" class="csl-entry">
 Aussenac, Raphaël, Thomas Pérot, Mathieu Fortin, Francois de Coligny,
 Jean-Matthieu Monnet, and Patrick Vallet. 2021. <span>“The Salem

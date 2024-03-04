@@ -1,9 +1,9 @@
-pandoc: 2.19.2
+pandoc: 3.1.11
 pkgdown: 2.0.7
 pkgdown_sha: ~
 articles:
   Disturbance: Disturbance.html
   Harvesting: Harvesting.html
   matreex: matreex.html
-last_built: 2024-02-09T14:02Z
+last_built: 2024-03-04T13:50Z
 

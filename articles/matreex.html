@@ -103,10 +103,10 @@ dynamic of size-structured tree populations, this package relies on
 <h2 id="rapid-description-of-the-integral-projection-model">Rapid description of the Integral Projection Model<a class="anchor" aria-label="anchor" href="#rapid-description-of-the-integral-projection-model"></a>
 </h2>
 <p>Details on the fitting and the integration of IPM model can be found
-in <span class="citation">Ellner, Childs, and Rees (<a href="#ref-ellner2016" role="doc-biblioref">2016</a>)</span>. Briefly,
-an IPM predicts the size distribution, <span class="math inline">\(n(z', t+1)\)</span>, of a population at time
-t+1 from its size distribution at time t, <span class="math inline">\(n(z, t)\)</span>, with <span class="math inline">\(z\)</span> the size at t and <span class="math inline">\(z'\)</span> the size at <span class="math inline">\(t + 1\)</span>, based on the following equation
-(<span class="citation">Ellner, Childs, and Rees (<a href="#ref-ellner2016" role="doc-biblioref">2016</a>)</span>):</p>
+in <span class="citation">Ellner, Childs, and Rees (<a href="#ref-ellner2016">2016</a>)</span>. Briefly, an IPM predicts the
+size distribution, <span class="math inline">\(n(z', t+1)\)</span>,
+of a population at time t+1 from its size distribution at time t, <span class="math inline">\(n(z, t)\)</span>, with <span class="math inline">\(z\)</span> the size at t and <span class="math inline">\(z'\)</span> the size at <span class="math inline">\(t + 1\)</span>, based on the following equation
+(<span class="citation">Ellner, Childs, and Rees (<a href="#ref-ellner2016">2016</a>)</span>):</p>
 <p><span class="math display">\[
 n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz
 \]</span></p>
@@ -129,7 +129,7 @@ approximated with a big iteration matrix and the continuous size
 distribution <span class="math inline">\(n\)</span> is approximated by a
 big state vector. The dimension and the width of the size class are
 selected to ensure a good numerical integration of the kernel <span class="math inline">\(P\)</span>. Details on the numerical integration
-are given below and in <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023" role="doc-biblioref">2023</a>)</span> .
+are given below and in <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023">2023</a>)</span> .
 <!--The figure 1 presents the structure and approach of the IPM. -->
 Note, that this package do not cover the statistical fitting of the
 vital rates functions.</p>
@@ -143,25 +143,24 @@ vital rates functions.</p>
 <p>Before simulating forest, we need first to define tree species in R.
 Species regroups basic vital rates functions: growth, recruitment and
 survival. In this package, we provide the fitted vital rates functions
-used in <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023" role="doc-biblioref">2023</a>)</span> . These functions depend on tree
-size, local competition based on the sum of basal area of competitors,
-and two climatic variables. The climatic variables are the sum of the
-sum of growing degree days <em>sgdd</em>, the water aridity index
-<em>wai</em> (see <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> for more
-details). <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023" role="doc-biblioref">2023</a>)</span> used a resampling procedure to
+used in <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023">2023</a>)</span> . These functions depend on
+tree size, local competition based on the sum of basal area of
+competitors, and two climatic variables. The climatic variables are the
+sum of the sum of growing degree days <em>sgdd</em>, the water aridity
+index <em>wai</em> (see <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> for more details). <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023">2023</a>)</span> used a resampling procedure to
 estimate the vital rates functions resulting in 100 resampled estimate
 of the parameters of each functions, here to simplify the simulations we
 provide only the averaged parameters over those 100 resamples. It is
 however, in theory, possible to run simulations with other vital rates
 functions if they are provided as glm objects (please contact the
 authors to test new variables).</p>
-<p>To build an IPM for a species we start from fitted function <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023" role="doc-biblioref">2023</a>)</span> . To do the numerical integration
-of <span class="math inline">\(P\)</span>, we need to define the mesh
-dimension, here <span class="math inline">\(700\)</span>, the lower
-<span class="math inline">\(L\)</span> and upper limits <span class="math inline">\(U\)</span>, here respectively 90mm and
+<p>To build an IPM for a species we start from fitted function <span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023">2023</a>)</span> . To do the numerical
+integration of <span class="math inline">\(P\)</span>, we need to define
+the mesh dimension, here <span class="math inline">\(700\)</span>, the
+lower <span class="math inline">\(L\)</span> and upper limits <span class="math inline">\(U\)</span>, here respectively 90mm and
 <code>get_maxdbh(fit_Picea_abies) * 1.1</code> = 1204.5mm, and range of
 value of competition index BA (here from 0 to 60 <span class="math inline">\(m^2/ha\)</span>). These are the values used in
-<span class="citation">Kunstler et al. (<a href="#ref-kunstler2021" role="doc-biblioref">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023" role="doc-biblioref">2023</a>)</span> that were optimized to provide
+<span class="citation">Kunstler et al. (<a href="#ref-kunstler2021">2021</a>)</span> and <span class="citation">Guyennon et al. (<a href="#ref-guyennon2023">2023</a>)</span> that were optimized to provide
 good numerical integration.</p>
 <p><strong>Please keep in mind this computation is intensive and may
 take few minutes!</strong></p>
@@ -207,7 +206,7 @@ take few minutes!</strong></p>
 <span><span class="co">#&gt; GL integration occur on 32 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 40.2 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 41.3 secs</span></span></code></pre></div>
 <p>Once the IPM is integrated on a BA range, we can use it to build a
 species object. In R, a species is a list object that is constructed
 with the <code><a href="../reference/species.html">species()</a></code> function. In addition to the IPM kernel
@@ -270,7 +269,7 @@ hectare.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 300</span></span>
 <span><span class="co">#&gt; Simulation ended after time 260</span></span>
 <span><span class="co">#&gt; BA stabilized at 45.98 with diff of 0.98 at time 260</span></span>
-<span><span class="co">#&gt; Time difference of 1.35 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.36 secs</span></span></code></pre></div>
 <p>In the code above, we simulate for 200 years (<code>tlim</code>)
 years and past this time we continue the simulation till it reach an
 equilibrium up to 300 years (see figure A). After <code>tlim</code>, the
@@ -337,10 +336,22 @@ with a logical variable to extract it.</p>
 <span></span>
 <span><span class="co"># Filter example to extract the size distribution</span></span>
 <span><span class="va">Picea_sim</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
-<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"m"</span>, <span class="va">var</span><span class="op">)</span>, <span class="va">time</span> <span class="op">==</span> <span class="va">max_t</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
+<span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/grep.html" class="external-link">grepl</a></span><span class="op">(</span><span class="st">"n"</span>, <span class="va">var</span><span class="op">)</span>, <span class="va">time</span> <span class="op">==</span> <span class="va">max_t</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/select.html" class="external-link">select</a></span><span class="op">(</span><span class="va">size</span>, <span class="va">value</span><span class="op">)</span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 0 × 2</span></span></span>
-<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 2 variables: size &lt;dbl&gt;, value &lt;dbl&gt;</span></span></span></code></pre></div>
+<span><span class="co">#&gt; <span style="color: #949494;"># A tibble: 715 × 2</span></span></span>
+<span><span class="co">#&gt;     size value</span></span>
+<span><span class="co">#&gt;    <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span> <span style="color: #949494; font-style: italic;">&lt;dbl&gt;</span></span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 1</span>     0 0.775</span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 2</span>     0 1.55 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 3</span>     0 1.54 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 4</span>     0 1.54 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 5</span>     0 1.53 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 6</span>     0 1.53 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 7</span>     0 1.53 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 8</span>     0 1.52 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;"> 9</span>     0 1.52 </span></span>
+<span><span class="co">#&gt; <span style="color: #BCBCBC;">10</span>     0 1.52 </span></span>
+<span><span class="co">#&gt; <span style="color: #949494;"># ℹ 705 more rows</span></span></span></code></pre></div>
 </div>
 <div class="section level2">
 <h2 id="customizing-the-simulations">Customizing the simulations<a class="anchor" aria-label="anchor" href="#customizing-the-simulations"></a>
@@ -382,7 +393,7 @@ highlighted in blue rectangle.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 300</span></span>
 <span><span class="co">#&gt; Simulation ended after time 300</span></span>
 <span><span class="co">#&gt; BA stabilized at 30.23 with diff of 1.31 at time 300</span></span>
-<span><span class="co">#&gt; Time difference of 1.7 secs</span></span>
+<span><span class="co">#&gt; Time difference of 1.55 secs</span></span>
 <span></span>
 <span><span class="va">Picea_sim_k</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op">==</span> <span class="st">"BAsp"</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -391,11 +402,13 @@ highlighted in blue rectangle.</p>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/mutate.html" class="external-link">mutate</a></span><span class="op">(</span>time <span class="op">=</span> <span class="va">time</span> <span class="op">+</span> <span class="fl">150</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span> </span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/ggplot.html" class="external-link">ggplot</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>x <span class="op">=</span> <span class="va">time</span>, y <span class="op">=</span> <span class="va">value</span><span class="op">)</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_path.html" class="external-link">geom_line</a></span><span class="op">(</span>linewidth <span class="op">=</span> <span class="fl">.4</span><span class="op">)</span> <span class="op">+</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/labs.html" class="external-link">ylab</a></span><span class="op">(</span><span class="st">"BA"</span><span class="op">)</span> <span class="op">+</span></span>
-<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_rect</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="va">prev_equil</span> <span class="op">-</span> <span class="fl">50</span>, xmax <span class="op">=</span> <span class="va">prev_equil</span>, </span>
+<span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_tile.html" class="external-link">geom_rect</a></span><span class="op">(</span>mapping <span class="op">=</span> <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>xmin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">Picea_sim</span><span class="op">$</span><span class="va">time</span><span class="op">)</span> <span class="op">-</span> <span class="fl">50</span>, xmax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">Picea_sim</span><span class="op">$</span><span class="va">time</span><span class="op">)</span>, </span>
 <span>                                     ymin <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">-</span><span class="fl">1</span><span class="op">)</span>, ymax <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span><span class="op">)</span>,</span>
 <span>                       alpha <span class="op">=</span> <span class="fl">0.002</span>, fill <span class="op">=</span> <span class="st">"blue"</span><span class="op">)</span> <span class="op">+</span></span>
 <span>    <span class="fu"><a href="https://ggplot2.tidyverse.org/reference/geom_text.html" class="external-link">geom_text</a></span><span class="op">(</span><span class="fu"><a href="https://ggplot2.tidyverse.org/reference/aes.html" class="external-link">aes</a></span><span class="op">(</span>label <span class="op">=</span> <span class="st">"False equilibrium"</span>, </span>
-<span>                  x <span class="op">=</span> <span class="va">prev_equil</span> <span class="op">-</span> <span class="fl">25</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span> <span class="op">-</span> <span class="fl">3</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> </span></code></pre></div>
+<span>                  x <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">Picea_sim</span><span class="op">$</span><span class="va">time</span><span class="op">)</span> <span class="op">-</span> <span class="fl">25</span>, y <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html" class="external-link">max</a></span><span class="op">(</span><span class="va">value</span><span class="op">)</span> <span class="op">-</span> <span class="fl">3</span><span class="op">)</span>, size <span class="op">=</span> <span class="fl">4</span><span class="op">)</span> </span>
+<span><span class="co">#&gt; Warning in geom_text(aes(label = "False equilibrium", x = max(Picea_sim$time) - : All aesthetics have length 1, but the data has 200 rows.</span></span>
+<span><span class="co">#&gt; <span style="color: #00BBBB;">ℹ</span> Did you mean to use `annotate()`?</span></span></code></pre></div>
 <p><img src="matreex_files/figure-html/sp1initk-1.png" width="700"></p>
 </div>
 <div class="section level3">
@@ -432,7 +445,7 @@ the IPM level.</p>
 <span><span class="co">#&gt; Starting while loop. Maximum t = 200</span></span>
 <span><span class="co">#&gt; Simulation ended after time 200</span></span>
 <span><span class="co">#&gt; BA stabilized at 44.59 with diff of 9.90 at time 200</span></span>
-<span><span class="co">#&gt; Time difference of 1.04 secs</span></span></code></pre></div>
+<span><span class="co">#&gt; Time difference of 1.08 secs</span></span></code></pre></div>
 <p>Equilibrium BA should be really close with or without delay (<span class="math inline">\(\Delta_{BA} &lt; 1\)</span>). N is expected to
 increase with delay since delayed mesh cell with seeds are counted
 in.</p>
@@ -474,7 +487,7 @@ climate as the first species.</p>
 <span><span class="co">#&gt; GL integration occur on 24 cells</span></span>
 <span><span class="co">#&gt; midbin integration occur on 25 cells</span></span>
 <span><span class="co">#&gt; Loop done.</span></span>
-<span><span class="co">#&gt; Time difference of 27.7 secs</span></span>
+<span><span class="co">#&gt; Time difference of 26.6 secs</span></span>
 <span><span class="va">Abies_sp</span> <span class="op">&lt;-</span> <span class="fu"><a href="../reference/species.html">species</a></span><span class="op">(</span>IPM <span class="op">=</span> <span class="va">Abies_ipm</span>, init_pop <span class="op">=</span> <span class="fu"><a href="../reference/def_initBA.html">def_initBA</a></span><span class="op">(</span><span class="fl">35</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
 <code class="sourceCode R"><span><span class="co"># We edit back the init_fun for Picea</span></span>
@@ -493,7 +506,7 @@ climate as the first species.</p>
 <span><span class="co">#&gt; time 500 | BA diff : 0.26</span></span>
 <span><span class="co">#&gt; Simulation ended after time 500</span></span>
 <span><span class="co">#&gt; BA stabilized at 45.61 with diff of 0.26 at time 500</span></span>
-<span><span class="co">#&gt; Time difference of 4.33 secs</span></span>
+<span><span class="co">#&gt; Time difference of 4.45 secs</span></span>
 <span></span>
 <span><span class="va">Picea_Abies_sim</span>  <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
 <span>    <span class="fu">dplyr</span><span class="fu">::</span><span class="fu"><a href="https://dplyr.tidyverse.org/reference/filter.html" class="external-link">filter</a></span><span class="op">(</span><span class="va">var</span> <span class="op">==</span> <span class="st">"BAsp"</span>, <span class="op">!</span> <span class="va">equil</span><span class="op">)</span> <span class="op"><a href="https://magrittr.tidyverse.org/reference/pipe.html" class="external-link">%&gt;%</a></span></span>
@@ -511,7 +524,7 @@ basal area.</p>
 <div class="section level2">
 <h2 id="references">References<a class="anchor" aria-label="anchor" href="#references"></a>
 </h2>
-<div id="refs" class="references csl-bib-body hanging-indent">
+<div id="refs" class="references csl-bib-body hanging-indent" entry-spacing="0">
 <div id="ref-ellner2016" class="csl-entry">
 Ellner, Stephen P., Dylan Z. Childs, and Mark Rees. 2016.
 <em>Data-Driven <span>Modelling</span> of <span>Structured</span>
