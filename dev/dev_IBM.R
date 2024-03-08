@@ -56,7 +56,7 @@ exp_allFun <- function(params, list_covs,
     return(empty)
 }
 
-
+load_all()
 species <- "Abies_alba"
 data(list = paste0("fit_", species))
 fit <- eval(parse(text=paste0("fit_", species)))
@@ -71,25 +71,25 @@ s <- exp_allFun(params = fit$sv$params_m, list_covs = climate)
 
 
 
-size <- c(300, 900)
-Harv <- 0.006
-l <- length(size) # length of pop
-# trouver une manière d'écrire ça mieux
-args <- c(list(BATOTcomp = 30, BATOTNonSP = 0, BATOTSP = 30, size = size),
-          as.list(climate))
-
-Grmean <- do.call(g, args = args)
-size + rlnorm(l, meanlog=Grmean, sdlog = fit$gr$sigma)
-
-Survmean <- do.call(s, args = args)
-P_sv <- (1 - fit$sv$family$linkinv(Survmean)) * (1 - Harv)
-Surv <- rbinom(l, 1, P_sv)
-
-Surv[size > as.numeric(fit$info["max_dbh"])] <- 0
-
-Recmean <- do.call(r, args = args)
-# Nrec <- rnbinom(1, mu=exp(Recmean), size=fit$rec$sigma)
-Nrec <- rnbinom(1, mu=exp(Recmean), size=0.8)
+# size <- c(300, 900)
+# Harv <- 0.006
+# l <- length(size) # length of pop
+# # trouver une manière d'écrire ça mieux
+# args <- c(list(BATOTcomp = 30, BATOTNonSP = 0, BATOTSP = 30, size = size),
+#           as.list(climate))
+#
+# Grmean <- do.call(g, args = args)
+# size + rlnorm(l, meanlog=Grmean, sdlog = fit$gr$sigma)
+#
+# Survmean <- do.call(s, args = args)
+# P_sv <- (1 - fit$sv$family$linkinv(Survmean)) * (1 - Harv)
+# Surv <- rbinom(l, 1, P_sv)
+#
+# Surv[size > as.numeric(fit$info["max_dbh"])] <- 0
+#
+# Recmean <- do.call(r, args = args)
+# # Nrec <- rnbinom(1, mu=exp(Recmean), size=fit$rec$sigma)
+# Nrec <- rnbinom(1, mu=exp(Recmean), size=0.8)
 
 
 
@@ -315,207 +315,110 @@ sim_indiv_forest.forest  <- function(Forest,
     }
     while (t < tlim ) {
 
-        # Growth
-        g_fun
-        sim_BAnonSp
         bas <- c(list(BATOTcomp = sim_BA[t-1], BATOTNonSP = 0, BATOTSP = 30),
                  as.list(start_clim))
-        .y <- Forest$species[[1]]$IPM$fit$gr$sigma
-        .g <- g_fun[[1]]
-        foo <- function(.g, .x, .y, bas){
 
-            # grow trees
-            Grmean <- do.call(.g, args = c(list(size = .x[.x > 0]),
-                                          as.list(bas)))
-            .x[.x > 0] + rlnorm(l, meanlog=Grmean, sdlog = .y)
-            # grow lag
-            .x[.x == 0] <- 90
-            .x[.x < 0] <- .x[.x < 0] + 1
+        #' x is population, one size per individual,
+        #' n is size in mm,
+        #' 0 code for dead,
+        #' -n code for lag until real size
 
-        }
+        # # population that work well..
+        # set.seed(974)
+        # X <- map2(map(Forest$species, `[[`, "init_pop"),
+        #           meshs,
+        #           exec, SurfEch = SurfEch)
+        # X <- map2(X, meshs, X2Pop)
+        # X
+
+
+        # Growth
+        X <- imap(
+            g_fun,
+            function(.g, .y, x, sigma, bas, ...){
+                # Debug growth ||||||||||||||||||||||||||||||#
+                # .g <- g_fun[[1]]
+                # x <- X[[1]]
+                # sigma = Forest$species[[1]]$IPM$fit$gr$sigma
+                # bas = bas
+                #||||||||||||||||||||||||||||||||||||||||||||#
+                #
+                # grow trees
+                Grmean <- do.call(.g, args = c(list(size = x[x > 0]),
+                                               as.list(bas)))
+                x[x > 0] <- x[x > 0] + rlnorm(sum(x>0), meanlog=Grmean,
+                                              sdlog = sigma)
+                # grow lag
+                x[x == -1] <- 90 # TODO == 0 or == -1 ?? -1 allow clean survival function
+                x[x < 0] <- x[x < 0] + 1
+                return(x)
+            },
+            x = X[[.y]],
+            sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
+            bas = bas
+        )
+
         # Survival
-        s_fun
+        X <- imap(
+            s_fun,
+            function(.s, .y, x, link, maxdbh, bas, harv, ...){
+                # Debug growth ||||||||||||||||||||||||||||||#
+                # .s <- s_fun[[1]]
+                # x <- X[[1]]
+                # bas = bas
+                # link = Forest$species[[1]]$IPM$fit$sv$family$linkinv
+                # maxdbh = as.numeric(Forest$species[[1]]$IPM$fit$info["max_dbh"])
+                # harv = 0.06
+                #||||||||||||||||||||||||||||||||||||||||||||#
+                #
+                # grow trees
+                Survmean <- do.call(.s, args = c(list(size = x[x > 0]),
+                                                 as.list(bas)))
+                P_sv <- (1 - link(Survmean)) * (1 - harv)
+                Surv <- rbinom(sum(x>0), 1, P_sv)
+                # remove individual above maxdbh
+                Surv[x[x > 0] > maxdbh] <- 0
+
+                x[x > 0] <- x[x > 0] * Surv
+                x <- x[x != 0] # 0 code for dead
+
+                return(x)
+            },
+            x = X[[.y]],
+            link = Forest$species[[.y]]$IPM$fit$sv$family$linkinv, # TODO pre_compute this for speed
+            maxdbh = as.numeric(Forest$species[[.y]]$IPM$fit$info["max_dbh"]), # TODO pre_compute this for speed
+            harv = 0.06, # TODO give this rate in input
+            bas = bas
+        )
+
         # Recruitment
-        r_fun
+        X <- imap(
+            r_fun,
+            function(.r, .y, x, sigma, bas, lag, ...){
+                # Debug growth ||||||||||||||||||||||||||||||#
+                # .r <- r_fun[[1]]
+                # x <- X[[1]]
+                # # sigma = Forest$species[[1]]$IPM$fit$gr$sigma
+                # sigma = 0.8
+                # bas = bas
+                # lag = as.numeric(Forest$species[[1]]$IPM$info["delay"])
+                #||||||||||||||||||||||||||||||||||||||||||||#
+                #
+                # grow trees
+                Recmean <- do.call(.r, args = c(list(size = x[x > 0]),
+                                               as.list(bas)))
+                Nrec <- rnbinom(1, mu=exp(Recmean), size=sigma)
+                # add lag
+                x <- c(rep(-lag, times = Nrec), x)
+                return(x)
+            },
+            x = X[[.y]],
+            # sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
+            sigma = 0.8, # TODO edit the fit dataset from Julien !
+            bas = bas,
+            lag = as.numeric(Forest$species[[.y]]$IPM$info["delay"]) # TODO pre_compute this for speed
+        )
 
-
-        size <- c(300, 900)
-        Harv <- 0.006
-        l <- length(size) # length of pop
-        # trouver une manière d'écrire ça mieux
-        args <- c(list(BATOTcomp = 30, BATOTNonSP = 0, BATOTSP = 30, size = size),
-                  as.list(climate))
-
-        Grmean <- do.call(g, args = args)
-        size + rlnorm(l, meanlog=Grmean, sdlog = fit$gr$sigma)
-
-        Survmean <- do.call(s, args = args)
-        P_sv <- (1 - fit$sv$family$linkinv(Survmean)) * (1 - Harv)
-        Surv <- rbinom(l, 1, P_sv)
-
-        Surv[size > as.numeric(fit$info["max_dbh"])] <- 0
-
-        Recmean <- do.call(r, args = args)
-        # Nrec <- rnbinom(1, mu=exp(Recmean), size=fit$rec$sigma)
-        Nrec <- rnbinom(1, mu=exp(Recmean), size=0.8)
-
-
-        # ## t size distrib ####
-        # X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
-        #
-        # ## Disturbance ####
-        # if(run_disturb && t_disturb[t]){
-        #     disturb <- TRUE
-        #
-        #     if (verbose) {
-        #         message(sprintf(
-        #             "time %i | Disturbance : %s I = %.2f",
-        #             t, disturbance[disturbance$t == t, "type"],
-        #             disturbance[disturbance$t == t, "intensity"]
-        #         )
-        #         )
-        #     }
-        #
-        #     qmd <- QMD(size = unlist(meshs), n = unlist(X))
-        #     # TODO remove unborn size from X before computations
-        #
-        #     total_stem <- purrr::reduce(X, sum, .init = 0)
-        #     sp_stem <- map_dbl(X, ~ sum(.x) / total_stem)
-        #     perc_coni <- sum(sp_stem[names(types[types == "Coniferous"])])
-        #
-        #     Disturb <- imap(
-        #         map(Forest$species, `[[`, "disturb_fun"),
-        #         function(f, .y, X, sp, disturb, ...){
-        #             exec(f, X[[.y]], sp[[.y]], disturb, ...)
-        #         }, X = X, sp = Forest$species,
-        #         disturb = disturbance[disturbance$t == t, ],
-        #         qmd = qmd, perc_coni = perc_coni
-        #     )
-        #
-        #     X <- map2(X, Disturb, `-`)
-        #
-        # }
-        #
-        # ## Harvest ####
-        # if(!disturb && t %% Forest$harv_rule["freq"] == 0 &&
-        #    harvest %in% c("Uneven", "Favoured_Uneven")){
-        #     ### Uneven ####
-        #     BAstandsp <- map2_dbl(X, Forest$species, getBAstand, SurfEch)
-        #     BAstand <- sum(BAstandsp)
-        #     BAcut <- getBAcutTarget(BAstand, targetBA, Pmax, dBAmin )
-        #
-        #     sfav <- sum(Forest$favoured_sp)
-        #     if( harvest == "Favoured_Uneven" && (sfav == 0 || sfav == length(Forest$favoured_sp))){
-        #         print('!!!!!!!!!!!!!!!!!!!!!  WARNING  !!!!!!!!!!!!!!!!!!!!!')
-        #         # warning("No species are favoured in the forest object, harvest mode 'Favoured_Uneven' is replaced with 'Uneven'")
-        #         harvest <- "Uneven"
-        #     }
-        #
-        #     if(harvest == "Uneven"){
-        #         pi <- BAstandsp / BAstand
-        #         Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
-        #         targetBAcut <- Hi * BAstandsp
-        #     } else { # Favoured_Uneven
-        #         p_fav <- sum(BAstandsp[Forest$favoured_sp])/BAstand
-        #
-        #         if(p_fav > 0.5){
-        #             Hi <- BAcut / BAstand
-        #         }  else {
-        #             pi <- ifelse(Forest$favoured_sp, p_fav, 1-p_fav)
-        #             Hi <- BAcut / BAstand * ((pi ^ (alpha - 1)) / sum(pi ^ alpha))
-        #         }
-        #         targetBAcut <- Hi * BAstandsp
-        #     }
-        #
-        #     Harv <- imap(
-        #         map(Forest$species, `[[`, "harvest_fun"),
-        #         function(f, .y, X, sp, bacut, ct, ...){
-        #             exec(f, X[[.y]], sp[[.y]],
-        #                  targetBAcut = bacut[[.y]],
-        #                  ct = ct[[.y]], ...)
-        #         }, X = X, sp = Forest$species, bacut = targetBAcut,
-        #         ct = ct, t = t
-        #     )
-        #
-        #     X <- map2(X, Harv, `-`)
-        # } else if(!disturb && harvest == "Even"){
-        #     ### Even ####
-        #     if(t %% final_harv == 0){
-        #         Harv <- X
-        #         X <- map2(map(Forest$species, `[[`, "init_pop"),
-        #                   meshs,
-        #                   exec, SurfEch = SurfEch)
-        #     } else if(t %% Forest$harv_rule["freq"] == 0){
-        #
-        #         rdi_sp <- map2_dbl(X, Forest$species, RDI_sp,
-        #                            SurfEch = SurfEch)
-        #         rdi <- sum(rdi_sp)
-        #
-        #         if (rdi < targetRDI) {
-        #             Harv <- map(meshs, ~ rep(0, length(.x)))
-        #         } else {
-        #             Pcut <- getPcutEven(x = X, sp = Forest$species,
-        #                                 meshs = meshs,
-        #                                 targetRDI = targetRDI,
-        #                                 targetKg = targetKg,
-        #                                 SurfEch = SurfEch
-        #             )
-        #
-        #             Harv <- map2(X, Pcut, ~ .x * .y)
-        #         }
-        #         X <- map2(X, Harv, `-`)
-        #
-        #     } else {
-        #         Harv <- map(meshs, ~ rep(0, length(.x)))
-        #     }
-        # } else if (!disturb && t %% Forest$harv_rule["freq"] == 0 && harvest == "default") {
-        #     ### Nothing ####
-        #     Harv <- imap(
-        #         map(Forest$species, `[[`, "harvest_fun"),
-        #         function(f, .y, X, sp, ct, ...){
-        #             exec(f, X[[.y]], sp[[.y]], ct = ct[[.y]], ...)
-        #         }, X = X, sp = Forest$species, ct = ct, t = t, SurfEch = SurfEch
-        #     )
-        #
-        #     X <- map2(X, Harv, `-`)
-        # } else if(disturb){
-        #     Harv <- Disturb
-        #     disturb <- FALSE
-        # } else {
-        #     Harv <- map(meshs, ~ rep(0, length(.x)))
-        # }
-        #
-        # ### Recruitment ####
-        # sim_clim <- climate[t, , drop = TRUE]
-        # rec <- map(Forest$species, sp_rec.species, sim_clim)
-        #
-        # recrues <- imap(
-        #     rec,
-        #     function(x, .y, basp, banonsp, mesh, SurfEch, mig){
-        #         if(basp[[.y]] == 0){ # if species is absent, no recruitment
-        #             return(mesh[[.y]] * 0)
-        #         }
-        #         exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
-        #     }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
-        #     mesh = meshs, SurfEch = SurfEch, mig = migrate )
-        #
-        # if(regional){
-        #     rec_reg <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
-        #
-        #     reg_recrues <- imap(
-        #         rec_reg,
-        #         function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
-        #             exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
-        #         }, basp = sim_BAsp[t-1,,drop = FALSE], bareg = reg_ba, banonsp = reg_banonsp,
-        #         mesh = meshs, SurfEch = SurfEch, migrate )
-        # } else {
-        #     reg_recrues <- map(recrues, ~ .x * 0)
-        # }
-        #
-        # # X <- map2(X, recrues, `+`) # gain time
-        # X <- sapply(names(X), function(n, x, y, z) x[[n]] + y[[n]] + z[[n]],
-        #             X, recrues, reg_recrues, simplify = FALSE)
-        #
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
         sim_BAsp[t, ] <- map_dbl(X, ~ sum(pi*(.x[.x>0]/2*1e-3)^2 / SurfEch))
@@ -523,6 +426,11 @@ sim_indiv_forest.forest  <- function(Forest,
                                      ~ sum(pi*(.x[.x>.y]/2*1e-3)^2 / SurfEch))
         sim_BA[t] <- sum(sim_BAsp[t,])
         sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
+
+        # Debug for latter
+        # TODO compute this is end of loop
+        bas <- c(list(BATOTcomp = sim_BA[t], BATOTNonSP = 0, BATOTSP = 30),
+                 as.list(start_clim))
 
         # Update X and extract values per ha
         if (t <= tlim) {
