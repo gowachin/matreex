@@ -317,6 +317,22 @@ sim_indiv_forest.forest  <- function(Forest,
 
         # Growth
         g_fun
+        sim_BAnonSp
+        bas <- c(list(BATOTcomp = sim_BA[t-1], BATOTNonSP = 0, BATOTSP = 30),
+                 as.list(start_clim))
+        .y <- Forest$species[[1]]$IPM$fit$gr$sigma
+        .g <- g_fun[[1]]
+        foo <- function(.g, .x, .y, bas){
+
+            # grow trees
+            Grmean <- do.call(.g, args = c(list(size = .x[.x > 0]),
+                                          as.list(bas)))
+            .x[.x > 0] + rlnorm(l, meanlog=Grmean, sdlog = .y)
+            # grow lag
+            .x[.x == 0] <- 90
+            .x[.x < 0] <- .x[.x < 0] + 1
+
+        }
         # Survival
         s_fun
         # Recruitment

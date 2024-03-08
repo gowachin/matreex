@@ -49,27 +49,34 @@ multi <- function(x, df){
 
     if(grepl("log", x)){
         xvar <- sub("^log", "", x)
+        px <- xvar
         xvar <- call2("log", ensym(xvar))
     } else if(grepl("2$", x)){
         xvar <- sub("2$", "", x)
+        px <- xvar
         xvar <- call2("^", ensym(xvar), 2)
     } else {
+        px <- x
         xvar <- ensym(x)
     }
 
     if(grepl("log", y)){
         yvar <- sub("^log", "", y)
+        py <- yvar
         foo <- "log"
     } else if(grepl("2$", y)){
         yvar <- sub("2$", "", y)
+        py <- yvar
         foo <- "^"
     } else {
         foo <- ""
+        py <- y
         yvar <- y
     }
     if(!is.na(y) && df$true.y[selec]){
         yvar <- df$value.y[selec]
     } else {
+        py <- yvar
         yvar <- ensym(yvar)
     }
     yvar <- switch(foo,
@@ -85,7 +92,7 @@ multi <- function(x, df){
     }
     res <- call2("<-", ensym(new_name), tmp)
     # res
-
+    attributes(res)$var <- c(px, py)
     return(res)
 }
 
