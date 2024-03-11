@@ -92,20 +92,6 @@ s <- exp_allFun(params = fit$sv$params_m, list_covs = climate)
 # Nrec <- rnbinom(1, mu=exp(Recmean), size=0.8)
 
 
-
-
-ind <- list(
-    sp = "Abies_alba",
-    size = 90,
-    tinit = 0,
-    final = "alive",
-    hist = NULL
-)
-
-ind
-class(ind) <- paste0("ind_", ind$sp)
-ind
-
 #||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||||#
 
 load_all()
@@ -141,20 +127,97 @@ X2Pop <- function(X, mesh){
     return(res)
 }
 
+
+#' Deterministic Tree population simulation
+#'
+#' Simulate a population size state during \eqn{[1, t_{lim}]} times.
+#' The state at time \eqn{t+1} is dependent on state at time \eqn{t} and
+#' the projection matrix (IPM).
+#' The simulation will run until \eqn{t_{lim}} and if the equilibrium is not reached,
+#' it will continue. Only simulation in \eqn{[1, t_{lim}]}, and equilibrium
+#' state are returned.
+#'
+#' At each iteration, the basal area is evaluated to select the corresponding
+#' IPM matrix.
+#'
+#' @param Forest Group of species that each contains IPM for deterministic
+#' transition for \eqn{Z_{t}} state in a population to \eqn{Z_{t+1}} state.
+#' A species is also defined with recruitment and harvest functions, please
+#' see \code{\link[matreex]{species}} for more information.
+#' @param tlim Number of simulation iterations (years) in the future. single int.
+#' @param climate Optional, climate matrix if climate variation along time is
+#' needed. Climate variation rely on species created with mu_gr class objects.
+#' This matrix require as many rows as time steps until equil_time.
+#' If the climate does not variate, a single row can given and will be reused.
+#' @param disturbance `r lifecycle::badge("experimental")` parameter.
+#' @param SurfEch Value of plot size surface in ha
+#'
+#' @param verbose Print message. FALSE by default
+#'
+#' @details
+#' Basic simulations input are illustrated in the main vignette.
+#'
+#'
+#' @return
+#' Data.frame with long tidyverse format : a row for each observation and a
+#'  column per variable. Columns are listed below, some may contains NA values,
+#'  as for example species when there is a non-specific variable (BA).
+#'  \describe{
+#'   \item{species}{ Name of the species.}
+#'   \item{var}{Variable of interest}
+#'   \item{time}{Time step of the simulation. If the equilibrium is the last
+#'   time in \code{tlim} input, this time will occur twice in the table.}
+#'   \item{mesh}{Mesh class number, from 1 to n class. NA for variable for individual}
+#'   \item{size}{Size corresponding to the mesh class. NA for variable for individual}
+#'   \item{equil}{Logical if this time step is the equilibrium or last step of
+#'   simulation}
+#'   \item{value}{Numeric values of the variables.}
+#'  }
+#'
+#' The variables are :
+#' \describe{
+#'  \item{N}{Sum of density for sampled area (SurfEch).}
+#'  \item{BAsp}{Basal area of the population per sampled area (SurfEch) and species}
+#'  \item{BAstand}{Basal area of the population per sampled area (SurfEch)
+#'  and species when excluding size class below dth. See Harvesting vignette.}
+#'  \item{H}{Sum of harvested density per sampled area (SurfEch).}
+#' }
+#'
+#' @import Matrix
+#' @import checkmate
+#' @import purrr
+#' @importFrom dplyr between bind_cols
+#'
+#' @name sim_deter_forest
+#' @export
+sim_indiv_forest  <- function(Forest,
+                              tlim = 3e3,
+                              climate = NULL,
+                              disturbance = NULL,
+                              harvest = 0.006,
+                              SurfEch = 0.03,
+                              verbose = FALSE) {
+    UseMethod("sim_indiv_forest")
+}
+
+#' @method sim_deter_forest forest
+#' @export
 sim_indiv_forest.forest  <- function(Forest,
                                      tlim = 3e3,
                                      climate = NULL,
                                      disturbance = NULL,
+                                     harvest = 0.006,
                                      SurfEch = 0.03,
                                      verbose = FALSE) {
 
 
     # TEMP dev
-    tlim = 500
-    SurfEch = 0.03
-    # climate = NULL
-    disturbance = NULL
-    verbose = FALSE
+    # tlim = 500
+    # SurfEch = 0.03
+    # # climate = NULL
+    # disturbance = NULL
+    # verbose = FALSE
+    # harvest = 0.006
     # TEMP dev
 
     # Idiot Proof ####
@@ -236,9 +299,12 @@ sim_indiv_forest.forest  <- function(Forest,
     regional <- inherits(Forest, "reg_forest")
 
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
-    types <- map_chr(Forest$species, ~ .x$info["type"])
     stand_above_dth <- map_dbl(Forest$species, ~ .x$harv_lim["dth"])
-    delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
+    lag_rec <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
+    gr_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$gr$sigma)
+    sv_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$gr$sigma) # TODO change for rec
+    maxdbh <- map_dbl(Forest$species, ~ as.numeric(.x$IPM$fit$info["max_dbh"]))
+    linkinv <- map(Forest$species, ~.x$IPM$fit$sv$family$linkinv)
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
@@ -247,7 +313,6 @@ sim_indiv_forest.forest  <- function(Forest,
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
     ))
     sim_BA <- rep(NA_real_, tlim)
-    sim_BAnonSp <- rep(NA_real_, nsp)
 
     ## Initiate pop ####
     X <- map2(map(Forest$species, `[[`, "init_pop"),
@@ -255,14 +320,18 @@ sim_indiv_forest.forest  <- function(Forest,
               exec, SurfEch = SurfEch)
     X <- map2(X, meshs, X2Pop)
     Harv <- map_dbl(meshs, ~ 0)
+    start_clim <- climate[1, , drop = TRUE]
     # ct <- map(meshs, Buildct, SurfEch = SurfEch)
 
+    bas <- c(list(BATOTcomp = NA, BATOTNonSP = NA, BATOTSP = NA),
+             as.list(start_clim))
+
     # save first pop
-    sim_BAsp[1, ] <- map_dbl(X, ~ sum(pi*(.x[.x>0]/2*1e-3)^2 / SurfEch))
+    sim_BAsp[1, ] <- bas$BATOTSP<- map_dbl(X, ~ sum(pi*(.x[.x>0]/2*1e-3)^2 / SurfEch))
     sim_BAstand[1, ] <- map2_dbl(X, stand_above_dth,
                                  ~ sum(pi*(.x[.x>.y]/2*1e-3)^2 / SurfEch))
-    sim_BA[1] <- sum(sim_BAsp[1,])
-    sim_BAnonSp <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
+    sim_BA[1] <- bas$BATOTcomp <- sum(sim_BAsp[1,])
+    bas$BATOTNonSP <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
 
     tmp <- imap(X, function(x, .y, ba, bast, harv){
         c(ba[[.y]], bast[[.y]], length(x), harv)
@@ -273,13 +342,6 @@ sim_indiv_forest.forest  <- function(Forest,
 
     tmp <- do.call("c", tmp)
     sim_X[, 1] <- tmp
-
-    # if (any(map2_lgl(sim_BA[1], BAsp, ~ ! between(.x, min(.y), max(.y -1))))) {
-    #     stop(paste(
-    #         "Border Basal Area reached for this simulation.",
-    #         "This maximum is reached before iteration, check init_pop functions"
-    #     ))
-    # }
 
     if(regional){
         if(verbose){
@@ -296,13 +358,9 @@ sim_indiv_forest.forest  <- function(Forest,
     t <- 2
     the <- NA_real_ # real time of simulation ending in case of outbound BA
     # Harv cst
-    alpha <- Forest$harv_rule["alpha"]
-    Pmax <- Forest$harv_rule["Pmax"]
-    dBAmin <- Forest$harv_rule["dBAmin"]
     disturb <- FALSE
 
     # vital functions
-    start_clim <- climate[1, , drop = TRUE]
     g_fun <- map(Forest$species, ~ exp_allFun(params =.x$IPM$fit$gr$params_m,
                                               list_covs = start_clim))
     r_fun <- map(Forest$species, ~ exp_allFun(params =.x$IPM$fit$rec$params_m,
@@ -314,9 +372,6 @@ sim_indiv_forest.forest  <- function(Forest,
         message("Starting while loop. Maximum t = ", tlim)
     }
     while (t < tlim ) {
-
-        bas <- c(list(BATOTcomp = sim_BA[t-1], BATOTNonSP = 0, BATOTSP = 30),
-                 as.list(start_clim))
 
         #' x is population, one size per individual,
         #' n is size in mm,
@@ -331,7 +386,7 @@ sim_indiv_forest.forest  <- function(Forest,
         # X <- map2(X, meshs, X2Pop)
         # X
 
-
+        # print(X)
         # Growth
         X <- imap(
             g_fun,
@@ -344,6 +399,10 @@ sim_indiv_forest.forest  <- function(Forest,
                 #||||||||||||||||||||||||||||||||||||||||||||#
                 #
                 # grow trees
+                x <- x[[.y]]
+                sigma <- sigma[[.y]]
+
+
                 Grmean <- do.call(.g, args = c(list(size = x[x > 0]),
                                                as.list(bas)))
                 x[x > 0] <- x[x > 0] + rlnorm(sum(x>0), meanlog=Grmean,
@@ -353,8 +412,8 @@ sim_indiv_forest.forest  <- function(Forest,
                 x[x < 0] <- x[x < 0] + 1
                 return(x)
             },
-            x = X[[.y]],
-            sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
+            x = X,
+            sigma = gr_sig,
             bas = bas
         )
 
@@ -363,31 +422,36 @@ sim_indiv_forest.forest  <- function(Forest,
             s_fun,
             function(.s, .y, x, link, maxdbh, bas, harv, ...){
                 # Debug growth ||||||||||||||||||||||||||||||#
-                # .s <- s_fun[[1]]
-                # x <- X[[1]]
+                # .y <- "Picea_abies"
+                # .s <- s_fun[[.y]]
+                # x <- X
                 # bas = bas
-                # link = Forest$species[[1]]$IPM$fit$sv$family$linkinv
-                # maxdbh = as.numeric(Forest$species[[1]]$IPM$fit$info["max_dbh"])
-                # harv = 0.06
+                # link = linkinv
+                # maxdbh = maxdbh
+                # harv = 0.006
                 #||||||||||||||||||||||||||||||||||||||||||||#
                 #
                 # grow trees
+                x <- x[[.y]]
+                link <- link[[.y]]
+
                 Survmean <- do.call(.s, args = c(list(size = x[x > 0]),
                                                  as.list(bas)))
                 P_sv <- (1 - link(Survmean)) * (1 - harv)
+                # print(P_sv)
                 Surv <- rbinom(sum(x>0), 1, P_sv)
                 # remove individual above maxdbh
-                Surv[x[x > 0] > maxdbh] <- 0
-
+                Surv[x[x > 0] > maxdbh[[.y]]] <- 0
                 x[x > 0] <- x[x > 0] * Surv
+                Harv[[.y]] <<- sum(x == 0) # Is this really a good idea ?
                 x <- x[x != 0] # 0 code for dead
 
                 return(x)
             },
-            x = X[[.y]],
-            link = Forest$species[[.y]]$IPM$fit$sv$family$linkinv, # TODO pre_compute this for speed
-            maxdbh = as.numeric(Forest$species[[.y]]$IPM$fit$info["max_dbh"]), # TODO pre_compute this for speed
-            harv = 0.06, # TODO give this rate in input
+            x = X,
+            link = linkinv,
+            maxdbh = maxdbh,
+            harv = harvest,
             bas = bas
         )
 
@@ -403,71 +467,52 @@ sim_indiv_forest.forest  <- function(Forest,
                 # bas = bas
                 # lag = as.numeric(Forest$species[[1]]$IPM$info["delay"])
                 #||||||||||||||||||||||||||||||||||||||||||||#
-                #
+                x <- x[[.y]]
+                bas$BATOTSP <- bas$BATOTSP[[.y]]
+                bas$BATOTNonSP <- bas$BATOTNonSP[[.y]]
+
                 # grow trees
                 Recmean <- do.call(.r, args = c(list(size = x[x > 0]),
                                                as.list(bas)))
                 Nrec <- rnbinom(1, mu=exp(Recmean), size=sigma)
                 # add lag
-                x <- c(rep(-lag, times = Nrec), x)
+                x <- c(rep(-lag[[.y]], times = Nrec), x)
                 return(x)
             },
-            x = X[[.y]],
+            x = X,
             # sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
             sigma = 0.8, # TODO edit the fit dataset from Julien !
             bas = bas,
-            lag = as.numeric(Forest$species[[.y]]$IPM$info["delay"]) # TODO pre_compute this for speed
+            lag = lag_rec
         )
 
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
-        sim_BAsp[t, ] <- map_dbl(X, ~ sum(pi*(.x[.x>0]/2*1e-3)^2 / SurfEch))
+        sim_BAsp[t, ] <- bas$BATOTSP <- map_dbl(X, ~ sum(pi*(.x[.x>0]/2*1e-3)^2 / SurfEch))
         sim_BAstand[t, ] <- map2_dbl(X, stand_above_dth,
                                      ~ sum(pi*(.x[.x>.y]/2*1e-3)^2 / SurfEch))
-        sim_BA[t] <- sum(sim_BAsp[t,])
-        sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
+        sim_BA[t] <- bas$BATOTcomp <- sum(sim_BAsp[t,])
+        bas$BATOTNonSP <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
 
-        # Debug for latter
-        # TODO compute this is end of loop
-        bas <- c(list(BATOTcomp = sim_BA[t], BATOTNonSP = 0, BATOTSP = 30),
-                 as.list(start_clim))
+        # update climate
+        bas[colnames(climate)] <- as.list(climate[t,])
 
         # Update X and extract values per ha
-        if (t <= tlim) {
-            tmp <- imap(X, function(x, .y, ba, bast, harv){
-                c(ba[[.y]], bast[[.y]], length(x), harv)
-            },
-            ba = sim_BAsp[t,, drop = FALSE],
-            bast = sim_BAstand[t,,drop = FALSE],
-            harv = Harv )
+        tmp <- imap(X, function(x, .y, ba, bast, harv){
+            c(ba[[.y]], bast[[.y]], length(x), harv)
+        },
+        ba = sim_BAsp[t,, drop = FALSE],
+        bast = sim_BAstand[t,,drop = FALSE],
+        harv = Harv )
 
-            tmp <- do.call("c", tmp)
-            sim_X[, t] <- tmp
+        tmp <- do.call("c", tmp)
+        sim_X[, t] <- tmp
+
+        # ## Stop loop if no populations left ####
+        if (all(lengths(X) == 0)) {
+            the <- t
+            break()
         }
-
-
-        # ## Stop loop if BA larger than LIPM largest BA ####
-        # if (any(map2_lgl(sim_BA[t], BAsp, ~ ! between(.x, min(.y), max(.y))))) {
-        #     warning("Maximum Basal Area reached for this simulation.")
-        #     # TODO  say which species reached BA limit !
-        #     the <- t
-        #     break()
-        # }
-        #
-        # ## Get sim IPM ####
-        # # Is there a disturbance ?
-        # if(run_disturb && t < equil_time){ # IDEA rewrite this ?
-        #     if(t_disturb[t+1]){
-        #         disturb_surv <- disturbance[disturbance$t == t+1, "IsSurv"]
-        #     } else {
-        #         disturb_surv <- TRUE
-        #     }
-        # }
-        #
-        # sim_ipm <- map(Forest$species, ~ get_step_IPM(
-        #     x = .x$IPM, BA = sim_BA[t], climate = sim_clim, sim_corr = correction,
-        #     IsSurv = disturb_surv
-        # ))
 
         ## Loop Verbose ####
         if (t %% 500 == 0 && verbose) {
@@ -495,18 +540,11 @@ sim_indiv_forest.forest  <- function(Forest,
 
     if (verbose) {
         message("Simulation ended after time ", ifelse(is.na(the), t-1, the))
-        message(sprintf(
-            "BA stabilized at %.2f with diff of %.2f at time %i",
-            sim_BA[t - 1],
-            diff(range(sim_BA[max(1, t - equil_dist - 1):(t - 1)])),
-            t -1
-        ))
         tmp <- Sys.time() - start
         message("Time difference of ", format(unclass(tmp), digits = 3),
                 " ", attr(tmp, "units"))
     }
-    sim_X <- new_deter_sim(sim_X, mesh = meshs)
-
+    sim_X <- new_indiv_sim(sim_X, mesh = meshs)
     sim_X <- tree_format(sim_X)
 
     # Return ####
@@ -514,4 +552,66 @@ sim_indiv_forest.forest  <- function(Forest,
 }
 
 
+#' Class of deterministic simulation
+#'
+#' @param x a matrix.
+#' @param mesh mesh size values to be set as attributes.
+#'
+#' @details Format is specified in \code{\link[matreex]{sim_deter_forest}}
+#'
+#' @noRd
+new_indiv_sim <- function(x = matrix(), mesh = NULL){
+    assertMatrix(x)
+    structure(x, class = c("indiv_sim", "matrix"),
+              mesh = mesh)
 
+}
+
+#' @rdname tree_format
+#' @importFrom dplyr relocate
+#' @importFrom tidyr pivot_longer
+#' @importFrom purrr map flatten_dbl
+#' @keywords internal
+#' @export
+tree_format.indiv_sim <- function(x){
+
+    mesh <- rep(NA_real_, nrow(x))
+
+    # cut rownames in different variables.
+    var <- rownames(x)
+    pattern <- "([[:alpha:]]+_?[[:alpha:]]*)[.]([[:alpha:]]+)([[:digit:]]*)"
+    rnms <- data.frame(
+        species = sub(pattern, "\\1", var, perl = TRUE),
+        var = sub(pattern, "\\2", var, perl = TRUE),
+        mesh = as.numeric(sub(pattern, "\\3", var, perl = TRUE)))
+
+    eq_lgl <- function(x){ # function used in pivot_longer
+        x == "eq"
+    }
+
+    # pivot_longer all of it.
+    res <- cbind(as.data.frame(x), rnms, size = mesh)
+    res <- tidyr::pivot_longer(
+        res,
+        -c("var", "species", "mesh", "size"),
+        names_to = c("equil", "time"), names_pattern = "(eq)?t(.*)",
+        names_transform = list(time = as.numeric, equil = eq_lgl)
+    )
+
+    res <- dplyr::relocate(res, "species", "var", "time", "mesh",
+                           "size", "equil", "value")
+    return(res)
+}
+
+sim1 <- sim_indiv_forest(Forest, verbose = TRUE, tlim = 5000)
+
+library(ggplot2)
+sim1  %>%
+    # dplyr::filter(var == "BAsp", ! equil) %>%
+    ggplot(aes(x = time, y = value)) +
+    geom_line(linewidth = .4) + ylab("BA") +
+    facet_wrap(~ var, scales = "free_y")
+
+
+sim1 %>%
+    dplyr::filter(!is.na(value))
