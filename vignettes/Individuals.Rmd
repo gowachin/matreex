@@ -1,0 +1,193 @@
+---
+title: "Individual based model version"
+package: matreex
+output: 
+    github_document:
+    rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Individual based model version}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib 
+link-citations: true
+---
+
+```{r, include = FALSE}
+# load_all()
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(cli.progress_show_after = 600) 
+# 10 minutes before showing a cli progress bar
+```
+
+This vignette illustrates the difference between functions used to run simulations with IPM and IBM in the `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities. IBM is simpler than IPM in its use of the different modules for harvesting and disturbances. 
+
+The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
+
+# Rapid description of the Individual Based Model
+
+Details on the fitting and the integration of IPM model can be found in @ellner2016.
+Briefly, an IPM predicts the size distribution, $n(z', t+1)$, of a population at time t+1 from its size distribution at time t, $n(z, t)$, with $z$ the size at t and $z'$ the size at $t + 1$,
+based on the following equation (@ellner2016): 
+
+$$
+n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
+$$
+
+with $L$ and $U$ being, respectively, the lower and upper observed sizes for integration of the kernel $K$.
+
+The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
+
+The IBM use the same functions as the kernels but apply them on numerical vectors of individual sizes instead of a continuous size distribution $n$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
+<!--The figure 1 presents the structure and approach of the IPM. -->
+Note, that this package do not cover the statistical fitting of the vital rates functions.
+
+
+# Simulations input
+
+## Define a species
+
+The first step is the IPM integration. This part is common with basic usage of the package, so nothing is very important here. 
+
+**Please keep in mind this computation is intensive and may take few minutes !**
+If you only use the IBM function to simulate later, the IPM integration can be done for a single basal area `BA = 0`.
+
+```{r make_IPM_Picea}
+library(matreex)
+library(dplyr)
+library(ggplot2)
+
+# Load fitted model for a species
+# fit_species # list of all species in dataset
+data("fit_Picea_abies")
+
+# Load associated climate
+data("climate_species")
+climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
+# see ?climate_species to understand the filtering of N.
+climate
+
+Picea_ipm <- make_IPM(
+    species = "Picea_abies", 
+    climate = climate, 
+    fit = fit_Picea_abies,
+    clim_lab = "optimum clim", 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:80, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+```
+
+```{r hide warn, echo=FALSE, }
+options(W_matreex_edist = FALSE)
+```
+
+The IPM is used in order to have a common base with other functions. However, the IBM simulation does not allow to use some modules from the package :
+
+* `init_pop` : When initiating the size distribution, the continuous distribution is draw for a basal area and transformed into an individual distribution via a poisson distribution inside the size classes (`def_init()` or `def_initBA()`). Giving a starting basal area does not work because of the poisson distribution step, but drive the initialisation toward this value. `def_init_k()` is not available.
+
+* `harvest_fun` : The harvest is only possible with a constant rate given as entry of the simulation function.
+
+* `disturb_fun` : No disturbance is possible.
+
+For this example, we will just modify the initial size distribution to start at a basal area of 30 $m^2/ha$.
+
+```{r species}
+Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
+```
+
+## Define a forest
+
+Once each species objects are built, we can assemble them in a `forest` object.
+
+```{r forest}
+Picea_for <- forest(species = list(Picea = Picea_sp))
+```
+
+# Running simulations
+
+A simulation runs as before but ends at `tlim`, because no equilibrium is reachable by definition. The simulated surface `SurfEch` is an important parameter because it will drive the drift toward extinction. The default value is $300m^2$ since the models were fitted on this size of plot.
+
+```{r sp1sim}
+set.seed(42) # The seed is here for initial population random functions.
+Picea_sim <- sim_deter_forest(
+    Picea_for, 
+    tlim = 300, 
+    equil_time = 300, equil_dist = 50, equil_diff = 1,
+    SurfEch = 0.03,
+    verbose = TRUE
+) 
+set.seed(42)
+Picea_indiv <- sim_indiv_forest(Forest, tlim = 300,  SurfEch = 0.03,
+                                harvest = 0.006, verbose = TRUE)
+```
+
+In the code above, we simulate for 200 years (`tlim`) years
+
+The output of a simulation is a data.frame in long format (according to tidyverse style). This is very helpful to filter the output and plot it with `{ggplot2}`. Variables exported are the basal area per species `BAsp`, and `N` and `H` the total number of alive and dead individuals in the forest (per hectare). Individual information are not saved.
+
+Note that we need to scale down the deterministic simulation in order to compare both simulations.
+
+```{r sp1plot}
+All_sims <- dplyr::bind_rows(deter = Picea_sim, indiv = Picea_indiv, .id = "type")
+All_sims %>%
+    dplyr::filter(var %in% c("BAsp", "N")) %>%
+    # modify output for SurfEch and not per ha in the deterministic sim.
+    dplyr::mutate(value = ifelse(type == "deter" & var == "N", 
+                                 value * 0.03, value)) %>%
+    ggplot(aes(x = time, y = value, color = type)) +
+    geom_line(linewidth = .4) + 
+    facet_wrap(~ var, scales = "free_y")
+```
+
+# Customizing the simulations
+
+## Multiple species
+
+Multi-specific simulations are performed like the simulations previously illustrated. The only difference is in the construction of the forest object. This explain why the `species` argument for `forest()` function require a list for input. 
+
+We need to modelise a second species. Be careful to select the same climate as the first species.
+
+```{r second_species}
+data("fit_Abies_alba")
+
+Abies_ipm <- make_IPM(
+    species = "Abies_alba", 
+    climate = climate, # this variable is defined at the top of the doc.
+    fit = fit_Abies_alba,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
+```
+
+```{r nsp_forest}
+# We edit back the init_fun for Picea
+Picea_sp$init_pop <- def_initBA(15)
+Picea_Abies_for <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp))
+
+set.seed(8)
+Picea_Abies_sim <- sim_indiv_forest(
+    Picea_Abies_for, 
+    tlim = 500, 
+    SurfEch = 0.03,
+    harvest = 0.006,
+    verbose = TRUE
+)
+
+Picea_Abies_sim  %>%
+    dplyr::filter(var %in% c("BAsp", "N"), !equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linewidth = .4) +
+    facet_wrap(~ var, scales = "free_y") +
+    stat_summary(fun = "sum",  aes(col="Total"),
+                 geom ='line', linetype = "dashed", linewidth = .3)
+```
+
+# References
+
+<div id="refs"></div>

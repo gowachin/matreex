@@ -233,7 +233,7 @@ sim_indiv_forest.forest  <- function(Forest,
     bas$BATOTNonSP <- map2_dbl( - sim_BAsp[1, ,drop = FALSE], sim_BA[1],  `+`)
 
     tmp <- imap(X, function(x, .y, ba, bast, harv){
-        c(ba[[.y]], bast[[.y]], length(x), harv)
+        c(ba[[.y]], bast[[.y]], length(x), harv[[.y]])
     },
     ba = sim_BAsp[1,, drop = FALSE],
     bast = sim_BAstand[1,,drop = FALSE],
@@ -348,7 +348,7 @@ sim_indiv_forest.forest  <- function(Forest,
         ## Recruitment ####
         X <- imap(
             r_fun,
-            function(.r, .y, x, sigma, bas, lag, ...){
+            function(.r, .y, x, sigma, bas, surf, lag, ...){
                 # Debug growth ||||||||||||||||||||||||||||||#
                 # .r <- r_fun[[1]]
                 # x <- X[[1]]
@@ -364,7 +364,7 @@ sim_indiv_forest.forest  <- function(Forest,
                 # grow trees
                 Recmean <- do.call(.r, args = c(list(size = x[x > 0]),
                                                 as.list(bas)))
-                Nrec <- rnbinom(1, mu=exp(Recmean), size=sigma)
+                Nrec <- rnbinom(1, mu=exp(Recmean)  * surf / 0.03, size=sigma)
                 # add lag
                 x <- c(rep(-lag[[.y]], times = Nrec), x)
                 return(x)
@@ -373,6 +373,7 @@ sim_indiv_forest.forest  <- function(Forest,
             # sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
             sigma = 0.8, # TODO edit the fit dataset from Julien !
             bas = bas,
+            surf = SurfEch,
             lag = lag_rec
         )
 
@@ -389,7 +390,7 @@ sim_indiv_forest.forest  <- function(Forest,
 
         # Update X and extract values per ha
         tmp <- imap(X, function(x, .y, ba, bast, harv){
-            c(ba[[.y]], bast[[.y]], length(x), harv)
+            c(ba[[.y]], bast[[.y]], length(x), harv[[.y]])
         },
         ba = sim_BAsp[t,, drop = FALSE],
         bast = sim_BAstand[t,,drop = FALSE],
@@ -416,7 +417,7 @@ sim_indiv_forest.forest  <- function(Forest,
 
     # Format output ####
     tmp <- imap(X, function(x, .y, ba, bast, harv){
-        c(ba[[.y]], bast[[.y]], length(x), harv)
+        c(ba[[.y]], bast[[.y]], length(x), harv[[.y]])
     },
     ba = sim_BAsp[t-1,, drop = FALSE],
     bast = sim_BAstand[t-1,,drop = FALSE],
