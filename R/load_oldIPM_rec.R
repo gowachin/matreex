@@ -302,3 +302,71 @@ exp_sizeFun <- function(params, list_covs){
     return(empty)
 }
 
+
+#' Export vital function from estimated parameters.
+#'
+#' Rebuild the function to use size, BAsp and all for a species.
+#'
+#' @param params Estimated parameters for the fit of the model.
+#' @param list_covs Climatic covariates values.
+#'
+#' @importFrom purrr map
+#' @importFrom rlang expr call2 env_unbind
+#'
+#' @details
+#' Each function has an environment binded with params and list_covs.
+#' I can't remove it and it may be usefull later after all.
+#'
+#' Objectif is to use it to replace previous exp_...Fun() with a generic one.
+#'
+#' @return
+#' Function with many parameter : size, BATOTcomp, BATOTSP etc. Use ...
+#'
+#' @examples
+#' params <- c(intercept = -0.864, size = -0.018, sgddb = 286.813,
+#' wai = -0.057, wai2 = 0.288 )
+#' list_covs <- data.frame(wai = -0.187, sgddb = 0, waib = 1.23, wai2 = 0.34)
+#'
+#' foo <- exp_sizeFun(params, list_covs)
+#' foo
+#' foo(1, 2, 1:5, 0.03)
+#'
+#' @noRd
+exp_allFun <- function(params, list_covs){
+
+    df2 <- format_fit(params, list_covs)
+
+    invar <- names(params)[!names(params) %in% names(list_covs)]
+    invar <- invar[! grepl("ntercept", invar)]
+    inter <- sum(df2$K[! (df2$var1 %in% invar | df2$var2 %in% invar)])
+
+
+    exp_invar <- map(invar, multi, df2)
+    invar <- unlist(map(exp_invar, ~ attributes(.x)$var))
+    invar <- unique(invar[!is.na(invar)])
+    add_invar <- map(c(list(expr(intercept <- 1)),exp_invar),
+                     ~ call2("<-", expr(res), call2("+", expr(res), .x[[2]] )))
+
+    final_res <- list(
+        expr(return(res))
+    )
+    calls <- c(exp_invar, add_invar, final_res)
+
+    empty <- function(){}
+    arguments <- setNames(rep(alist(x=), length(invar) + 1), c(invar, "..."))
+    formals(empty) <- arguments
+
+    body(empty)[[2]] <- call2("<-", expr(intercept), inter)
+    body(empty)[[3]] <- expr(res <- 0)
+    for(i in seq_along(calls)){
+        body(empty)[[i + 3]] <- calls[[i]]
+    }
+
+    # this is messy and is to remove binded env.
+    env_unbind(env = environment(empty), c("i", "calls", "final_res",
+                                           "add_invar", "exp_invar",
+                                           "inter", "invar", "df2"),
+               inherit = FALSE)
+    return(empty)
+}
+
