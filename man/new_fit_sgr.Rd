@@ -10,6 +10,7 @@ new_fit_sgr(
   gr_params,
   gr_sigma,
   rec_params,
+  rec_sigma,
   species,
   max_dbh,
   delay
@@ -31,6 +32,9 @@ model.}
 
 \item{rec_params}{Named vector of growth parameters fitted for this species and
 climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.}
+
+\item{rec_sigma}{Standard deviation of the residuals for the recruitment fitted
+model.}
 
 \item{species}{Name of the species to run simulation on. Single char.}
 

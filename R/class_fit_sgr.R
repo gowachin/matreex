@@ -13,6 +13,8 @@
 #' model.
 #' @param rec_params Named vector of growth parameters fitted for this species and
 #' climatic condition. Minimal parameters are intercept, BATOTSP and BATOTNonSP.
+#' @param rec_sigma Standard deviation of the residuals for the recruitment fitted
+#' model.
 #' @param species Name of the species to run simulation on. Single char.
 #' @param max_dbh Maximum diameter of the fitted dataset. Single dbl.
 #' @param delay Delay for the species. Single dbl.
@@ -21,12 +23,12 @@
 #' @export
 new_fit_sgr <- function(sv_params, sv_family,
                         gr_params, gr_sigma,
-                        rec_params,
+                        rec_params, rec_sigma,
                         species, max_dbh, delay){
     fit <- list(
         sv = list(params_m = sv_params, family = sv_family),
         gr = list(params_m = gr_params, sigma = gr_sigma),
-        rec = list(params_m = rec_params),
+        rec = list(params_m = rec_params, sigma = rec_sigma),
         info = c(species = species, max_dbh = max_dbh, delay = delay)
     )
 
@@ -97,13 +99,13 @@ validate_fit_sgr <- function(x){
 #' @export
 fit_sgr <- function(sv_params, sv_family,
                     gr_params, gr_sigma,
-                    rec_params,
+                    rec_params, rec_sigma,
                     species, max_dbh, delay){
 
     res <- validate_fit_sgr(new_fit_sgr(
         sv_params = sv_params, sv_family = sv_family,
         gr_params= gr_params, gr_sigma = gr_sigma,
-        rec_params = rec_params,
+        rec_params = rec_params, rec_sigma = rec_sigma,
         species = species, max_dbh = max_dbh, delay = delay
     ))
 
@@ -149,7 +151,7 @@ old_fit2fit <- function(species, path = here(), replicat = 42, mean = FALSE){
         res_fit <- fit[[replicat]]
         res_fit <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                            res_fit$gr$params_m, res_fit$gr$sigma,
-                           res_fit$rec$params_m,
+                           res_fit$rec$params_m, res_fit$rec$sigma,
                            species = species, max_dbh = res_fit$maxDBH,
                            delay = delay)
     }
@@ -215,7 +217,10 @@ mean_oldfit <- function(fit, species, max_dbh, delay){
         group_by(.data$var) %>% summarize(mean = mean(.data$value)) %>%
         pull(.data$mean, .data$var)
 
-    res_fit <- fit_sgr(sv_params, sv_family, gr_params, gr_sigma, rec_params,
+    rec_sigma <- mean(map_dbl(fit, ~ .x$rec$sigma))
+
+    res_fit <- fit_sgr(sv_params, sv_family, gr_params, gr_sigma,
+                       rec_params, rec_sigma,
                        species = species, max_dbh = max_dbh, delay = delay)
 
     return(res_fit)

@@ -6,27 +6,28 @@ test_that("new_fit_sgr works", {
         pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
     })
     gr_sigma = .6
+    rec_sigma = .8
     species <- "shadok"
     max_dbh <- 42
 
     expect_identical(new_fit_sgr(sv_params, sv_family,
-                                 gr_params, gr_sigma, rec_params,
+                                 gr_params, gr_sigma, rec_params, rec_sigma,
                                  "shadok", 42, 0),
                      structure(list(
                          sv = list(params_m = sv_params, family = sv_family),
                          gr = list(params_m = gr_params, sigma = gr_sigma),
-                         rec = list(params_m = rec_params),
+                         rec = list(params_m = rec_params, sigma = rec_sigma),
                          info = c(species = "shadok", max_dbh = "42", delay = "0")
                      ),
                      class = "fit_sgr"))
 
     expect_identical(fit_sgr(sv_params, sv_family,
                                  gr_params, gr_sigma,
-                             rec_params,
+                             rec_params, rec_sigma,
                                  "shadok", 42, 0),
                      new_fit_sgr(sv_params, sv_family,
                              gr_params, gr_sigma,
-                             rec_params,
+                             rec_params, rec_sigma,
                              "shadok", 42, 0))
 })
 
@@ -39,8 +40,10 @@ test_that("validate_fit_sgr works", {
         pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
     })
     gr_sigma = .6
+    rec_sigma = .8
 
-    x <- new_fit_sgr(sv_params, sv_family, gr_params, gr_sigma, rec_params, "shadok", 42, 0)
+    x <- new_fit_sgr(sv_params, sv_family, gr_params, gr_sigma,
+                     rec_params, rec_sigma, "shadok", 42, 0)
 
 
     expect_identical(x, validate_fit_sgr(x))
@@ -114,7 +117,8 @@ test_that("mean_oldfit works", {
             rec = list(params_m = c(BATOTNonSP = -0.024793354587699,
                                     BATOTSP = -0.0187862744077507, intercept = -0.918591942470068,
                                     logBATOTSP = -0.257347121425412, sgddb = 295.822304118005,
-                                    wai = -0.0643689062773369, wai2 = 0.303847830350663)),
+                                    wai = -0.0643689062773369, wai2 = 0.303847830350663),
+                       sigma = 0.82683837),
             info = c(species = "Yggdrasil", max_dbh = "1600", delay = "0")), class = "fit_sgr")
 
 
@@ -146,7 +150,7 @@ test_that("old_fit2fit works", {
 
     exp <- fit_sgr(res_fit$sv$params_m, res_fit$sv$family,
                    res_fit$gr$params_m, res_fit$gr$sigma,
-                   res_fit$rec$params_m,
+                   res_fit$rec$params_m, res_fit$rec$sigma,
                    species = species, max_dbh = 1649, delay = 0)
 
     expect_equal(old_fit2fit(species, path, replicat = 2, mean = FALSE), exp)

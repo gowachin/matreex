@@ -38,10 +38,11 @@ sv_family <- list(linkinv = function(eta){
     pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
 })
 gr_sigma = .6
+rec_sigma = .8
 max_dbh <- 42
 
 fit <- new_fit_sgr(sv_params, sv_family,
-                   gr_params, gr_sigma, rec_params,
+                   gr_params, gr_sigma, rec_params, rec_sigma,
                    "Yggdrasil", 42, 0)
 
 # delay ####
@@ -305,10 +306,11 @@ sv_family <- list(linkinv = function(eta){
     pmax(pmin(-expm1(-exp(eta)), 1 - .Machine$double.eps), .Machine$double.eps)
 })
 gr_sigma = .6
+rec_sigma = .8
 max_dbh <- 42
 
 fit <- new_fit_sgr(sv_params, sv_family,
-                   gr_params, gr_sigma, rec_params,
+                   gr_params, gr_sigma, rec_params, rec_sigma,
                    "Yggdrasil", 42, 0)
 
 test_that("sp_rec species works", {

@@ -50,9 +50,6 @@
 "fit_Fraxinus_excelsior"
 
 #' @rdname fit_data
-"fit_Juniperus_thurifera"
-
-#' @rdname fit_data
 "fit_Larix_decidua"
 
 #' @rdname fit_data

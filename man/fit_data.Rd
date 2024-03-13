@@ -13,7 +13,6 @@
 \alias{fit_Carpinus_betulus}
 \alias{fit_Fagus_sylvatica}
 \alias{fit_Fraxinus_excelsior}
-\alias{fit_Juniperus_thurifera}
 \alias{fit_Larix_decidua}
 \alias{fit_Picea_abies}
 \alias{fit_Pinus_halepensis}
@@ -34,11 +33,9 @@
 \alias{fit_Salix_caprea}
 \title{Species fited models dataset.}
 \format{
-An object of class \code{character} of length 27.
+An object of class \code{character} of length 26.
 
 An object of class \code{numeric} of length 27.
-
-An object of class \code{fit_sgr} of length 4.
 
 An object of class \code{fit_sgr} of length 4.
 
@@ -115,8 +112,6 @@ fit_Carpinus_betulus
 fit_Fagus_sylvatica
 
 fit_Fraxinus_excelsior
-
-fit_Juniperus_thurifera
 
 fit_Larix_decidua
 
