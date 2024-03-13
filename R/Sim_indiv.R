@@ -202,7 +202,7 @@ sim_indiv_forest.forest  <- function(Forest,
     stand_above_dth <- map_dbl(Forest$species, ~ .x$harv_lim["dth"])
     lag_rec <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
     gr_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$gr$sigma)
-    sv_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$gr$sigma) # TODO change for rec
+    rec_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$rec$sigma)
     maxdbh <- map_dbl(Forest$species, ~ as.numeric(.x$IPM$fit$info["max_dbh"]))
     linkinv <- map(Forest$species, ~.x$IPM$fit$sv$family$linkinv)
 
@@ -371,7 +371,7 @@ sim_indiv_forest.forest  <- function(Forest,
             },
             x = X,
             # sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
-            sigma = 0.8, # TODO edit the fit dataset from Julien !
+            sigma = rec_sig,
             bas = bas,
             surf = SurfEch,
             lag = lag_rec
