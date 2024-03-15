@@ -122,7 +122,7 @@ format_fit <- function(params, list_covs){
 
     vx <- unname(lc[x])
     vy <- unname(lc[y])
-    fy <- is.na(vy)
+    fy <- is.na(vy) | !y %in% names(list_covs)
     vy[fy] <- 1
     K <- unparams * vx * vy
 

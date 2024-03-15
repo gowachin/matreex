@@ -15,11 +15,6 @@
 #' @noRd
 X2Pop <- function(X, mesh){
 
-    # TEMP dev
-    # X <- X[[1]]
-    # mesh <- meshs[[1]]
-    # TEMP dev
-
     lag <- sum(mesh == 0)
     mesh[1:lag] <- -c(lag:1)
     Pop <- rpois(length(X), X)
@@ -113,17 +108,16 @@ sim_indiv_forest.forest  <- function(Forest,
                                      verbose = FALSE) {
 
 
-    # TEMP dev
+    # dev
     # tlim = 500
     # SurfEch = 0.03
-    # # climate = NULL
+    # climate = NULL
     # disturbance = NULL
     # verbose = FALSE
     # harvest = 0.006
-    # TEMP dev
+    # dev
 
     # Idiot Proof ####
-    # validate_forest(Forest) # TEMP dev
     assertCount(tlim)
     IPM_cl <- map_chr(Forest$species, ~ class(.x$IPM))
     if(all(IPM_cl == "ipm") && !is.null(climate)) {
@@ -220,7 +214,7 @@ sim_indiv_forest.forest  <- function(Forest,
               exec, SurfEch = SurfEch)
     X <- map2(X, meshs, X2Pop)
     Harv <- map_dbl(meshs, ~ 0)
-    start_clim <- climate[1, , drop = TRUE]
+    start_clim <- climate[2, , drop = TRUE]
 
     bas <- c(list(BATOTcomp = NA, BATOTNonSP = NA, BATOTSP = NA),
              as.list(start_clim))
@@ -250,13 +244,12 @@ sim_indiv_forest.forest  <- function(Forest,
     disturb <- FALSE
 
     # vital functions
-    # TODO : replace start_clim with data.frame() for functions requiring bas.
     g_fun <- map(Forest$species, ~ exp_allFun(params =.x$IPM$fit$gr$params_m,
-                                              list_covs = start_clim))
+                                              list_covs = data.frame()))
     r_fun <- map(Forest$species, ~ exp_allFun(params =.x$IPM$fit$rec$params_m,
-                                              list_covs = start_clim))
+                                              list_covs = data.frame()))
     s_fun <- map(Forest$species, ~ exp_allFun(params =.x$IPM$fit$sv$params_m,
-                                              list_covs = start_clim))
+                                              list_covs = data.frame()))
 
     if (verbose) {
         message("Starting while loop. Maximum t = ", tlim)
@@ -280,13 +273,6 @@ sim_indiv_forest.forest  <- function(Forest,
         X <- imap(
             g_fun,
             function(.g, .y, x, sigma, bas, ...){
-                # Debug growth ||||||||||||||||||||||||||||||#
-                # .g <- g_fun[[1]]
-                # x <- X[[1]]
-                # sigma = Forest$species[[1]]$IPM$fit$gr$sigma
-                # bas = bas
-                #||||||||||||||||||||||||||||||||||||||||||||#
-                #
                 # grow trees
                 x <- x[[.y]]
                 sigma <- sigma[[.y]]
@@ -297,7 +283,7 @@ sim_indiv_forest.forest  <- function(Forest,
                 x[x > 0] <- x[x > 0] + rlnorm(sum(x>0), meanlog=Grmean,
                                               sdlog = sigma)
                 # grow lag
-                x[x == -1] <- 90 # TODO == 0 or == -1 ?? -1 allow clean survival function
+                x[x == -1] <- 90
                 x[x < 0] <- x[x < 0] + 1
                 return(x)
             },
@@ -310,16 +296,6 @@ sim_indiv_forest.forest  <- function(Forest,
         X <- imap(
             s_fun,
             function(.s, .y, x, link, maxdbh, bas, harv, ...){
-                # Debug growth ||||||||||||||||||||||||||||||#
-                # .y <- "Picea_abies"
-                # .s <- s_fun[[.y]]
-                # x <- X
-                # bas = bas
-                # link = linkinv
-                # maxdbh = maxdbh
-                # harv = 0.006
-                #||||||||||||||||||||||||||||||||||||||||||||#
-                #
                 # grow trees
                 x <- x[[.y]]
                 link <- link[[.y]]
@@ -327,7 +303,6 @@ sim_indiv_forest.forest  <- function(Forest,
                 Survmean <- do.call(.s, args = c(list(size = x[x > 0]),
                                                  as.list(bas)))
                 P_sv <- (1 - link(Survmean)) * (1 - harv)
-                # print(P_sv)
                 Surv <- rbinom(sum(x>0), 1, P_sv)
                 # remove individual above maxdbh
                 Surv[x[x > 0] > maxdbh[[.y]]] <- 0
@@ -349,14 +324,6 @@ sim_indiv_forest.forest  <- function(Forest,
         X <- imap(
             r_fun,
             function(.r, .y, x, sigma, bas, surf, lag, ...){
-                # Debug growth ||||||||||||||||||||||||||||||#
-                # .r <- r_fun[[1]]
-                # x <- X[[1]]
-                # # sigma = Forest$species[[1]]$IPM$fit$gr$sigma
-                # sigma = 0.8
-                # bas = bas
-                # lag = as.numeric(Forest$species[[1]]$IPM$info["delay"])
-                #||||||||||||||||||||||||||||||||||||||||||||#
                 x <- x[[.y]]
                 bas$BATOTSP <- bas$BATOTSP[[.y]]
                 bas$BATOTNonSP <- bas$BATOTNonSP[[.y]]
@@ -370,7 +337,6 @@ sim_indiv_forest.forest  <- function(Forest,
                 return(x)
             },
             x = X,
-            # sigma = Forest$species[[.y]]$IPM$fit$gr$sigma,
             sigma = rec_sig,
             bas = bas,
             surf = SurfEch,
@@ -386,7 +352,7 @@ sim_indiv_forest.forest  <- function(Forest,
         bas$BATOTNonSP <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
 
         # update climate
-        bas[colnames(climate)] <- as.list(climate[t,])
+        bas[colnames(climate)] <- as.list(climate[min(tlim, t+1),])
 
         # Update X and extract values per ha
         tmp <- imap(X, function(x, .y, ba, bast, harv){

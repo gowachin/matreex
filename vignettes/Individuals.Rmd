@@ -120,7 +120,7 @@ Picea_sim <- sim_deter_forest(
     verbose = TRUE
 ) 
 set.seed(42)
-Picea_indiv <- sim_indiv_forest(Forest, tlim = 300,  SurfEch = 0.03,
+Picea_indiv <- sim_indiv_forest(Picea_for, tlim = 300,  SurfEch = 0.03,
                                 harvest = 0.006, verbose = TRUE)
 ```
 
