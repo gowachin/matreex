@@ -188,6 +188,90 @@ Picea_Abies_sim  %>%
                  geom ='line', linetype = "dashed", linewidth = .3)
 ```
 
+## Climate variation
+
+This is only to test if climate variation is possible. Answer is yes but, need to hack the IPM class before simulation.
+
+```{r climate}
+# future function for the package matreex. 
+# I may need some help on what's needed or usefull
+
+#' @param x a named values for a climatic variable. 
+#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
+#' case of var can take 0 for value.
+#' Example : \code{x = c(sgdd = 2000)}
+value2sqb <- function(x, inv_null = FALSE){
+    
+    nms <- names(x)
+    res <- numeric(3)
+    names(res) <- c(nms, paste0(nms, c("2", "b")))
+    res[nms] <- x
+    res[paste0(nms, "2")] <- x^2
+    res[paste0(nms, "b")] <- 1/(x + inv_null)
+    
+    res
+}
+
+#' @param climate Named vector of climatic variables.
+#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
+#' case of var can take 0 for value.
+#' Example : \code {climate = c(sgdd = 2000, wai = 0.16) ; in_null = c(sgdd = FALSE, wai = TRUE)}
+expand_clim <- function(climate, inv_null){
+    
+    assertNumeric(climate, any.missing = FALSE)
+    assertLogical(inv_null, any.missing = FALSE)
+    
+    nms <- names(climate)
+    res <- vector("list", length(climate))
+    for(x in seq_along(nms)){
+        res[[x]] <- value2sqb(climate[nms[x]], inv_null[nms[x]])
+    }
+    res <- unlist(res)
+    
+    return(res)
+}
+# May be usefull to create the same function but to work on data.frame 
+# or matrices likes below code
+tlim <- 300
+
+wai <- climate$wai + runif(tlim, -0.5, 0.5)
+wai <- pmax(wai, 0) ; wai <- pmin(wai, 1) # range the values after runif
+sim_clim <- as.matrix(data.frame(
+    sgdd = climate$sgdd + runif(tlim, -500, 500),
+    wai = wai, 
+    t = 1:tlim
+))
+# We need to specify if variables can be set 0 for variable compution of
+# varb = 1 / var. If true varb = 1 / (var + 1)
+inv_null <- c(sgdd = FALSE, wai = TRUE)
+
+exp_clim <- vector("list", tlim)
+for(i in 1:tlim){
+    exp_clim[[i]] <- c(expand_clim(sim_clim[i, -3], inv_null), t = i)
+}
+exp_clim <- do.call("rbind", exp_clim)
+exp_clim[c(1:3, 297:300),]
+
+
+set.seed(42)
+class(Picea_for$species[[1]]$IPM) <- "fake_ipm"
+Picea_indiv_clim <- sim_indiv_forest(Picea_for, tlim = tlim,  SurfEch = 0.03,
+                                climate = exp_clim,
+                                harvest = 0.006, verbose = TRUE)
+
+All_sims <- dplyr::bind_rows(indiv = Picea_indiv, clim = Picea_indiv_clim, 
+                             .id = "type")
+All_sims %>%
+    dplyr::filter(var %in% c("BAsp", "N")) %>%
+    # modify output for SurfEch and not per ha in the deterministic sim.
+    dplyr::mutate(value = ifelse(type == "deter" & var == "N", 
+                                 value * 0.03, value)) %>%
+    ggplot(aes(x = time, y = value, color = type)) +
+    geom_line(linewidth = .4) + 
+    facet_wrap(~ var, scales = "free_y")
+```
+
+
 # References
 
 <div id="refs"></div>
