@@ -193,9 +193,11 @@ Picea_Abies_sim  %>%
 This is only to test if climate variation is possible. Answer is yes but, need to hack the IPM class before simulation.
 
 ```{r climate}
+l
 # future function for the package matreex. 
 # I may need some help on what's needed or usefull
 
+library(checkmate)
 #' @param x a named values for a climatic variable. 
 #' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
 #' case of var can take 0 for value.
