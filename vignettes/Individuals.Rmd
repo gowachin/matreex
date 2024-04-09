@@ -193,7 +193,6 @@ Picea_Abies_sim  %>%
 This is only to test if climate variation is possible. Answer is yes but, need to hack the IPM class before simulation.
 
 ```{r climate}
-l
 # future function for the package matreex. 
 # I may need some help on what's needed or usefull
 
@@ -273,6 +272,66 @@ All_sims %>%
     facet_wrap(~ var, scales = "free_y")
 ```
 
+
+A function to extract the time to extinction will be added to the package. It require the simulation and output the time when all populations are equal to 0. If there is no extinction, this function return NA.
+
+```{r}
+class(Picea_for$species[[1]]$IPM) <- "ipm"
+set.seed(9)
+# extinct on 9
+Picea_indiv <- sim_indiv_forest(Picea_for, tlim = 300,  SurfEch = 0.03,
+                                harvest = 0.006, verbose = TRUE)
+
+max(Picea_indiv$time)
+Picea_indiv$time[Picea_indiv$equil]
+
+extinct <- function(sim){
+    # sim <- Picea_indiv<
+    
+    tlim <- max(sim$time)
+    x <- sim[sim$equil,]
+    tend <- unique(x$time)
+    # split if multiple species
+    x <- split(x, x$species)
+    x <- purrr::map(x, ~ setNames(.x$value, .x$var))
+    if( sum(purrr::map_dbl(x, `[[`, "N")) == 0){
+        return(tend)
+    } 
+    
+    return(NA)
+}
+
+extinct(Picea_indiv)
+
+Picea_indiv %>%
+    dplyr::filter(var == "N") %>%
+    ggplot(aes(x = time, y = value)) +
+    geom_line(linewidth = .4) 
+```
+
+```{r}
+Picea_for$species[[1]]$init_pop
+# test for mean time 
+sims <- vector("list", 250)
+for(i in seq_along(sims)){
+    sims[[i]] <- sim_indiv_forest(Picea_for, tlim = 1000,  SurfEch = 0.01,
+                                harvest = 0.006, verbose = FALSE)
+}
+ext <- purrr::map_dbl(sims, extinct)
+ext
+sum(is.na(ext)) / 250 * 100
+sum(ext[!is.na(ext)] == 1) / 250 * 100
+
+# plot of all simulations
+all_sims <- bind_rows(sims, .id = "sim") 
+all_sims %>%
+    filter(!equil, var == 'N') %>%
+    mutate(ext = is.na(rep(ext, each = 1000))) %>%
+    ggplot(aes(x = time, y = value, group = sim, color = ext)) +
+    geom_line(alpha = .3) +
+    NULL
+    
+```
 
 # References
 
