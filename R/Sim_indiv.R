@@ -212,7 +212,6 @@ sim_indiv_forest.forest  <- function(Forest,
     X <- map2(map(Forest$species, `[[`, "init_pop"),
               meshs,
               exec, SurfEch = SurfEch)
-    X <- map2(X, meshs, X2Pop)
     Harv <- map_dbl(meshs, ~ 0)
     start_clim <- climate[2, , drop = TRUE]
 

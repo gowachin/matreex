@@ -55,7 +55,8 @@ The first step is the IPM integration. This part is common with basic usage of t
 If you only use the IBM function to simulate later, the IPM integration can be done for a single basal area `BA = 0`.
 
 ```{r make_IPM_Picea}
-library(matreex)
+# library(matreex)
+devtools::load_all()
 library(dplyr)
 library(ggplot2)
 
@@ -86,7 +87,16 @@ options(W_matreex_edist = FALSE)
 
 The IPM is used in order to have a common base with other functions. However, the IBM simulation does not allow to use some modules from the package :
 
-* `init_pop` : When initiating the size distribution, the continuous distribution is draw for a basal area and transformed into an individual distribution via a poisson distribution inside the size classes (`def_init()` or `def_initBA()`). Giving a starting basal area does not work because of the poisson distribution step, but drive the initialisation toward this value. `def_init_k()` is not available.
+* `init_pop` : When initiating the size distribution, the continuous distribution is draw for a basal area and transformed into an individual distribution via a poisson distribution inside the size classes (`def_init_pop()`). It's possible to rewrite this function by replacing the first line with other initiation functions of the package.  `def_init_k()` is discussed later on.
+
+```{r}
+def_init_pop <- function(mesh, SurfEch){
+    x <- def_init(mesh = mesh, SurfEch = SurfEch)
+    res <- X2Pop(x, mesh)
+    return(res)
+}
+```
+
 
 * `harvest_fun` : The harvest is only possible with a constant rate given as entry of the simulation function.
 
@@ -119,6 +129,7 @@ Picea_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 ) 
+Picea_for$species$Picea_abies$init_pop <- def_init_pop
 set.seed(42)
 Picea_indiv <- sim_indiv_forest(Picea_for, tlim = 300,  SurfEch = 0.03,
                                 harvest = 0.006, verbose = TRUE)
@@ -309,18 +320,58 @@ Picea_indiv %>%
     geom_line(linewidth = .4) 
 ```
 
+## Time to extinction
+
+The main goal of IBM in the present package is to compute extinction time for tree species. Previous work was done in Arnaud paper, based on @Grimm2004 intrinsic mean time to extinction.
+
+For these simulations, the stand needs to be initiated with the same population each time. To replace `def_init_k()` function, `def_init_kpop` is defined and require a population vector with a size value for each individual.
+
+* $size \in [1; inf[$ : diameter in $mm$ for a single tree
+
+* $size \in ]-lag; -1]$ : coded value for individual in the lag. When a new individual is recruited, it will start at the maximum lag value ($-lag$) and grow with $s_{t+1} = s_t + 1$. When $s_t = 1$, $s_{t+1} = 90$.
+
+* $size = 0$ : coded value for a dead individual. These individuals are removed from memory during a simulation.
+
 ```{r}
-Picea_for$species[[1]]$init_pop
+def_init_kpop <- function(x){
+    
+    assertNumeric(x, any.missing = FALSE) # lower is max lag ? how to check this ?
+    assertTRUE(length(x) > 0)
+    if(length(x) == 0){
+        warning(paste0("length(x) is equal to 0, the species will not be present",
+                       " in the forest. Be sure this is intentional."))
+    }
+
+    force(x)
+    fun <- function(mesh, SurfEch = 0.03) {
+        if(abs(min(x)) > sum(mesh == 0)){
+            stop(paste0("A species initiate with a define size distribution ",
+                        "where an individual as a longer lag than it's mesh. ",
+                        "Check sp$init_pop functions using def_init_kpop !"))
+        }
+        return(x)
+    }
+
+    return(fun)
+}
+Picea_for$species[[1]]$init_pop <- def_init_kpop(x = c(-12, -5, 100, 300))
+```
+
+
+This is an example where I compute the intrinsic mean time to extinction. We can see that the starting population may not be established.
+
+```{r}
 # test for mean time 
-sims <- vector("list", 250)
+n <- 100
+sims <- vector("list", n)
 for(i in seq_along(sims)){
+    print(i)
     sims[[i]] <- sim_indiv_forest(Picea_for, tlim = 1000,  SurfEch = 0.01,
                                 harvest = 0.006, verbose = FALSE)
 }
 ext <- purrr::map_dbl(sims, extinct)
-ext
-sum(is.na(ext)) / 250 * 100
-sum(ext[!is.na(ext)] == 1) / 250 * 100
+sum(is.na(ext)) / n * 100 # number of viable sims
+sum(ext[!is.na(ext)] == 1) / n * 100 # number of sim extinct time 1.
 
 # plot of all simulations
 all_sims <- bind_rows(sims, .id = "sim") 
@@ -328,9 +379,22 @@ all_sims %>%
     filter(!equil, var == 'N') %>%
     mutate(ext = is.na(rep(ext, each = 1000))) %>%
     ggplot(aes(x = time, y = value, group = sim, color = ext)) +
-    geom_line(alpha = .3) +
-    NULL
+    geom_line(alpha = .3) 
     
+e <- ext[!is.na(ext)]
+hist(e)
+em <- data.frame(date = e) %>% 
+    group_by(date) %>% count(name = "nb") %>% ungroup() %>% 
+    mutate(p_t = cumsum(nb) /sum(n), ln = -log(1 - p_t))
+ggplot(em, aes(x = date)) + 
+    geom_line(aes(y = ln)) 
+
+lin <- lm(ln ~ date, em)
+(Tm <- 1/lin$coefficients["date"])
+```
+
+```{r}
+
 ```
 
 # References
