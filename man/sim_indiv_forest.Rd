@@ -29,6 +29,9 @@ If the climate does not variate, a single row can given and will be reused.}
 
 \item{disturbance}{\ifelse{html}{\href{https://lifecycle.r-lib.org/articles/stages.html#experimental}{\figure{lifecycle-experimental.svg}{options: alt='[Experimental]'}}}{\strong{[Experimental]}} parameter.}
 
+\item{harvest}{Basal harvest rate. Happens each year, not complexe harvesting
+process is yet implemented.}
+
 \item{SurfEch}{Value of plot size surface in ha}
 
 \item{verbose}{Print message. FALSE by default}

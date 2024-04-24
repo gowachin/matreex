@@ -21,9 +21,12 @@ the same process of random distribution.
 }
 \seealso{
 Other functions for initiating species population during simulation: 
+\code{\link{def_init}()},
+\code{\link{def_initBA_pop}()},
 \code{\link{def_init_even}()},
 \code{\link{def_init_k}()},
-\code{\link{def_init}()},
+\code{\link{def_init_kpop}()},
+\code{\link{def_init_pop}()},
 \code{\link{species}()}
 }
 \concept{functions for initiating species population during simulation}

@@ -90,11 +90,7 @@ The IPM is used in order to have a common base with other functions. However, th
 * `init_pop` : When initiating the size distribution, the continuous distribution is draw for a basal area and transformed into an individual distribution via a poisson distribution inside the size classes (`def_init_pop()`). It's possible to rewrite this function by replacing the first line with other initiation functions of the package.  `def_init_k()` is discussed later on.
 
 ```{r}
-def_init_pop <- function(mesh, SurfEch){
-    x <- def_init(mesh = mesh, SurfEch = SurfEch)
-    res <- X2Pop(x, mesh)
-    return(res)
-}
+def_init_pop
 ```
 
 
@@ -105,7 +101,7 @@ def_init_pop <- function(mesh, SurfEch){
 For this example, we will just modify the initial size distribution to start at a basal area of 30 $m^2/ha$.
 
 ```{r species}
-Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
+Picea_sp <- species(IPM = Picea_ipm)
 ```
 
 ## Define a forest
@@ -120,7 +116,10 @@ Picea_for <- forest(species = list(Picea = Picea_sp))
 
 A simulation runs as before but ends at `tlim`, because no equilibrium is reachable by definition. The simulated surface `SurfEch` is an important parameter because it will drive the drift toward extinction. The default value is $300m^2$ since the models were fitted on this size of plot.
 
+For this example, we will just modify the initial size distribution to start at a basal area of 30 $m^2/ha$.
+
 ```{r sp1sim}
+Picea_for$species$Picea_abies$init_pop <- def_initBA(30)
 set.seed(42) # The seed is here for initial population random functions.
 Picea_sim <- sim_deter_forest(
     Picea_for, 
@@ -129,7 +128,7 @@ Picea_sim <- sim_deter_forest(
     SurfEch = 0.03,
     verbose = TRUE
 ) 
-Picea_for$species$Picea_abies$init_pop <- def_init_pop
+Picea_for$species$Picea_abies$init_pop <- def_initBA_pop(30)
 set.seed(42)
 Picea_indiv <- sim_indiv_forest(Picea_for, tlim = 300,  SurfEch = 0.03,
                                 harvest = 0.006, verbose = TRUE)
@@ -173,12 +172,12 @@ Abies_ipm <- make_IPM(
     BA = 0, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
-Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA(35))
+Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA_pop(35))
 ```
 
 ```{r nsp_forest}
 # We edit back the init_fun for Picea
-Picea_sp$init_pop <- def_initBA(15)
+Picea_sp$init_pop <- def_initBA_pop(15)
 Picea_Abies_for <- forest(species = list(Picea = Picea_sp, Abies = Abies_sp))
 
 set.seed(8)
@@ -296,22 +295,6 @@ Picea_indiv <- sim_indiv_forest(Picea_for, tlim = 300,  SurfEch = 0.03,
 max(Picea_indiv$time)
 Picea_indiv$time[Picea_indiv$equil]
 
-extinct <- function(sim){
-    # sim <- Picea_indiv<
-    
-    tlim <- max(sim$time)
-    x <- sim[sim$equil,]
-    tend <- unique(x$time)
-    # split if multiple species
-    x <- split(x, x$species)
-    x <- purrr::map(x, ~ setNames(.x$value, .x$var))
-    if( sum(purrr::map_dbl(x, `[[`, "N")) == 0){
-        return(tend)
-    } 
-    
-    return(NA)
-}
-
 extinct(Picea_indiv)
 
 Picea_indiv %>%
@@ -333,27 +316,6 @@ For these simulations, the stand needs to be initiated with the same population 
 * $size = 0$ : coded value for a dead individual. These individuals are removed from memory during a simulation.
 
 ```{r}
-def_init_kpop <- function(x){
-    
-    assertNumeric(x, any.missing = FALSE) # lower is max lag ? how to check this ?
-    assertTRUE(length(x) > 0)
-    if(length(x) == 0){
-        warning(paste0("length(x) is equal to 0, the species will not be present",
-                       " in the forest. Be sure this is intentional."))
-    }
-
-    force(x)
-    fun <- function(mesh, SurfEch = 0.03) {
-        if(abs(min(x)) > sum(mesh == 0)){
-            stop(paste0("A species initiate with a define size distribution ",
-                        "where an individual as a longer lag than it's mesh. ",
-                        "Check sp$init_pop functions using def_init_kpop !"))
-        }
-        return(x)
-    }
-
-    return(fun)
-}
 Picea_for$species[[1]]$init_pop <- def_init_kpop(x = c(-12, -5, 100, 300))
 ```
 
@@ -393,9 +355,6 @@ lin <- lm(ln ~ date, em)
 (Tm <- 1/lin$coefficients["date"])
 ```
 
-```{r}
-
-```
 
 # References
 

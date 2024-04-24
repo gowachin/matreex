@@ -84,10 +84,13 @@ harvest rate of 0.6 percent. Other functions are
 }
 \seealso{
 Other functions for initiating species population during simulation: 
+\code{\link{def_init}()},
 \code{\link{def_initBA}()},
+\code{\link{def_initBA_pop}()},
 \code{\link{def_init_even}()},
 \code{\link{def_init_k}()},
-\code{\link{def_init}()}
+\code{\link{def_init_kpop}()},
+\code{\link{def_init_pop}()}
 
 Other functions that defines harvest rules for a species.: 
 \code{\link{Even_harv}()},

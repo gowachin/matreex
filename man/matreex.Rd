@@ -2,6 +2,7 @@
 % Please edit documentation in R/matreex.R
 \docType{package}
 \name{matreex}
+\alias{matreex-package}
 \alias{matreex}
 \title{matreex}
 \description{
@@ -10,4 +11,30 @@ It allow to run simulation from IPM and NFI datasets.
 }
 \details{
 Fill the package description !
+}
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://github.com/gowachin/matreex}
+}
+
+}
+\author{
+\strong{Maintainer}: Maxime Jaunatre \email{maxime.jaunatre@inrae.fr} (\href{https://orcid.org/0009-0002-2816-1677}{ORCID}) [translator]
+
+Authors:
+\itemize{
+  \item Julien Barrere \email{julien.barrere@inrae.fr} (\href{https://orcid.org/0000-0002-6686-726X}{ORCID})
+  \item Thomas Cordonnier \email{thomas.cordonnier@inrae.fr} (\href{https://orcid.org/0000-0003-3684-4662}{ORCID})
+  \item Arnaud Guyennon \email{arnaud.guyennon@inrae.fr} (\href{https://orcid.org/0000-0003-2178-3801}{ORCID})
+  \item Bjoern Reineking \email{bjoern.reineking@inrae.fr} (\href{https://orcid.org/0000-0001-5277-9181}{ORCID})
+  \item Laura Touzot \email{laura.touzot@inrae.fr} (\href{https://orcid.org/0000-0003-0445-554X}{ORCID})
+  \item Georges Kunstler \email{georges.kunstler@inrae.fr} (\href{https://orcid.org/0000-0002-2544-1940}{ORCID})
+}
+
+Other contributors:
+\itemize{
+  \item INRAE [copyright holder]
+}
+
 }

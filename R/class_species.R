@@ -386,6 +386,94 @@ def_init_k <- function(x){
     return(fun)
 }
 
+#' Default individual population initialization
+#'
+#' The population will initiate with a random distribution to match a basal area
+#' of 1.
+#'
+#' @inheritParams def_init
+#'
+#' @family functions for initiating species population during simulation
+#'
+#' @export
+def_init_pop <- function(mesh, SurfEch = 0.03){
+    x <- def_init(mesh = mesh, SurfEch = SurfEch)
+    res <- X2Pop(x, mesh)
+    return(res)
+}
+
+
+#' Init population at BA
+#'
+#' This function modify the def_init function to start at a given BA with
+#' the same process of random distribution.
+#'
+#' @inheritParams def_initBA
+#'
+#'
+#' @import checkmate
+#' @family functions for initiating species population during simulation
+#'
+#' @export
+def_initBA_pop <- function(BA = 1, fun = c("def_init", "def_init_even")){
+
+    def_fun <- def_initBA(BA = BA, fun = fun)
+
+    fun <- function(mesh, SurfEch = 0.03){
+        x <- def_fun(mesh = mesh, SurfEch = SurfEch)
+        res <- X2Pop(x, mesh)
+        return(res)
+    }
+    return(fun)
+}
+
+#' Init population with precise distribution
+#'
+#' @param x Population to draw systematically. This vector should
+#' be composed of values in \code{[-lag, maxdbh]} values.
+#' This is the distribution for the sampled plot.
+#'
+#' @details
+#' Possible values are :
+#' \describe{
+#'  \item{size in \eqn{[1; \inf [}}{diameter in $mm$ for a single tree}
+#'  \item{size in \eqn{]-lag; -1]}}{coded value for individual in the lag.
+#'  When a new individual is recruited, it will start at the maximum lag
+#'  value (-lag) and grow with \eqn{s_{t+1} = s_t + 1}.
+#'  When \eqn{s_t = 1}, then \eqn{s_{t+1} = 90}.}
+#'  \item{size = 0}{coded value for a dead individual.
+#'  These individuals are removed from memory during a simulation.}
+#'  }
+#'
+#' @return
+#' Function similar def_init but with no random effect anymore.
+#'
+#' @import checkmate
+#' @family functions for initiating species population during simulation
+#'
+#' @export
+def_init_kpop <- function(x){
+
+    assertNumeric(x, any.missing = FALSE) # lower is max lag ? how to check this ?
+    assertTRUE(length(x) > 0)
+    if(length(x) == 0){
+        warning(paste0("length(x) is equal to 0, the species will not be present",
+                       " in the forest. Be sure this is intentional."))
+    }
+
+    force(x)
+    fun <- function(mesh, SurfEch = 0.03) {
+        if(abs(min(x)) > sum(mesh == 0)){
+            stop(paste0("A species initiate with a define size distribution ",
+                        "where an individual as a longer lag than it's mesh. ",
+                        "Check sp$init_pop functions using def_init_kpop !"))
+        }
+        return(x)
+    }
+
+    return(fun)
+}
+
 
 #' Default population harvest
 #'

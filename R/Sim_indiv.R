@@ -12,6 +12,8 @@
 #' mesh <- c(0, 0, 90, 100, 110)
 #' X2Pop(X, mesh)
 #'
+#' @importFrom stats rpois
+#'
 #' @noRd
 X2Pop <- function(X, mesh){
 
@@ -22,6 +24,54 @@ X2Pop <- function(X, mesh){
     # rep is here super simple and efficient, maybe take size in unif in mesh when multiple indiv
     # BA <- sum(pi*(res[res>0]/2*1e-3)^2 / 0.03)
     return(res)
+}
+
+
+#' Extract extinction time for a simulation.
+#'
+#' Extinction time is time when there is a total population of 0,
+#' for all species bu default.
+#'
+#' @param sim Simulation output from sim_indiv_forest
+#' @param all TRUE will return single value for all species, FALSE return named
+#' vector with the value for each species.
+#'
+#' @return time at which populations were extinct. If the simulation ended
+#' with any(N > 0), returns NA.
+#'
+#' @importFrom purrr map map_dbl
+#'
+#' @export
+extinct <- function(sim, all = TRUE){
+    # sim <- Picea_indiv<
+
+    tlim <- max(sim$time)
+
+    if(all){
+
+        x <- sim[sim$equil,]
+        tend <- unique(x$time)
+        # split if multiple species
+        x <- split(x, x$species)
+        x <- purrr::map(x, ~ setNames(.x$value, .x$var))
+
+        if(sum(purrr::map_dbl(x, `[[`, "N")) == 0){
+            return(tend)
+        }
+
+        return(NA)
+
+    } else {
+
+        x <- subset(sim, sim$var == "N" & sim$value > 0,
+                    select = c("species", "var", "time", "value"))
+        x <- split(x, x$species)
+        tend <- map_dbl(x, nrow)
+
+        return(ifelse(tend == tlim, NA, tend))
+    }
+
+    return(NULL)
 }
 
 
@@ -47,6 +97,8 @@ X2Pop <- function(X, mesh){
 #' This matrix require as many rows as time steps until equil_time.
 #' If the climate does not variate, a single row can given and will be reused.
 #' @param disturbance `r lifecycle::badge("experimental")` parameter.
+#' @param harvest Basal harvest rate. Happens each year, not complexe harvesting
+#' process is yet implemented.
 #' @param SurfEch Value of plot size surface in ha
 #'
 #' @param verbose Print message. FALSE by default
@@ -98,6 +150,8 @@ sim_indiv_forest  <- function(Forest,
 }
 
 #' @method sim_indiv_forest forest
+#'
+#' @importFrom stats rlnorm rnbinom
 #' @export
 sim_indiv_forest.forest  <- function(Forest,
                                      tlim = 3e3,
