@@ -253,6 +253,7 @@ sim_indiv_forest.forest  <- function(Forest,
     rec_sig <- map_dbl(Forest$species, ~ .x$IPM$fit$rec$sigma)
     maxdbh <- map_dbl(Forest$species, ~ as.numeric(.x$IPM$fit$info["max_dbh"]))
     linkinv <- map(Forest$species, ~.x$IPM$fit$sv$family$linkinv)
+    mat_size <- map(Forest$species, ~as.numeric(.x$info["mat_size"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
@@ -376,13 +377,14 @@ sim_indiv_forest.forest  <- function(Forest,
         ## Recruitment ####
         X <- imap(
             r_fun,
-            function(.r, .y, x, sigma, bas, surf, lag, ...){
+            function(.r, .y, x, mat, sigma, bas, surf, lag, ...){
                 x <- x[[.y]]
+                mat <- mat[[.y]]
                 bas$BATOTSP <- bas$BATOTSP[[.y]]
                 bas$BATOTNonSP <- bas$BATOTNonSP[[.y]]
 
                 # grow trees
-                Recmean <- do.call(.r, args = c(list(size = x[x > 0]),
+                Recmean <- do.call(.r, args = c(list(size = x[x > mat]),
                                                 as.list(bas)))
                 Nrec <- rnbinom(1, mu=exp(Recmean)  * surf / 0.03, size=sigma)
                 # add lag
@@ -390,6 +392,7 @@ sim_indiv_forest.forest  <- function(Forest,
                 return(x)
             },
             x = X,
+            mat = mat_size,
             sigma = rec_sig,
             bas = bas,
             surf = SurfEch,

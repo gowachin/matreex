@@ -101,7 +101,7 @@ def_init_pop
 For this example, we will just modify the initial size distribution to start at a basal area of 30 $m^2/ha$.
 
 ```{r species}
-Picea_sp <- species(IPM = Picea_ipm)
+Picea_sp <- species(IPM = Picea_ipm, mat_size = "sp")
 ```
 
 ## Define a forest
@@ -172,7 +172,8 @@ Abies_ipm <- make_IPM(
     BA = 0, # Default values are 0:200, smaller values speed up this vignette.
     verbose = TRUE
 )
-Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA_pop(35))
+Abies_sp <- species(IPM = Abies_ipm, init_pop = def_initBA_pop(35), 
+                    mat_size = "sp")
 ```
 
 ```{r nsp_forest}
@@ -322,9 +323,9 @@ Picea_for$species[[1]]$init_pop <- def_init_kpop(x = c(-12, -5, 100, 300))
 
 This is an example where I compute the intrinsic mean time to extinction. We can see that the starting population may not be established.
 
-```{r}
+```{r, eval=FALSE}
 # test for mean time 
-n <- 100
+n <- 50
 sims <- vector("list", n)
 for(i in seq_along(sims)){
     print(i)
