@@ -210,6 +210,7 @@ sim_deter_forest.forest  <- function(Forest,
     # TEMP dev
     # targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     # targetKg <- map_dbl(Forest$species, ~ targetKg)
+    init_lag <- FALSE
     # TEMP dev
 
     # Idiot Proof ####
@@ -324,13 +325,15 @@ sim_deter_forest.forest  <- function(Forest,
 
     meshs <- map(Forest$species, ~ .x$IPM$mesh)
     types <- map_chr(Forest$species, ~ .x$info["type"])
+    stand_above_mat <- map2(meshs, Forest$species,
+                            ~ .x >= as.numeric(.y$info["mat_size"]))
     stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
     # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
     sim_X <- do.call("rbind", sim_X)
-    sim_BAstand <- sim_BAsp <- as.data.frame(matrix(
+    sim_BAstand <- sim_BAsp <- sim_BAsmat <- as.data.frame(matrix(
         ncol = nsp, nrow = tlim + 2, dimnames = list(NULL, names(Forest$species))
     ))
     sim_BA <- rep(NA_real_, equil_time)
@@ -343,9 +346,24 @@ sim_deter_forest.forest  <- function(Forest,
     Harv <- map(lengths(meshs), ~ rep(0, .x))
     ct <- map(meshs, Buildct, SurfEch = SurfEch)
 
+    sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
+    start_clim <- climate[1, , drop = TRUE] # why do I need this line ?
+
+    # DEV init lag ####
+    if(init_lag){ # if there is no log and maybe option init_lag
+        message("init_lag")
+        X <- map2(X, Forest$species,
+                  ~ def_init_lag(x = .x, sp = .y,
+                                 ba = sim_BAsp[1, ],
+                                 clim = start_clim,
+                                 SurfEch = SurfEch))
+    }
+
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
+    matX <- map2(X, stand_above_mat, `*`)
+    sim_BAsmat[1, ] <- map2_dbl(matX, ct, ~ .x %*% .y )
     standX <- map2(X, stand_above_dth, `*`)
     sim_BAstand[1, ] <- map2_dbl(standX, ct, `%*%`)
     sim_BA[1] <- sum(sim_BAsp[1,])
@@ -381,8 +399,6 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
-    start_clim <- climate[1, , drop = TRUE] # why do I need this line ?
-
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
         x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction,
         IsSurv = disturb_surv
@@ -533,16 +549,19 @@ sim_deter_forest.forest  <- function(Forest,
 
         ### Recruitment ####
         sim_clim <- climate[t, , drop = TRUE]
-        rec <- map(Forest$species, sp_rec.species, sim_clim)
+        rec <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
 
         recrues <- imap(
             rec,
-            function(x, .y, basp, banonsp, mesh, SurfEch, mig){
+            function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
                 if(basp[[.y]] == 0){ # if species is absent, no recruitment
                     return(mesh[[.y]] * 0)
                 }
-                exec(x, basp[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
-            }, basp = sim_BAsp[t-1,,drop = FALSE], banonsp = sim_BAnonSp,
+                exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
+            },
+            basp = sim_BAsp[t-1,,drop = FALSE],
+            bareg = sim_BAsmat[t-1,,drop = FALSE],
+            banonsp = sim_BAnonSp,
             mesh = meshs, SurfEch = SurfEch, mig = migrate )
 
         if(regional){
@@ -565,6 +584,8 @@ sim_deter_forest.forest  <- function(Forest,
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
         sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
+        matX <- map2(X, stand_above_mat, `*`)
+        sim_BAsmat[t, ] <- map2_dbl(matX, ct, ~ .x %*% .y )
         standX <- map2(X, stand_above_dth, `*`)
         sim_BAstand[t, ] <- map2_dbl(standX, ct, `%*%`)
         sim_BA[t] <- sum(sim_BAsp[t,])
