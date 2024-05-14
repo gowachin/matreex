@@ -278,7 +278,7 @@ old_ipm2species <- function(species, climatic = 1,
 
     res <- species(
         IPM = res_ipm, init_pop = init_pop, harvest_fun = harvest,
-        disturb_fun  = disturb, rdi_coef = rdi, disturb_coef = disturb_c,
+        disturb_fun = disturb, rdi_coef = rdi, disturb_coef = disturb_c,
         mat_size = mat_size,
         type = type
     )
@@ -308,15 +308,17 @@ old_ipm2species <- function(species, climatic = 1,
 def_init <- function(mesh, SurfEch = 0.03) {
     ct <- drop(Buildct(mesh = mesh, SurfEch = SurfEch))
     ini <- exp(runif(1, -.005, -1e-4) * mesh)
-    alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-    while(all(alea)){ # because god knows it's fucking possible that alea is
-                      # all FALSE and it will return NaN
-        alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
-    }
-    ini[alea] <- 0
-    res <- as.numeric(ini / sum(ct * ini) )
-    res <- res + 1e-4 # HACK to limit falling in floating point trap !
-                      # also line to add BA later if needed
+    # alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
+    # while(all(alea)){ # because god knows it's fucking possible that alea is
+    #                   # all FALSE and it will return NaN
+    #     alea <- rbinom(length(mesh), 1, runif(1, .6, .9)) == 1
+    # }
+    # ini[alea] <- 0
+    res <- as.numeric(ini / sum(ct * ini))
+    # res <- res + 1e-4 # HACK to limit falling in floating point trap !
+    # also line to add BA later if needed
+    res[mesh == 0] <- 0
+    res <- res
     return(res)
 }
 

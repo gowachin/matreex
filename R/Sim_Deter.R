@@ -210,6 +210,7 @@ sim_deter_forest.forest  <- function(Forest,
     # TEMP dev
     # targetRDI <- map_dbl(Forest$species, ~ targetRDI)
     # targetKg <- map_dbl(Forest$species, ~ targetKg)
+    init_lag <- FALSE
     # TEMP dev
 
     # Idiot Proof ####
@@ -345,6 +346,19 @@ sim_deter_forest.forest  <- function(Forest,
     Harv <- map(lengths(meshs), ~ rep(0, .x))
     ct <- map(meshs, Buildct, SurfEch = SurfEch)
 
+    sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
+    start_clim <- climate[1, , drop = TRUE] # why do I need this line ?
+
+    # DEV init lag ####
+    if(init_lag){ # if there is no log and maybe option init_lag
+        message("init_lag")
+        X <- map2(X, Forest$species,
+                  ~ def_init_lag(x = .x, sp = .y,
+                                 ba = sim_BAsp[1, ],
+                                 clim = start_clim,
+                                 SurfEch = SurfEch))
+    }
+
     BAsp <- map(Forest$species, ~ .x$IPM$BA)
     # save first pop
     sim_BAsp[1, ] <- map2_dbl(X, ct, ~ .x %*% .y )
@@ -385,8 +399,6 @@ sim_deter_forest.forest  <- function(Forest,
     }
 
     # Create sim IPM ####
-    start_clim <- climate[1, , drop = TRUE] # why do I need this line ?
-
     sim_ipm <- map(Forest$species, ~ get_step_IPM(
         x = .x$IPM, BA = sim_BA[1], climate = start_clim, sim_corr = correction,
         IsSurv = disturb_surv
