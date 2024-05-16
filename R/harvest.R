@@ -223,7 +223,11 @@ Even_harv <- function(x,
                       species,
                       ...) {
 
-    return(x)
+    warning("Even_harv() function is deprecated and even harvest happens at the stand level.")
+    if(F){
+        cat("Jasper can tell you it does not work !")
+    }
+    return(x * 0)
 }
 
 

@@ -64,9 +64,13 @@ new_species <- function(IPM, init_pop,
 
     if(!is.null(rdi_coef)){
         if(rdi_coef[[1]] == "sp"){
-            rdi_coef <- subset(matreex::rdi_coef, species == sp_name(IPM))
+            rdi_coef <- drop(as.matrix(
+                subset(matreex::rdi_coef, species == sp_name(IPM),
+                       select = c("intercept", "slope"))
+            ))
         }
     }
+
 
     if(!is.null(disturb_coef)){
         if(disturb_coef[[1]] == "sp"){

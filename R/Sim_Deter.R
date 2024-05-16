@@ -286,6 +286,11 @@ sim_deter_forest.forest  <- function(Forest,
                 run_disturb <- FALSE
             }
         }
+
+        if(harvest == "Even"){
+            warning(paste0("Disturbance won't be triggered if happening during",
+                     " the lag after a final harvest."))
+        }
     }
     correction <- match.arg(correction, c("cut", "none"))
     assertNumber(SurfEch, lower = 0)
@@ -328,7 +333,7 @@ sim_deter_forest.forest  <- function(Forest,
     stand_above_mat <- map2(meshs, Forest$species,
                             ~ .x >= as.numeric(.y$info["mat_size"]))
     stand_above_dth <- map2(meshs, Forest$species, ~ .x > .y$harv_lim["dth"])
-    # delay <- map(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
+    delay <- map_dbl(Forest$species, ~ as.numeric(.x$IPM$info["delay"]))
 
     ## Create output ####
     sim_X <- init_sim(nsp, tlim, meshs)
@@ -416,14 +421,47 @@ sim_deter_forest.forest  <- function(Forest,
     Pmax <- Forest$harv_rule["Pmax"]
     dBAmin <- Forest$harv_rule["dBAmin"]
     disturb <- FALSE
+    step_harv <- FALSE
+    t_harv <- 2
 
     while (t < tlim || (t <= equil_time && (t <= tlim || diff(
         range(sim_BA[max(1, t - 1 - equil_dist):max(1, t - 1)])
     ) > equil_diff))) {
 
+        ## Growth ####
+        X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )
 
-        ## t size distrib ####
-        X <- map2(X, sim_ipm, ~ drop( .y %*% .x ) )# Growth
+        ## Recruitment ####
+        sim_clim <- climate[t, , drop = TRUE]
+        rec <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
+        recrues <- imap(
+            rec,
+            function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
+                if(basp[[.y]] == 0){ # if species is absent, no recruitment
+                    return(mesh[[.y]] * 0)
+                }
+                exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
+            },
+            basp = sim_BAsp[t-1,,drop = FALSE],
+            bareg = sim_BAsmat[t-1,,drop = FALSE],
+            banonsp = sim_BAnonSp,
+            mesh = meshs, SurfEch = SurfEch, mig = migrate )
+        if(regional){
+            rec_reg <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
+
+            reg_recrues <- imap(
+                rec_reg,
+                function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
+                    exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
+                }, basp = sim_BAsp[t-1,,drop = FALSE], bareg = reg_ba, banonsp = reg_banonsp,
+                mesh = meshs, SurfEch = SurfEch, migrate )
+        } else {
+            reg_recrues <- map(recrues, ~ .x * 0)
+        }
+
+        # X <- map2(X, recrues, `+`) # gain time
+        X <- sapply(names(X), function(n, x, y, z) x[[n]] + y[[n]] + z[[n]],
+                    X, recrues, reg_recrues, simplify = FALSE)
 
         ## Disturbance ####
         if(run_disturb && t_disturb[t]){
@@ -502,7 +540,8 @@ sim_deter_forest.forest  <- function(Forest,
             X <- map2(X, Harv, `-`)
         } else if(!disturb && harvest == "Even"){
             ### Even ####
-            if(t %% final_harv == 0){
+            if(t_harv == final_harv){
+                step_harv <- TRUE
                 Harv <- X
                 X <- map2(map(Forest$species, `[[`, "init_pop"),
                           meshs,
@@ -546,40 +585,6 @@ sim_deter_forest.forest  <- function(Forest,
         } else {
             Harv <- map(meshs, ~ rep(0, length(.x)))
         }
-
-        ### Recruitment ####
-        sim_clim <- climate[t, , drop = TRUE]
-        rec <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
-
-        recrues <- imap(
-            rec,
-            function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
-                if(basp[[.y]] == 0){ # if species is absent, no recruitment
-                    return(mesh[[.y]] * 0)
-                }
-                exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * (1 - mig[[.y]])
-            },
-            basp = sim_BAsp[t-1,,drop = FALSE],
-            bareg = sim_BAsmat[t-1,,drop = FALSE],
-            banonsp = sim_BAnonSp,
-            mesh = meshs, SurfEch = SurfEch, mig = migrate )
-
-        if(regional){
-            rec_reg <- map(Forest$species, sp_rec.species, sim_clim, TRUE)
-
-            reg_recrues <- imap(
-                rec_reg,
-                function(x, .y, basp, bareg, banonsp, mesh, SurfEch, mig){
-                    exec(x, basp[[.y]], bareg[[.y]], banonsp[.y], mesh[[.y]], SurfEch) * mig[[.y]]
-                }, basp = sim_BAsp[t-1,,drop = FALSE], bareg = reg_ba, banonsp = reg_banonsp,
-                mesh = meshs, SurfEch = SurfEch, migrate )
-        } else {
-            reg_recrues <- map(recrues, ~ .x * 0)
-        }
-
-        # X <- map2(X, recrues, `+`) # gain time
-        X <- sapply(names(X), function(n, x, y, z) x[[n]] + y[[n]] + z[[n]],
-                    X, recrues, reg_recrues, simplify = FALSE)
 
         ## Save BA ####
         # compute new BA for selecting the right IPM and save values
@@ -636,7 +641,31 @@ sim_deter_forest.forest  <- function(Forest,
                 t, diff(range(sim_BA[max(1, t - equil_dist):t]))
             ))
         }
+
+        if(step_harv){
+            # TODO  step forward of the mean species lag
+            # TODO test if this is larger than tlim
+            step_for <- mean(delay)
+            if(t + step_for >= tlim){
+                t <- tlim - 1
+            } else {
+                t <- t + step_for
+            }
+
+            sim_BAsp[t, ] <- map2_dbl(X, ct, `%*%`)
+            matX <- map2(X, stand_above_mat, `*`)
+            sim_BAsmat[t, ] <- map2_dbl(matX, ct, ~ .x %*% .y )
+            standX <- map2(X, stand_above_dth, `*`)
+            sim_BAstand[t, ] <- map2_dbl(standX, ct, `%*%`)
+            sim_BA[t] <- sum(sim_BAsp[t,])
+            sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
+
+            step_harv <- FALSE
+            t_harv <- 0
+        }
+
         t <- t + 1
+        t_harv <- t_harv + 1
     }
 
     # Format output ####
