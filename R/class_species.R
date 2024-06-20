@@ -71,9 +71,8 @@ new_species <- function(IPM, init_pop,
         }
     }
 
-
     if(!is.null(disturb_coef)){
-        if(disturb_coef[[1]] == "sp"){
+        if(unlist(disturb_coef)[[1]] == "sp"){
             disturb_coef <- subset(matreex::disturb_coef, species == sp_name(IPM))
         }
     }
