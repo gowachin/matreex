@@ -428,6 +428,37 @@ def_init_k <- function(x){
     return(fun)
 }
 
+#' Init population from plantation, after even clear cut
+#'
+#' @param species name of the species. This allows to extract the parameters
+#' from matreex::distrib_planting dataset, that have been computed by Georges in
+#' issue #13.
+#'
+#' @details
+#' This function may replace def_init_even() in the long term.
+#'
+#'
+#' @export
+def_init_planting <- function(species){
+    # dev
+    # species <- "Picea_abies"
+    distrib <- matreex::distrib_planting
+    pms <- distrib[distrib$species == species,]
+    if(nrow(pms) != 1){
+        stop("This species does not retrieve any row from matreex::distrib_planting dataset. Check the format of the species column.")
+    }
+    force(params)
+    fun <- function(mesh, SurfEch = 0.03) {
+
+        x <- dnorm(log(mesh), mean = pms$mean_DBH_log, sd = pms$sd_DBH_log)/
+            (sum(dnorm(log(mesh), mean = pms$mean_DBH_log, sd = pms$sd_DBH_log)))
+        x[x < 1e-11] <- 0 # this teshold is the same as the IPM minimal non null values
+
+        return(x * SurfEch)
+    }
+
+    return(fun)
+}
 
 #' Default population harvest
 #'

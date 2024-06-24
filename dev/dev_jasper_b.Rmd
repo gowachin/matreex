@@ -1,0 +1,145 @@
+---
+title: "Debug cases from Jasper"
+output:
+    github_document
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+    collapse = TRUE,
+    comment = "#>"
+)
+options(cli.progress_show_after = 600)
+# 10 minutes before showing a cli progress bar
+
+library(tidyr)
+```
+
+# Common
+
+```{r make_IPM_Fagus}
+# library(matreex)
+load_all()
+library(dplyr)
+library(ggplot2)
+
+# Load fitted model for a species
+# fit_species # list of all species in dataset
+data("fit_Fagus_sylvatica")
+
+# Load associated climate
+data("climate_species")
+climate <- subset(climate_species, N == 2 & sp == "Fagus_sylvatica", select = -sp)
+# see ?climate_species to understand the filtering of N.
+climate
+
+Fagus_ipm <- make_IPM(
+    species = "Fagus_sylvatica",
+    climate = climate,
+    fit = fit_Fagus_sylvatica,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
+    BA = 0:80, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+```
+
+```{r make_IPM_sylvatica}
+data("fit_Abies_alba")
+Abies_ipm <- make_IPM(
+    species = "Abies_alba",
+    climate = climate, # this variable is defined at the top of the doc.
+    fit = fit_Abies_alba,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:80, # Default values are 0:200, smaller values speed up this vignette.
+    verbose = TRUE
+)
+```
+
+```{r hide warn, echo=FALSE}
+options(W_matreex_edist = FALSE)
+```
+
+# Uneven Harvest and Disturbance
+
+```{r uneven_forest}
+
+U_Forest <- forest(
+    species = list(
+        Fagus = species(IPM = Fagus_ipm, init_pop = def_initBA(30),
+                        harvest_fun = Uneven_harv, disturb_fun = disturb_fun,
+                        harv_lim = c(dth = 175, dha = 575, hmax = 1), 
+                        disturb_coef = "sp")
+    )
+)
+
+disturb <- data.frame(type = "storm", intensity = 0.8, IsSurv = FALSE, t = 100)
+
+U_Forest$species[[1]]$disturb_coef
+
+Uneven_sim <- sim_deter_forest(
+    U_Forest,
+    tlim = 260, equil_time = 260, equil_dist = 10, equil_diff = 1,
+    harvest = "Uneven", targetBA = 20,
+    SurfEch = 0.03, disturbance  = disturb,
+    verbose = TRUE
+)
+
+Uneven_sim  %>%
+    dplyr::filter(var %in% c("BAsp", "BAstand", "N"), ! equil) %>%
+    ggplot(aes(x = time, y = value)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+
+```
+
+# Harvest and Disturbance competition
+
+
+```{r uneven_forest}
+load_all()
+E_Forest <- forest(
+    species = list(
+        Fagus = species(IPM = Fagus_ipm, 
+                        init_pop = def_init_planting("Fagus_sylvatica"),
+                        harvest_fun = Even_harv, disturb_fun = disturb_fun,
+                        disturb_coef = "sp", rdi_coef = "sp") #,
+        # Abies = species(IPM = Abies_ipm, init_pop = def_init_even,
+                        # harvest_fun = Even_harv, disturb_fun = disturb_fun,
+                        # disturb_coef = "sp", rdi_coef = "sp")
+    ), 
+    harv_rules = c(Pmax = 0.25, dBAmin = 3, freq = 5, alpha = 1)
+)
+
+disturb <- data.frame(type = "storm", intensity = .5, IsSurv = FALSE, t = 150)
+
+E_Forest$species[[1]]$IPM$info["delay"] <- 48
+as.numeric(E_Forest$species[[1]]$IPM$info["delay"])
+
+Even_sim <- sim_deter_forest(
+    E_Forest,
+    tlim = 300, equil_time = 300, equil_dist = 10, equil_diff = 1,
+    harvest = "Even",  targetRDI = 0.6, targetKg = 0.7,
+    final_harv = 120,
+    disturbance  = disturb,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+
+Even_sim  %>%
+    # dplyr::filter(var %in% c("H", "N", "BAsp"), ! equil, time >90, time < 120) %>%
+    dplyr::filter(var %in% c("BAsp", "H", "N"), ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    facet_wrap(~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+
+Even_sim  %>%
+    # dplyr::filter(var %in% c("H", "N", "BAsp"), ! equil, time >90, time < 120) %>%
+    dplyr::filter(var %in% c("n", "h"), time %in% c(118:121, 165:175)) %>%
+    ggplot(aes(x = size, y = value, color = species)) +
+    facet_wrap(time ~ var, scales = "free_y") +
+    geom_line(linewidth = .2) + geom_point(size = 0.4)
+
+```
+

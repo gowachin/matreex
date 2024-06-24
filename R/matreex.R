@@ -7,4 +7,4 @@
 #'
 #' @name matreex
 #' @docType package
-NULL
+"_PACKAGE"

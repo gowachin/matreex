@@ -97,10 +97,10 @@ data from the package if the species is present in \code{data("fit_species")}.
 }
 \seealso{
 Other functions for initiating species population during simulation: 
+\code{\link{def_init}()},
 \code{\link{def_initBA}()},
 \code{\link{def_init_even}()},
-\code{\link{def_init_k}()},
-\code{\link{def_init}()}
+\code{\link{def_init_k}()}
 
 Other functions that defines harvest rules for a species.: 
 \code{\link{Even_harv}()},

@@ -50,7 +50,7 @@ test_that("sim_deter_forest delay & cut", {
                  "testthat", "testdata")
 
     model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
-                            replicat = 1, delay = 1)
+                            replicat = 1, delay = 1, init_pop = def_initBA(3))
 
     res<-evaluate_promise({
         set.seed(42)
@@ -62,7 +62,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
     expect_equal(res$messages[3], "time 500 | BA diff : 0.00\n")
     expect_equal(res$messages[4], "Simulation ended after time 500\n")
-    expect_equal(res$messages[5], "BA stabilized at 2.39 with diff of 0.00 at time 500\n")
+    expect_equal(res$messages[5], "BA stabilized at 2.38 with diff of 0.00 at time 500\n")
 
     expect_equal(dim(new), c(33066, 7))
     expect_equal(colnames(new),
@@ -77,7 +77,7 @@ test_that("sim_deter_forest delay & cut", {
                  "testthat", "testdata")
 
     model <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
-                            replicat = 1, delay = 5)
+                            replicat = 1, delay = 5, init_pop = def_initBA(2))
 
     res<-evaluate_promise({
         set.seed(666)
@@ -88,7 +88,7 @@ test_that("sim_deter_forest delay & cut", {
     expect_equal(res$messages[1], "apply a IPM cut correction\n")
     expect_equal(res$messages[2], "Starting while loop. Maximum t = 1000\n")
     expect_equal(res$messages[3], "Simulation ended after time 10\n")
-    expect_equal(res$messages[4], "BA stabilized at 1.41 with diff of 0.41 at time 10\n")
+    expect_equal(res$messages[4], "BA stabilized at 1.41 with diff of 0.60 at time 10\n")
     # expect_equal(res$warnings[1], "Maximum Basal Area reached for this simulation.")
 
     expect_equal(dim(new), c(814, 7))
@@ -153,7 +153,7 @@ test_that("sim_deter_forest warning climate", {
                  "testthat", "testdata")
 
     ygg <- old_ipm2species("Yggdrasil", climatic = 1, path = path,
-                            replicat = 1)
+                            replicat = 1, init_pop = def_initBA(3))
     model <- forest(species = list(Yggdrasil = ygg))
     warn <- "Because all species are fully integrated on a climate, providing one now is unnecessary"
 
