@@ -103,6 +103,7 @@ E_Forest <- forest(
     species = list(
         Fagus = species(IPM = Fagus_ipm, 
                         init_pop = def_init_planting("Fagus_sylvatica"),
+                        # init_pop = def_init_even,
                         harvest_fun = Even_harv, disturb_fun = disturb_fun,
                         disturb_coef = "sp", rdi_coef = "sp") #,
         # Abies = species(IPM = Abies_ipm, init_pop = def_init_even,
@@ -136,7 +137,8 @@ Even_sim  %>%
 
 Even_sim  %>%
     # dplyr::filter(var %in% c("H", "N", "BAsp"), ! equil, time >90, time < 120) %>%
-    dplyr::filter(var %in% c("n", "h"), time %in% c(118:121, 165:175)) %>%
+    dplyr::filter(var %in% c("n", "h"), time %in% c(119:121, 168:172)) %>%
+    # dplyr::filter(size < 500) %>%
     ggplot(aes(x = size, y = value, color = species)) +
     facet_wrap(time ~ var, scales = "free_y") +
     geom_line(linewidth = .2) + geom_point(size = 0.4)

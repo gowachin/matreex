@@ -543,9 +543,10 @@ sim_deter_forest.forest  <- function(Forest,
             if(t_harv == final_harv){
                 step_harv <- TRUE
                 Harv <- X
-                X <- map2(map(Forest$species, `[[`, "init_pop"),
-                          meshs,
-                          exec, SurfEch = SurfEch)
+                X <- map(lengths(meshs), ~ rep(0, .x))
+                # X <- map2(map(Forest$species, `[[`, "init_pop"),
+                #           meshs,
+                #           exec, SurfEch = SurfEch)
             } else if(t %% Forest$harv_rule["freq"] == 0){
 
                 rdi_sp <- map2_dbl(X, Forest$species, RDI_sp,
@@ -659,6 +660,10 @@ sim_deter_forest.forest  <- function(Forest,
             sim_BAstand[t, ] <- map2_dbl(standX, ct, `%*%`)
             sim_BA[t] <- sum(sim_BAsp[t,])
             sim_BAnonSp <- map2_dbl( - sim_BAsp[t, ,drop = FALSE], sim_BA[t],  `+`)
+
+            X <- map2(map(Forest$species, `[[`, "init_pop"),
+                      meshs,
+                      exec, SurfEch = SurfEch)
 
             step_harv <- FALSE
             t_harv <- 0

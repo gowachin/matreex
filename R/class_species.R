@@ -441,17 +441,18 @@ def_init_k <- function(x){
 #' @export
 def_init_planting <- function(species){
     # dev
-    # species <- "Picea_abies"
+    # species <- "Fagus_sylvatica"
     distrib <- matreex::distrib_planting
     pms <- distrib[distrib$species == species,]
     if(nrow(pms) != 1){
         stop("This species does not retrieve any row from matreex::distrib_planting dataset. Check the format of the species column.")
     }
-    force(params)
+    force(pms)
     fun <- function(mesh, SurfEch = 0.03) {
 
         x <- dnorm(log(mesh), mean = pms$mean_DBH_log, sd = pms$sd_DBH_log)/
             (sum(dnorm(log(mesh), mean = pms$mean_DBH_log, sd = pms$sd_DBH_log)))
+        x <- x * pms$Nha
         x[x < 1e-11] <- 0 # this teshold is the same as the IPM minimal non null values
 
         return(x * SurfEch)
