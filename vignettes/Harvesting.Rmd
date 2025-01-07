@@ -416,7 +416,9 @@ expand.grid(hmax = c(.5, .8), k = c(0.1, .5)) %>%
 
 The last parameter for an even harvested simulation is the final cut time. The stand will be harvested with the previous rules at a given frequency but at a certain point, the manager will harvest all trees and plant new ones. This time is dependant on the species growth and differents targets. The value is named `final_harv` in `sim_deter_forest()` function.
 
-**Because the rdi coefficient depends on a species, it's not possible to use multiple species forest with {matreex} package. Please contact authors if you need to use mutlispecific even harvesting.**
+After a final harvest, the simulation will recruit with an initiation function. In order to take the lag into account, an artificial lag (mean of the simulated species lag) is added until the next start of growth. This step will add NA rows in the result. Any event (disturbance) happening during this lag will not be triggered.
+
+<!-- **Because the rdi coefficient depends on a species, it's not possible to use multiple species forest with {matreex} package. Please contact authors if you need to use mutlispecific even harvesting.** -->
 
 <!-- Mortality is triggered when stand density exceeds the self-thinning boundary, i.e. when $DI$  is greater than or equal to 1. In that case, $DI$ is reduced to 1 using the $Kg$ parameter, with -->
 

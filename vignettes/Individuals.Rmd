@@ -55,8 +55,7 @@ The first step is the IPM integration. This part is common with basic usage of t
 If you only use the IBM function to simulate later, the IPM integration can be done for a single basal area `BA = 0`.
 
 ```{r make_IPM_Picea}
-# library(matreex)
-devtools::load_all()
+library(matreex)
 library(dplyr)
 library(ggplot2)
 

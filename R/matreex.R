@@ -6,4 +6,5 @@
 #' Fill the package description !
 #'
 #' @name matreex
-'_PACKAGE'
+#' @docType package
+"_PACKAGE"
