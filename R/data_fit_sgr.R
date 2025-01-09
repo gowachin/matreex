@@ -26,64 +26,31 @@
 "lag_species"
 
 #' @rdname fit_data
-"fit_Abies_alba"
-
-#' @rdname fit_data
-"fit_Acer_campestre"
-
-#' @rdname fit_data
-"fit_Acer_pseudoplatanus"
-
-#' @rdname fit_data
-"fit_Alnus_glutinosa"
-
-#' @rdname fit_data
-"fit_Betula"
-
-#' @rdname fit_data
-"fit_Carpinus_betulus"
-
-#' @rdname fit_data
-"fit_Fagus_sylvatica"
-
-#' @rdname fit_data
-"fit_Fraxinus_excelsior"
-
-#' @rdname fit_data
-"fit_Larix_decidua"
-
-#' @rdname fit_data
-"fit_Picea_abies"
-
-#' @rdname fit_data
-"fit_Pinus_halepensis"
-
-#' @rdname fit_data
-"fit_Pinus_nigra"
+"fit_Pinus_sylvestris"
 
 #' @rdname fit_data
 "fit_Pinus_pinaster"
 
 #' @rdname fit_data
-"fit_Pinus_pinea"
+"fit_Picea_abies"
 
 #' @rdname fit_data
-"fit_Pinus_sylvestris"
+"fit_Pinus_nigra"
 
 #' @rdname fit_data
-"fit_Pinus_uncinata"
-
-#' @rdname fit_data
-"fit_Populus_tremula"
-
-#' @rdname fit_data
-"fit_Prunus_padus"
-
-#' @rdname fit_data
-"fit_Quercus_faginea"
+"fit_Pinus_halepensis"
 
 #' @rdname fit_data
 "fit_Quercus_ilex"
+
+#' @rdname fit_data
+"fit_Fagus_sylvatica"
+
+#' @rdname fit_data
+"fit_Quercus_robur"
+
+#' @rdname fit_data
+"fit_Betula"
 
 #' @rdname fit_data
 "fit_Quercus_petraea"
@@ -95,10 +62,43 @@
 "fit_Quercus_pyrenaica"
 
 #' @rdname fit_data
-"fit_Quercus_robur"
-
-#' @rdname fit_data
 "fit_Quercus_suber"
 
 #' @rdname fit_data
+"fit_Pinus_pinea"
+
+#' @rdname fit_data
+"fit_Abies_alba"
+
+#' @rdname fit_data
+"fit_Carpinus_betulus"
+
+#' @rdname fit_data
+"fit_Pinus_uncinata"
+
+#' @rdname fit_data
+"fit_Fraxinus_excelsior"
+
+#' @rdname fit_data
+"fit_Quercus_faginea"
+
+#' @rdname fit_data
+"fit_Alnus_glutinosa"
+
+#' @rdname fit_data
+"fit_Populus_tremula"
+
+#' @rdname fit_data
+"fit_Acer_campestre"
+
+#' @rdname fit_data
+"fit_Acer_pseudoplatanus"
+
+#' @rdname fit_data
+"fit_Larix_decidua"
+
+#' @rdname fit_data
 "fit_Salix_caprea"
+
+#' @rdname fit_data
+"fit_Prunus_padus"
