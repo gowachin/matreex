@@ -49,7 +49,7 @@ The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: grow
 Note, that this package do not cover the statistical fitting of the vital rates functions.
 
 **This vignette in not fully written**
-<!--
+
 ## Pipeline example
 
 Below is a simple script to show default function calls. To build an IPM for a species, we need the fitted models for growth, survival and recruitment in a `fit_sgr` class (see the main vignette for class explanations). A vector of climatic variables is also needed, as it represent the climate of our simulations.
@@ -101,7 +101,7 @@ IPM <- make_IPM(
 
 # Methods
 
-We implemented 2 way to integrate our matrix with this package : Gauss-Legendre and Mid-bin. The first one is more precise but takes a lot more time whereas the second is rapid but include more error for a larger values in the derivative growth function. We combine both is most use cases.
+We implemented 2 waye to integrate our matrix with this package : Gauss-Legendre and Mid-bin. The first one is more precise but takes a lot more time whereas the second is rapid but include more error for a larger values in the derivative growth function. We combine both is most use cases.
 
 ## Band matrix
 
@@ -109,64 +109,184 @@ To speed up computations, several methods are used :
 
 - The upper-half of the matrix is not integrated because it represent tree whose size reduces along time.
 
-- The integration is made in a band matrix that we replace in the IPM final matrix. This allow to vectorise the computation.
+- Only few cells next to the diagonal are computed because tree growth is very slow. This number of cell is divided between Gauss-Legendre and Mid-bin methods. Gauss-Legendre is used close to the diagonal, as we expect the largest derivative values for small growths. The number of cells integrated in GL is named $N_{int}$ and represent $50 mm$ growth by default. After $50 mm$ growth, the integration is done with Mid-bin method, for 25 cells.
 
-- Only few cells next to the diagonal are computed because tree growth is very slow. This number of cell is named $N_{int}$ and is computed for Gauss Legendre and an argument for mid-bin integration.
+- Since the integration takes place over a wide band of one distance from the diagonal on the $z$ distribution, it is possible to integrate a matrix of dimension $z$ after a change of dimension where $\delta_z = z_{t+1} - z_t$. This allow to vectorise the computation.
 
-```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
-\begin{tikzpicture}[scale = 0.4, every node/.style={scale=0.4}]
-        \foreach \i in {4,3.5,...,0}{
-                        {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
-                }
-        \foreach \i in {5,4.5,...,0.5}{
-                        {\fill[gray!50] (\i, 5-\i) -- (5,5-\i) -- (5,5) -- (\i,5);}
-                }
+- Different levels of integration are used for the different methods. This will be explained in more detail in next chapters.
 
-        \draw (0,0) grid[step=.5] (5,5);
-        \draw (2.5,5) node[above]{$size_t$} ;
-        \draw (0,2.5) node[left]{$size_{t+1}$} ;
-        \draw(0,5) node[above] {$L$};
-        \draw(5,5) node[above] {$U$};
+```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transistion between IPM and the band matrix really integrated. Dotted line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of observations.", fig.width= 8}
+\begin{tikzpicture}
+    \foreach \i in {3,2.5,...,0}{
+    {\fill[blue!20] (\i, 5-\i-2) -- (5,5-\i-2) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {4,3.5,...,0}{
+    {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {5,4.5,...,0.5}{
+    {\fill[gray!50] (\i, 5-\i) -- (5,5-\i) -- (5,5) -- (\i,5);}
+    }
+    
+    \draw (0,0) grid[step=.5] (5,5);
+    \draw (2.5,5) node[above]{$z_t$} ;
+    \draw (0,2.5) node[left]{$z_{t+1}$} ;
+    \draw(0,5) node[above] {$L$};
+    \draw(5,5) node[above] {$U$};
+    
+    \draw(6,4) node[fill=gray!50,right] {Un-integrated};
+    \draw(6,3.5) node[right] {$m = 10$ ; $h = 2.5$};
+    \draw(6,3) node[fill=red!50,right] {Gauss-Legendre};
+    \draw(6,2.5) node[right] {$diag\_tresh = 5$ ; $N_{intGL} = 2$};
+    \draw(6,2) node[fill=blue!20,right] {Midbin};
+    \draw(6,1.5) node[right] {$N_{intMB} = 2$};
+    
+    \node[draw,text width=5cm, right] at (6,0.5) {
+    $L$: Lower value of the mesh \\
+    $U$: Upper value of the mesh
+    %$mesh = [L + h / 2, U - h / 2]$ with $m$ element \\
+    %$N_{int} = sum((mesh - (L + \frac{h}{2}) < tresh)$
+    };
+    
+    \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+                                              .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 0);
+    \draw[line width=1pt, dotted] (0,5) -- (5,0);
 
-        \draw(7,3.5) node[fill=gray!50,above] {Un-integrated};
-        \draw(7,3.5) node[below] {$m = 10$};
-        \draw(7,2.5) node[fill=red!50,above] {Gauss-Legendre};
-        \draw(7,2.5) node[below] {$N_{int} = 2$};
+    
+    \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+    % \fill[red!30] (4.5, -2) -- (4.5,-1.5) -- (5,-1.5) -- (5,-2);
+    \draw (0,-2) grid[step=.5] (5,-1);
+    \draw (2.5,-1) node[above]{$z_t$} ;
+    \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
+    \draw(0,-1) node[above] {$L$};
+    \draw(5,-1) node[above] {$U$};
+    \draw[->] (5.25,-1) -- (5.25,-2);
+    \draw(5.25,-1) node[right] {0};
+    \draw(5.25,-2) node[right] {$N_{int}$};
 
-        \node[draw,text width=5cm] at (9,0) {
-                $L$: Lower value of the mesh \\
-                $U$: Upper value of the mesh
-                %$mesh = [L + h / 2, U - h / 2]$ with $m$ element \\
-                %$N_{int} = sum((mesh - (L + \frac{h}{2}) < tresh)$
-        };
-
-        \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
-        \fill[red!30] (4.5, -2) -- (4.5,-1.5) -- (5,-1.5) -- (5,-2);
-        \draw (0,-2) grid[step=.5] (5,-1);
-        \draw(7,-1.5) node[above] {Band Matrix};
-        \draw(7,-1.5) node[below] {$\alpha$ is ignored};
-
-        \draw(.25,4.75) node {$x$};
-        \draw(.25,4.25) node {$y$};
-        \draw(.25,-1.25) node {$x$};
-        \draw(.25,-1.75) node {$y$};
-        \draw(4.75,-1.75) node {$\alpha$};
-
-        \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-1.3, 2.5) to [out=-90,in=150] (0,-1.5);
-
+    \draw(6,-1.5) node[right] {Band Matrix for Gauss-Legendre};
+    
+    \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-1.3, 2.5) to [out=-90,in=150] (0,-1.5);
+    
 \end{tikzpicture}
 ```
 
-## Gauss Legendre
 
-The Gauss Legendre use the `statmod::gauss.quad()` function. This integration has different levels on different dimensions : on $size_t$ we integrate at $level = 3$ whereas on $size_{t+1}$ we integrate at $N_{int}$.
+## Gauss Legendre
 
 $N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. We can also understand it as
 
 $$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
 
+For each cell under Gauss-Legendre integration method, multiple levels are used : on $size_t$ we integrate at $level = 3$ whereas on $\delta_z$ we integrate at $level = \frac{level_{param}}{3}$. The input parameter $level_{param}$ default value is 420. This is used because as seen earlier we expect most variation to exist along the $\delta_z$ axis.
 
-Below is a schematic view so to represent how the points are placed for the Gauss Legendre integration with $N_{int} = 2; level = 4$. The red lign is the diagonal of the mesh and triangle points are values we set to 0 because they represent the probability that $size_{t+1} < size_t$.
+Distribution of the points and their weights is given by the `statmod::gauss.quad()` function. 
+
+```{r gauss-legendre, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell. Level for $\\delta_z$ is an example."}
+\begin{tikzpicture}
+
+    \draw (0,0) grid[step=5] (5,5);
+
+    \node at (1.25,0.5) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,1.5) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,2.5) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,3.5) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,4.5) [circle,fill,inner sep=1pt]{};
+
+    \node at (2.5,0.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,1.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,2.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,3.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,4.5) [circle,fill,inner sep=1pt]{};
+
+    \node at (3.75,0.5) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,1.5) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,2.5) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,3.5) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,4.5) [circle,fill,inner sep=1pt]{};
+
+    \draw (2.5,5) node[above]{$size_t$} ;
+    \draw (0,2.5) node[left]{$\delta_{z}$} ;
+
+    \draw(6,3) node[right] {$size_t$ $level = 3$};
+    \draw(6,2) node[right] {$\delta_{z} level = 5$};
+
+    \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+    \draw (0,-2) grid[step=.5] (5,-1);
+    \draw (2.5,-1) node[above]{$z_t$} ;
+    \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
+    \draw(0,-1) node[above] {$L$};
+    \draw(5,-1) node[above] {$U$};
+    \draw[->] (5.25,-1) -- (5.25,-2);
+    \draw(5.25,-1) node[right] {0};
+    \draw(5.25,-2) node[right] {$N_{int}$};
+
+    \draw(.25,4.75) node[] {$y$};
+    \draw(.25,-1.75) node[] {$y$};
+
+    \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-1.75);
+
+
+\end{tikzpicture}
+```
+
+A correction is however applied in order to offset the position of the points on the $\delta_z$ axis, to avoid the upper part of the matrix to affect the values.
+
+```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell. Level for $\\delta_z$ is an example."}
+\begin{tikzpicture}
+
+    \draw[dotted] (0, 0) -- (5,0) -- (5, 5) -- (0,5) -- cycle;
+    % \draw (0,-1) grid[step=5, dotted] (5,6);
+    \draw[] (0, -1) -- (5,-1) -- (5, 6) -- (0,6) -- cycle;
+    \draw[line width=1pt, dotted] (0,5) -- (5,0);
+    
+
+    \node at (1.25,0.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+    \node at (1.25,1.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+    \node at (1.25,2.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+    \node at (1.25,3.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+    \node at (1.25,4.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+
+    \node at (2.5,0.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,1.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,2.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,3.5) [circle,fill,inner sep=1pt]{};
+    \node at (2.5,4.5) [circle,fill,inner sep=1pt]{};
+
+    \node at (3.75,0.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,1.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,2.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,3.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,4.5-1.25) [circle,fill,inner sep=1pt]{};
+
+    \draw (2.5,6) node[above]{$size_t$} ;
+    \draw (0,2.5) node[left]{$\delta_{z}$} ;
+    \draw[|-|] (5.25,0) -- (5.25,5);
+    \draw(5.25,2.5) node[right] {$h$};
+
+    \draw(6,3) node[right] {$size_t$ $level = 3$};
+    \draw(6,2) node[right] {$\delta_{z} level = 5$};
+
+    \fill[red!50] (0, -4) -- (5,-4) -- (5, -3) -- (0,-3);
+    \draw (0,-4) grid[step=.5] (5,-3);
+    \draw (2.5,-3) node[above]{$z_t$} ;
+    \draw (-0.25,-3.5) node[left]{$\delta_{z}$} ;
+    \draw(0,-3) node[above] {$L$};
+    \draw(5,-3) node[above] {$U$};
+    \draw[->] (5.25,-3) -- (5.25,-4);
+    \draw(5.25,-3) node[right] {0};
+    \draw(5.25,-4) node[right] {$N_{int}$};
+
+    \draw(.25,4.75) node[] {$y$};
+    \draw(.25,-3.75) node[] {$y$};
+
+    \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-3.75);
+
+\end{tikzpicture}
+```
+
+<!--
+
+Below is a schematic view so to represent how the points are placed for the Gauss Legendre integration with $N_{int} = 2; level = 4$. The red line is the diagonal of the mesh and triangle points are values we set to 0 because they represent the probability that $size_{t+1} < size_t$.
 
 ```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
 
@@ -205,7 +325,7 @@ Below is a schematic view so to represent how the points are placed for the Gaus
         \end{axis}
 \end{tikzpicture}
 ```
-
+-->
 <!-- ## Midbin -->
 
 <!-- ```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE} -->
