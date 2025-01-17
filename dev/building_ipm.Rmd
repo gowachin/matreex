@@ -115,8 +115,8 @@ To speed up computations, several methods are used :
 
 - Different levels of integration are used for the different methods. This will be explained in more detail in next chapters.
 
-```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transistion between IPM and the band matrix really integrated. Dotted line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of observations.", fig.width= 8}
-\begin{tikzpicture}
+```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transistion between IPM and the band matrix really integrated. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of observations."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
     \foreach \i in {3,2.5,...,0}{
     {\fill[blue!20] (\i, 5-\i-2) -- (5,5-\i-2) -- (5,5) -- (\i,5);}
     }
@@ -149,11 +149,10 @@ To speed up computations, several methods are used :
     
     \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
                                               .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 0);
-    \draw[line width=1pt, dotted] (0,5) -- (5,0);
+    \draw[line width=1pt, dashed] (0,5) -- (5,0);
 
     
     \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
-    % \fill[red!30] (4.5, -2) -- (4.5,-1.5) -- (5,-1.5) -- (5,-2);
     \draw (0,-2) grid[step=.5] (5,-1);
     \draw (2.5,-1) node[above]{$z_t$} ;
     \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
@@ -179,10 +178,10 @@ $$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
 
 For each cell under Gauss-Legendre integration method, multiple levels are used : on $size_t$ we integrate at $level = 3$ whereas on $\delta_z$ we integrate at $level = \frac{level_{param}}{3}$. The input parameter $level_{param}$ default value is 420. This is used because as seen earlier we expect most variation to exist along the $\delta_z$ axis.
 
-Distribution of the points and their weights is given by the `statmod::gauss.quad()` function. 
+Distribution of the nodes and their weights is given by the `statmod::gauss.quad()` function. 
 
-```{r gauss-legendre, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell. Level for $\\delta_z$ is an example."}
-\begin{tikzpicture}
+```{r gauss-legendre, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
 
     \draw (0,0) grid[step=5] (5,5);
 
@@ -204,10 +203,12 @@ Distribution of the points and their weights is given by the `statmod::gauss.qua
     \node at (3.75,3.5) [circle,fill,inner sep=1pt]{};
     \node at (3.75,4.5) [circle,fill,inner sep=1pt]{};
 
-    \draw (2.5,5) node[above]{$size_t$} ;
+    \draw (2.5,5) node[above]{$z_t$} ;
     \draw (0,2.5) node[left]{$\delta_{z}$} ;
+    \draw[|-|] (5.25,0) -- (5.25,5);
+    \draw(5.25,2.5) node[right] {$h$};
 
-    \draw(6,3) node[right] {$size_t$ $level = 3$};
+    \draw(6,3) node[right] {$z_t$ $level = 3$};
     \draw(6,2) node[right] {$\delta_{z} level = 5$};
 
     \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
@@ -220,7 +221,7 @@ Distribution of the points and their weights is given by the `statmod::gauss.qua
     \draw(5.25,-1) node[right] {0};
     \draw(5.25,-2) node[right] {$N_{int}$};
 
-    \draw(.25,4.75) node[] {$y$};
+    \draw(.25,0.25) node[] {$y$};
     \draw(.25,-1.75) node[] {$y$};
 
     \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-1.75);
@@ -229,22 +230,22 @@ Distribution of the points and their weights is given by the `statmod::gauss.qua
 \end{tikzpicture}
 ```
 
-A correction is however applied in order to offset the position of the points on the $\delta_z$ axis, to avoid the upper part of the matrix to affect the values.
+A correction is however applied in order to offset the position of the nodes on the $\delta_z$ axis, to avoid the upper part of the matrix to affect the values. The offset value is the position of the nodes on $z_t$.
 
-```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell. Level for $\\delta_z$ is an example."}
-\begin{tikzpicture}
+```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. Diagonal dotted line is the identity where $\\delta_z = z_t$ and horizontal dashed line mark the cell limit."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
 
     \draw[dotted] (0, 0) -- (5,0) -- (5, 5) -- (0,5) -- cycle;
     % \draw (0,-1) grid[step=5, dotted] (5,6);
     \draw[] (0, -1) -- (5,-1) -- (5, 6) -- (0,6) -- cycle;
-    \draw[line width=1pt, dotted] (0,5) -- (5,0);
+    \draw[line width=0.2pt, dashed] (0,5) -- (5,0);
     
 
-    \node at (1.25,0.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
-    \node at (1.25,1.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
-    \node at (1.25,2.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
-    \node at (1.25,3.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
-    \node at (1.25,4.5+1.25) [circle,fill,inner sep=1pt,fill = red]{};
+    \node at (1.25,0.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,1.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,2.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,3.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,4.5+1.25) [circle,fill,inner sep=1pt]{};
 
     \node at (2.5,0.5) [circle,fill,inner sep=1pt]{};
     \node at (2.5,1.5) [circle,fill,inner sep=1pt]{};
@@ -258,12 +259,12 @@ A correction is however applied in order to offset the position of the points on
     \node at (3.75,3.5-1.25) [circle,fill,inner sep=1pt]{};
     \node at (3.75,4.5-1.25) [circle,fill,inner sep=1pt]{};
 
-    \draw (2.5,6) node[above]{$size_t$} ;
+    \draw (2.5,6) node[above]{$z_t$} ;
     \draw (0,2.5) node[left]{$\delta_{z}$} ;
     \draw[|-|] (5.25,0) -- (5.25,5);
     \draw(5.25,2.5) node[right] {$h$};
 
-    \draw(6,3) node[right] {$size_t$ $level = 3$};
+    \draw(6,3) node[right] {$z_t$ $level = 3$};
     \draw(6,2) node[right] {$\delta_{z} level = 5$};
 
     \fill[red!50] (0, -4) -- (5,-4) -- (5, -3) -- (0,-3);
@@ -276,7 +277,7 @@ A correction is however applied in order to offset the position of the points on
     \draw(5.25,-3) node[right] {0};
     \draw(5.25,-4) node[right] {$N_{int}$};
 
-    \draw(.25,4.75) node[] {$y$};
+    \draw(.25,0.25) node[] {$y$};
     \draw(.25,-3.75) node[] {$y$};
 
     \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-3.75);
@@ -284,71 +285,56 @@ A correction is however applied in order to offset the position of the points on
 \end{tikzpicture}
 ```
 
-<!--
+$$g(z_{t+1}) = \frac{f(log(\delta_z))}{\delta_z}$$
 
-Below is a schematic view so to represent how the points are placed for the Gauss Legendre integration with $N_{int} = 2; level = 4$. The red line is the diagonal of the mesh and triangle points are values we set to 0 because they represent the probability that $size_{t+1} < size_t$.
+The definition of annual growth is represented by two alternative models depending on climatic variables ($sgdd$ and $wai$) and plot basal area ($BA$)
 
-```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
+$$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 \frac{1}{sgdd} + a_5 \frac{1}{wai}$$
 
-\begin{tikzpicture}[declare function = {f(\x, \y) = exp(-(\x-(\y+3))^2)+\y*1.2;},
-                    scale = 0.4, every node/.style={scale=0.4}]
-        \begin{axis}[xlabel={size $t+1$}, ylabel={size $t$}]
+$$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 sgdd + a_5 sgdd^2 + a_6 wai + a_7 wai^2$$
 
-                \addplot3[mesh, shader=interp, samples=20, domain=0.1:4.1, domain y = 0.1:2.1] {f(x, y)};
-                \addplot3 table [z expr = exp(-(x-(y+3))^2) + y*1.2, x = col1,  y = col2, color = black] 
-                        {
-                        col1 col2
-                        0.1 0.1
-                        2.1  2.1
-                        };
-                \addplot3[mesh, shader=interp,samples=3,samples y = 2,domain=0.1:4.1,domain y = 0.1:2.1, color = black] 
-                {f(x, y)};
-                \addplot3[mark=triangle*,mark size=4pt, color = purple]
-                        (0.35,0.6, {exp(-(0.35-(0.6+3))^2) + 0.6 * 1.2});
-                \addplot3[domain=0.35:0.85, samples=2, only marks,mark=triangle*,mark size=4pt, color = blue]
-                        (x,1.1, {exp(-(x-(1.1+3))^2) + 1.1 * 1.2});
-                \addplot3[domain=0.35:1.35, samples=3, only marks,mark=triangle*,mark size=4pt, color = green]
-                        (x,1.6,{exp(-(x-(1.6+3))^2) + 1.6 * 1.2});
+## Midbin
 
-                \addplot3[domain=0.85:3.85, samples=7, only marks,mark=*,mark size=4pt, color = purple]
-                        (x,0.6,{exp(-(x-(0.6+3))^2) + 0.6 * 1.2});
-                \addplot3[domain=1.35:3.85, samples=6, only marks,mark=*,mark size=4pt, color = blue]
-                        (x,1.1, {exp(-(x-(1.1+3))^2) + 1.1 * 1.2});
-                \addplot3[domain=1.85:3.85, samples=5, only marks,mark=*,mark size=4pt, color = green]
-                        (x,1.6, {exp(-(x-(1.6+3))^2) + 1.6 * 1.2} );
+For each cell under Mid-bon integration method, a single level is used, on $size_t$ we integrate at $level = 3$.
+
+Distribution of the nodes is regular, in order to space them equally between $L - h/2$ and $U = h/2$. Each node has the same weight.
+
+```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE , fig.cap="Mid bin integration."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
+
+    \draw (0,0) grid[step=5] (5,5);
+
+    \node at (1.25,2.5) [circle,fill,inner sep=1pt]{};
+
+    \node at (2.5,2.5) [circle,fill,inner sep=1pt]{};
+
+    \node at (3.75,2.5) [circle,fill,inner sep=1pt]{};
+
+    \draw (2.5,5) node[above]{$z_t$} ;
+    \draw (0,2.5) node[left]{$\delta_{z}$} ;
+    \draw[|-|] (5.25,0) -- (5.25,5);
+    \draw(5.25,2.5) node[right] {$h$};
+
+    \draw(6,3) node[right] {$z_t$ $level = 3$};
+
+    \fill[blue!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+    \draw (0,-2) grid[step=.5] (5,-1);
+    \draw (2.5,-1) node[above]{$z_t$} ;
+    \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
+    \draw(0,-1) node[above] {$L$};
+    \draw(5,-1) node[above] {$U$};
+    \draw[->] (5.25,-1) -- (5.25,-2);
+    \draw(5.25,-1) node[right] {0};
+    \draw(5.25,-2) node[right] {$N_{int}$};
+
+    \draw(.25,0.25) node[] {$y$};
+    \draw(.25,-1.75) node[] {$y$};
+
+    \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-1.75);
 
 
-                % line not working, don't know why
-                % \addplot3[domain=1.85:3.85, samples=5, only marks,mark=*,mark size=4pt, color = green]
-                        % (x,1.6, {f(x, 1.6)} );
-
-        \end{axis}
 \end{tikzpicture}
 ```
--->
-<!-- ## Midbin -->
-
-<!-- ```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE} -->
-
-<!-- \begin{tikzpicture}[scale = 0.4,every node/.style={scale=0.4}] -->
-
-<!--         \begin{axis}[xlabel={size $t+1$}, ylabel={size $t$}] -->
-
-<!--                 \addplot3[mesh, shader=interp, samples=20, domain=0.1:1.1, domain y = 0.1:2.1] {1 /x + y}; -->
-<!--                 \addplot3[domain=0.1:1.1, domain y= 0.1:2.1, samples=10,samples y=0,  -->
-<!--                         only marks,mark=*,mark size=4pt, color = purple] -->
-<!--                         (x,1.1,1/x + 1.1); -->
-<!--                 \addplot3[domain=0.1:1.1, domain y= 0.1:2.1, samples=10,samples y=0, line width=2pt] -->
-<!--                         (x,1.1,1/x + 1.1); -->
-
-<!--         \end{axis} -->
-
-<!--         \begin{scope}[shift={(10,0)}] -->
-<!--                 \node[draw,text width=4cm] at (0,2) {Integration on size at $t$ is $1$ and $n=level$ for size at $t+1$.}; -->
-<!--         \end{scope} -->
-
-<!-- \end{tikzpicture} -->
-<!-- ``` -->
 
 <!--
 ## Code option examples
@@ -413,7 +399,7 @@ IPM <- make_IPM(
 <!-- #> Time difference of 21.2 secs -->
 <!-- ``` -->
 
-<!-- 
+
 
 # Glossary {-}
 
@@ -429,5 +415,5 @@ BA
 
 :   Basal area of population of tree. ${\displaystyle BA=\pi \times (DBH/2)^{2}}$.
 
- -->
+
 
