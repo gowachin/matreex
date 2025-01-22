@@ -232,7 +232,7 @@ Distribution of the nodes and their weights is given by the `statmod::gauss.quad
 
 A correction is however applied in order to offset the position of the nodes on the $\delta_z$ axis, to avoid the upper part of the matrix to affect the values. The offset value is the position of the nodes on $z_t$.
 
-```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. Diagonal dotted line is the identity where $\\delta_z = z_t$ and horizontal dashed line mark the cell limit."}
+```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. Diagonal dashed line is the identity where $\\delta_z = z_t$ and horizontal dotted line mark the cell limit."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
 
     \draw[dotted] (0, 0) -- (5,0) -- (5, 5) -- (0,5) -- cycle;
@@ -285,9 +285,13 @@ A correction is however applied in order to offset the position of the nodes on 
 \end{tikzpicture}
 ```
 
-$$g(z_{t+1}) = \frac{f(log(\delta_z))}{\delta_z}$$
+What we need to compute is the predicted size $g(z_{t+1})$ depending on the mean growth for a year $\mu_G(z)$ at each node. Because the log diameter growth follow a normal kernel as : 
 
-The definition of annual growth is represented by two alternative models depending on climatic variables ($sgdd$ and $wai$) and plot basal area ($BA$)
+$$f(log(\frac{\delta_z}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
+We can write the kernel of diameter $z_{t+1}$ as : 
+
+$$g(z_{t+1}) = \frac{f(\mu_G(z))}{\delta_z} = \frac{f(log(\delta_z))}{\delta_z}$$
+The definition of annual growth is represented by two alternative models depending on climatic variables ($sgdd$ and $wai$) and plot basal area ($BA$).
 
 $$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 \frac{1}{sgdd} + a_5 \frac{1}{wai}$$
 
@@ -295,7 +299,7 @@ $$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 sgdd + a_5 sgdd^
 
 ## Midbin
 
-For each cell under Mid-bon integration method, a single level is used, on $size_t$ we integrate at $level = 3$.
+For each cell under Mid-bin integration method, a single level is used, on $size_t$ we integrate at $level = 3$.
 
 Distribution of the nodes is regular, in order to space them equally between $L - h/2$ and $U = h/2$. Each node has the same weight.
 
@@ -336,7 +340,6 @@ Distribution of the nodes is regular, in order to space them equally between $L 
 \end{tikzpicture}
 ```
 
-<!--
 ## Code option examples
 
 Few specific settings allow to test partial integration, this section will list few of them.
@@ -360,7 +363,7 @@ IPM <- make_IPM(
 #> Time difference of 1.49 secs
 ```
 
-To deactivate mid-bin integration, the `midbin_tresh` must be set to 0. 
+To deactivate mid-bin integration, the `midbin_tresh` must be set to 0.
 
 ```{r no midbin}
 IPM <- make_IPM(
@@ -375,29 +378,29 @@ IPM <- make_IPM(
 #> Launching integration loop
 #> GL integration occur on 27 cells
 #> midbin integration won't occur because of treshold at 0
-#> Loop done.                                                   
+#> Loop done.
 #> Time difference of 21.2 secs
 ```
 
-<!-- Obviously we can integrate with everything desactivated, which is really fast and not really helpfull. -->
+Obviously we can integrate with everything desactivated, which is really fast and not really helpfull.
 
-<!-- ```{r nothing} -->
-<!-- IPM <- make_IPM( -->
-<!--     species = species, climate = climate, fit =  fit_Pinus_pinea, -->
-<!--     clim_lab = "optimum clim", -->
-<!--     mesh = c(m = 700, L = 90, -->
-<!--              U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1), -->
-<!--     BA = 0:30, -->
-<!--     diag_tresh = -1, -->
-<!--     midbin_tresh = 0 -->
-<!-- ) -->
+```{r nothing}
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90,
+             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
+    BA = 0:30,
+    diag_tresh = -1,
+    midbin_tresh = 0
+)
 
-<!-- #> Launching integration loop -->
-<!-- #> GL integration occur on 27 cells -->
-<!-- #> midbin integration won't occur because of treshold at 0 -->
-<!-- #> Loop done.                                                    -->
-<!-- #> Time difference of 21.2 secs -->
-<!-- ``` -->
+#> Launching integration loop
+#> GL integration occur on 27 cells
+#> midbin integration won't occur because of treshold at 0
+#> Loop done.
+#> Time difference of 21.2 secs
+```
 
 
 

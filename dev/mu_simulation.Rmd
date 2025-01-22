@@ -1,17 +1,124 @@
 ---
-title: "Climate variation simulation"
-output: pdf_document
-date: "2022-11-23"
+title: "Climate variation"
+package: matreex
+output: 
+    github_document:
+    rmarkdown::html_vignette:
+vignette: >
+  %\VignetteIndexEntry{Climate variation}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+bibliography: references.bib
+link-citations: yes
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+options(cli.progress_show_after = 600) 
+# 10 minutes before showing a cli progress bar
+
+library(tidyr)
 ```
+
+This vignette illustrates how to use climate variation scenarii with `{matreex}` package. A climate variation scenario provides simulation context where climatic variable (*sgdd* and *wai*) may fluctuate. This type of scenario require a different integration methods that is explained below.
+
+The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+```
+
+
+## $\mu_G$ integration principle
+
+When we integrate an IPM, we compute the distribution of $z_{t+1}$ for each value of $z_t$. This distribution is based on a normal kernel as : 
+
+$$f(log(\frac{z_{t+y} - z_t}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
+
+Here, $f(log(\frac{z_{t+y} - z_t}{y}))$ if given for each climate situation, and it is the computation of the distribution that is the longuest part of the integration. This limit give us a very long time if we need to integrate a matrix per year and basal area, in case of climate variation.
+
+However we observe that there is two dimension here : a distribution of $\mu_G$ for each climate and a distribution of $z_{t+1}$ for each $\mu_G$ value. On the schematic illustration below, we can observe that depending on the climate $\alpha$ and $\beta$, different $\mu$ values are given on the $z_t$ axis, but the $z_{t+1}$ will be the same for a given $\mu$ value.
+
+```{r mu_distribution, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Schematic illustration of difference between $\\mu_G$ distributions and distribution of $z_{t+1}$ for a given $\\mu value.$"}
+\begin{tikzpicture}%[scale = 0.5, every node/.style={scale=0.5}]
+    
+    \draw(2.5,0) node[above] {Climate $\alpha$};
+    \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+    \draw (0,-2) grid[step=.5] (5,-1);
+    \draw (2.5,-1) node[above]{$z_t$} ;
+    \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
+    \draw(0,-1) node[above] {$L$};
+    \draw(5,-1) node[above] {$U$};
+    \draw[->] (5.25,-1) -- (5.25,-2);
+    \draw(5.25,-1) node[right] {0};
+    \draw(5.25,-2) node[right] {$N_{int}$};
+    
+    \draw (0,-3) -- (5,-3);
+    \draw [->] (0,-3) -- (0,-5.5);
+    
+    \begin{scope}[xshift=0cm,yshift=-7.3cm]
+        \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+        .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 1.8);
+    \end{scope}
+    \begin{scope}[xshift=2cm,yshift=-7.3cm]
+        \draw[line width=1pt, fill=cyan, color=cyan] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+        .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 1.8);
+    \end{scope}
+    
+    \foreach \x in {.25,.75,...,4.75} {%
+    \draw ($(\x,-3) + (0,-2pt)$) -- ($(\x,-3) + (0,2pt)$)
+    node [above] {};
+    }
+    \draw(0.75,-3) node[above] {$x$};
+    \draw(2.75,-3) node[above] {$y$};
+    \draw(5,-3) node[right] {$\mu_G$};
+    \draw(0,-5.5) node[left] {$\delta_z$};
+    
+    \begin{scope}[xshift=7cm,yshift=0cm]
+        \draw(2.5,0) node[above] {Climate $\beta$};
+        \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
+        \draw (0,-2) grid[step=.5] (5,-1);
+        \draw (2.5,-1) node[above]{$z_t$} ;
+        \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
+        \draw(0,-1) node[above] {$L$};
+        \draw(5,-1) node[above] {$U$};
+        \draw[->] (5.25,-1) -- (5.25,-2);
+        \draw(5.25,-1) node[right] {0};
+        \draw(5.25,-2) node[right] {$N_{int}$};
+        
+        \draw (0,-3) -- (5,-3);
+        \draw [->] (0,-3) -- (0,-5.5);
+        
+        \begin{scope}[xshift=1cm,yshift=-7.3cm]
+            \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+            .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 1.8);
+        \end{scope}
+        \begin{scope}[xshift=2cm,yshift=-7.3cm]
+            \draw[line width=1pt, fill=cyan, color=cyan] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+            .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 1.8);
+        \end{scope}
+        
+        \foreach \x in {.25,.75,...,4.75} {%
+        \draw ($(\x,-3) + (0,-2pt)$) -- ($(\x,-3) + (0,2pt)$)
+        node [above] {};
+        }
+        \draw(1.75,-3) node[above] {$x$};
+        \draw(2.75,-3) node[above] {$y$};
+        \draw(5,-3) node[right] {$\mu_G$};
+        \draw(0,-5.5) node[left] {$\delta_z$};
+    \end{scope}
+    
+\end{tikzpicture}
+```
+
+From this observation, we don't need to compute twice the distribution for $\mu = x$. If we compute all the $z_{t+1}$ distribution for each $\mu$ we expect, and compute $\mu$ vector as the climate variate, we can then *fill* the kernel.
 
 ## Testing mu simulation
 
-This document show how to simulate a species with mu growth pre-computation and not integrate a classical IPM.
-For now, the package is in experimental state and use the branch *fast_int*. For this example we will use the species *Picea abies* as an example.
+For this example we will use the species *Picea abies* as an example.
 
 ```{r constant}
 # Libraries
