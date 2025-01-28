@@ -5,32 +5,32 @@
 \alias{fit_data}
 \alias{fit_species}
 \alias{lag_species}
-\alias{fit_Abies_alba}
-\alias{fit_Acer_campestre}
-\alias{fit_Acer_pseudoplatanus}
-\alias{fit_Alnus_glutinosa}
-\alias{fit_Betula}
-\alias{fit_Carpinus_betulus}
-\alias{fit_Fagus_sylvatica}
-\alias{fit_Fraxinus_excelsior}
-\alias{fit_Larix_decidua}
-\alias{fit_Picea_abies}
-\alias{fit_Pinus_halepensis}
-\alias{fit_Pinus_nigra}
-\alias{fit_Pinus_pinaster}
-\alias{fit_Pinus_pinea}
 \alias{fit_Pinus_sylvestris}
-\alias{fit_Pinus_uncinata}
-\alias{fit_Populus_tremula}
-\alias{fit_Prunus_padus}
-\alias{fit_Quercus_faginea}
+\alias{fit_Pinus_pinaster}
+\alias{fit_Picea_abies}
+\alias{fit_Pinus_nigra}
+\alias{fit_Pinus_halepensis}
 \alias{fit_Quercus_ilex}
+\alias{fit_Fagus_sylvatica}
+\alias{fit_Quercus_robur}
+\alias{fit_Betula}
 \alias{fit_Quercus_petraea}
 \alias{fit_Quercus_pubescens}
 \alias{fit_Quercus_pyrenaica}
-\alias{fit_Quercus_robur}
 \alias{fit_Quercus_suber}
+\alias{fit_Pinus_pinea}
+\alias{fit_Abies_alba}
+\alias{fit_Carpinus_betulus}
+\alias{fit_Pinus_uncinata}
+\alias{fit_Fraxinus_excelsior}
+\alias{fit_Quercus_faginea}
+\alias{fit_Alnus_glutinosa}
+\alias{fit_Populus_tremula}
+\alias{fit_Acer_campestre}
+\alias{fit_Acer_pseudoplatanus}
+\alias{fit_Larix_decidua}
 \alias{fit_Salix_caprea}
+\alias{fit_Prunus_padus}
 \title{Species fited models dataset.}
 \format{
 An object of class \code{character} of length 26.
@@ -97,45 +97,23 @@ fit_species
 
 lag_species
 
-fit_Abies_alba
-
-fit_Acer_campestre
-
-fit_Acer_pseudoplatanus
-
-fit_Alnus_glutinosa
-
-fit_Betula
-
-fit_Carpinus_betulus
-
-fit_Fagus_sylvatica
-
-fit_Fraxinus_excelsior
-
-fit_Larix_decidua
-
-fit_Picea_abies
-
-fit_Pinus_halepensis
-
-fit_Pinus_nigra
+fit_Pinus_sylvestris
 
 fit_Pinus_pinaster
 
-fit_Pinus_pinea
+fit_Picea_abies
 
-fit_Pinus_sylvestris
+fit_Pinus_nigra
 
-fit_Pinus_uncinata
-
-fit_Populus_tremula
-
-fit_Prunus_padus
-
-fit_Quercus_faginea
+fit_Pinus_halepensis
 
 fit_Quercus_ilex
+
+fit_Fagus_sylvatica
+
+fit_Quercus_robur
+
+fit_Betula
 
 fit_Quercus_petraea
 
@@ -143,11 +121,33 @@ fit_Quercus_pubescens
 
 fit_Quercus_pyrenaica
 
-fit_Quercus_robur
-
 fit_Quercus_suber
 
+fit_Pinus_pinea
+
+fit_Abies_alba
+
+fit_Carpinus_betulus
+
+fit_Pinus_uncinata
+
+fit_Fraxinus_excelsior
+
+fit_Quercus_faginea
+
+fit_Alnus_glutinosa
+
+fit_Populus_tremula
+
+fit_Acer_campestre
+
+fit_Acer_pseudoplatanus
+
+fit_Larix_decidua
+
 fit_Salix_caprea
+
+fit_Prunus_padus
 }
 \description{
 Reformated fitted models from Kunstler et al. 2021. Each species

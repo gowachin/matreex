@@ -32,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
 ```
 
 
-## $\mu_G$ integration principle
+# $\mu_G$ integration principle
 
 When we integrate an IPM, we compute the distribution of $z_{t+1}$ for each value of $z_t$. This distribution is based on a normal kernel as : 
 
@@ -116,15 +116,15 @@ However we observe that there is two dimension here : a distribution of $\mu_G$ 
 
 From this observation, we don't need to compute twice the distribution for $\mu = x$. If we compute all the $z_{t+1}$ distribution for each $\mu$ we expect, and compute $\mu$ vector as the climate variate, we can then *fill* the kernel.
 
-## Testing mu simulation
+# $\mu_G$ simulations
 
-For this example we will use the species *Picea abies* as an example.
+For this example we will use the species *Fagus abies* as an example.
 
 ```{r constant}
 # Libraries
 library(ggplot2)
 library(dplyr)
-library(devtools)
+library(matreex)
 
 # Loading all functions of the package
 devtools::load_all()
@@ -134,11 +134,9 @@ fit <- eval(parse(text=paste0("fit_", species)))
 climate <- subset(climate_species, sp == species, select = -sp)
 ```
 
-## Get Mu values
+## Get $\mu_G$ range
 
-Mu is an intermediate value computed during the simulation.
-
-The first step consist in computing all mu values for a species in its climatic and basal area range. For this, we compute the mu range of the species and simulate a matrix for each values of mu, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
+The first step consist in computing all $\mu_G$ values for a species in its climatic and basal area range. For this, we compute the $\mu_G$ range of the species and simulate a matrix for each values of $\mu_G$, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
 
 ```{r range_mu}
 mu_range <- getRangemu(
@@ -147,9 +145,9 @@ mu_range <- getRangemu(
 mu_range
 ```
 
-*Note : Low values highly depend on maximum basal area, so, one can limit the mu computation time if he expect the basal area to stay low during simulation.*
+*Note : Low values highly depend on maximum basal area, so, one can limit the $\mu_G$ computation time if he expect the basal area to stay low during simulation.*
 
-Making the mu matrix takes more or less the same arguments as the function `make_IPM` in term of integration levels for Gauss-Legendre and midbin methods. The important argument that limit computation time is stepMu.
+Making the mu matrix takes more or less the same arguments as the function `make_IPM` in term of integration levels for Gauss-Legendre and mid-bin methods. The important argument that limit computation time is `stepMu` variable.
 
 ```{r make_mu}
 mu_Fagus_sylvatica <- make_mu_gr(
@@ -158,30 +156,30 @@ mu_Fagus_sylvatica <- make_mu_gr(
     verbose = TRUE, stepMu = 0.1)
 ```
 
-This object is a matrix with as many row as integrated cells for a given mu, and a range of mu in column. During simulation, the loop will compute the mu needed for climate and basal area for a given time and extract from the matrix the required columns. 
+This object is a matrix with as many row as integrated cells for a given $\mu_G$, and a range of $\mu_G$ in column. During simulation, the loop will compute the $\mu_G$ needed for climate and basal area for a given time and extract from the matrix the required columns. 
 
 **This step is 5 times longer than extracting the IPM matrix, this is the bottleneck during simulation.**
 
 ```{r get step_IPM}
 step_climate <- subset(climate, N ==2, select = -N)
 step_climate <- drop(as.matrix(step_climate))
-Picea_IPM_BA20 <- get_step_IPM(x = mu_Fagus_sylvatica, BA = 20, 
+Fagus_IPM_BA20 <- get_step_IPM(x = mu_Fagus_sylvatica, BA = 20, 
                                climate = step_climate, sim_corr = "cut")
-Picea_IPM_BA20[12:17, 12:17]
-dim(Picea_IPM_BA20)
+Fagus_IPM_BA20[12:17, 12:17]
+dim(Fagus_IPM_BA20)
 ```
 
 ## Simulations
 
-Once the mu matrix is created, creating species and simulating is really close to simulating with IPM. Because the mu matrix are not defined for a specific climate, we need to set one to simulate on it. For now we only set a single climate that will not change during simulation.
+Once the $\mu_G$ matrix is created, creating species and simulating is really close to simulating with IPM. Because the $\mu_G$ matrices are not defined for a specific climate, we need to set one to simulate on it. For now we only set a single climate that will not change during simulation.
 
 ```{r simulation}
-time <- 1000
+time <- 100
 
 Fagus_sylvatica <- species(IPM = mu_Fagus_sylvatica, init_pop = def_initBA(20), 
                        harvest_fun = def_harv)
 
-forest <- forest(species = list(mu_Picea = Fagus_sylvatica))
+forest <- forest(species = list(mu_Fagus = Fagus_sylvatica))
 set.seed(42)
 memor_mu <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
                                     equil_dist = time, equil_time = time,
@@ -195,32 +193,30 @@ memor_mu %>%
     NULL
 ```
 
-We can compare this with a classical IPM simulation to see that it's not so different. Obviously this takes some times since integration takes longer. To limit this, we only integrate for basal area up to 100.
+We can compare this with a classical IPM simulation to see that it's not so different. Obviously this takes some times since integration takes longer. To limit this, we only integrate for basal area up to 40.
 
 ```{r compare_IPM}
-ipm_Picea <- make_IPM(
+ipm_Fagus <- make_IPM(
     "Fagus_sylvatica", step_climate, "opt_Picab_clim", fit = fit_Fagus_sylvatica,
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
-    BA = 0:100, verbose = TRUE
+    BA = 0:40, verbose = TRUE
 )
-Fagus_sylvatica_ipm <- species(IPM = ipm_Picea, init_pop = def_initBA(20), 
-                           harvest_fun = def_harv)
-forest_ipm <- forest(species = list(ipm_Picea = Fagus_sylvatica_ipm))
+Fagus_sylvatica_ipm <- species(IPM = ipm_Fagus, init_pop = def_initBA(20), 
+                               harvest_fun = def_harv)
+forest_ipm <- forest(species = list(ipm_Fagus = Fagus_sylvatica_ipm))
 set.seed(42)
 memor_ipm <- sim_deter_forest.forest(forest_ipm, tlim = time, 
                                      equil_dist = time, equil_time = time,
                                      verbose = TRUE, correction = "cut")
 ```
 
-Below is a plot that combine both simulations and compute the difference along time.
-
-```{r compare_plot}
+```{r compare_plot, fig.cap="comparison of simulations with integrated matrix and $\mu_G$ approximation"}
 e_memor <- dplyr::bind_rows(ipm = memor_ipm, mu = memor_mu, .id = "meth")
 e_memor %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = meth)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(size = .4, linetype = "dotted") + geom_point(size = .4) +
+    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4) +
     NULL
 
 e_memor %>%
@@ -240,86 +236,29 @@ e_memor %>%
 
 ## Climate evolution in time
 
-Previous simulation specified a single climate that is used from start to finish, with only a variation on BA. The interest of using precomputed values is too create new IPM matrix for a lot more climates. But as integrating an IPM takes around 2 or minutes, integrating a climate gradient would takes way too long, and only to use few basal area values when we integrate between 0 and 200.
+Previous simulation specified a single climate that is used from start to finish, with only a variation on BA. The interest of using pre-computed values is too create new IPM matrix for a lot more climates. But as integrating an IPM takes around 2 or minutes, integrating a climate gradient would takes way too long, and only to use few basal area values when we integrate between 0 and 200.
 
-Of course we now need to define a climate at each time step of the future simulation. For example, the simulation will start on cold edge and migrate to hot edge in a thousand years, with a small random effect.
+Of course we now need to define a climate at each time step of the future simulation. For example, the simulation will start on optimum and migrate to hot edge in a hundred years, with a small random effect.
 
-**This code is an example and some functions may be added to the package later.**
-
-```{r future_in_pkg}
-# future function for the package matreex. 
-# I may need some help on what's needed or usefull
-
-#' @param x a named values for a climatic variable. 
-#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
-#' case of var can take 0 for value.
-#' Example : \code{x = c(sgdd = 2000)}
-value2sqb <- function(x, inv_null = FALSE){
-    
-    nms <- names(x)
-    res <- numeric(3)
-    names(res) <- c(nms, paste0(nms, c("2", "b")))
-    res[nms] <- x
-    res[paste0(nms, "2")] <- x^2
-    res[paste0(nms, "b")] <- 1/(x + inv_null)
-    
-    res
-}
-
-#' @param climate Named vector of climatic variables.
-#' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
-#' case of var can take 0 for value.
-#' Example : \code {climate = c(sgdd = 2000, wai = 0.16) ; in_null = c(sgdd = FALSE, wai = TRUE)}
-expand_clim <- function(climate, inv_null){
-    
-    assertNumeric(climate, any.missing = FALSE)
-    assertLogical(inv_null, any.missing = FALSE)
-    
-    nms <- names(climate)
-    res <- vector("list", length(climate))
-    for(x in seq_along(nms)){
-        res[[x]] <- value2sqb(climate[nms[x]], inv_null[nms[x]])
-    }
-    res <- unlist(res)
-    
-    return(res)
-}
-# May be usefull to create the same function but to work on data.frame 
-# or matrices likes below code
-```
-
+*It's possible to build this table by hand or provide a precise climate evolution table, the function shown is a quick example to add noise into a simulation*
 
 ```{r build_climate}
-n <- time
-tmp <- subset(climate, N != 2, select = c(sgdd,wai, N))
+exp_clim <- clim_gradient(climate,  start_clim = "opti", end_clim = "hot",
+                           times = time, noise = rnorm, sigma = c(100, 0.01), 
+                          seed = 42)
 
-wai <- seq(tmp$wai[2], tmp$wai[1], length.out = n) + runif(n, -0.05, 0.05)
-wai <- pmax(wai, 0) ; wai <- pmin(wai, 1) # range the values after runif
-sim_clim <- as.matrix(data.frame(
-    sgdd = seq(tmp$sgdd[2], tmp$sgdd[1], length.out = n) + runif(n, -50, 50),
-    wai = wai, 
-    t = 1:n
-))
-# We need to specify if variables can be set 0 for variable compution of
-# varb = 1 / var. If true varb = 1 / (var + 1)
-inv_null <- c(sgdd = FALSE, wai = TRUE)
-
-exp_clim <- vector("list", n)
-for(i in 1:n){
-    exp_clim[[i]] <- c(expand_clim(sim_clim[i, -3], inv_null), t = i)
-}
-exp_clim <- do.call("rbind", exp_clim)
-dim(exp_clim)
-exp_clim[c(1:3, 997:1000),]
+par(mfrow= c(1, 2))
+plot(1:time, exp_clim$sgdd, type = "l", ylab = "sgdd", xlab = "time")
+plot(1:time, exp_clim$wai, type = "l", ylab = "wai", xlab = "time")
 ```
 
-Once the climate is set, we can simulate a species. I recreate the species to start with a size distribution closer to the equilibrium reached in previous simulations. Don't forget to modify this distribution with the surface sampled (`SurfEch`).
+Once the climate is set, we can simulate a species. I recreate the species to start with a size distribution closer to the equilibrium reached in previous simulations.
 
 ```{r clim_sim}
 distrib <- filter(memor_mu, equil, var == "n") %>% pull(value)
 Fagus_sylvatica <- species(IPM = mu_Fagus_sylvatica, init_pop = def_init_k(distrib), 
                        harvest_fun = def_harv)
-clim_forest <- forest(species = list(clim_Picea = Fagus_sylvatica))
+clim_forest <- forest(species = list(clim_Fagus = Fagus_sylvatica))
 set.seed(42)
 memor_clim <- sim_deter_forest.forest(clim_forest, tlim = time, climate = exp_clim,
                                       equil_dist = time, equil_time = time,
@@ -333,11 +272,9 @@ memor_clim %>%
     NULL
 ```
 
-I think this fast decay at start is because the distribution comes from an equilibrium for the "optimal" climate and not the the cold edge, but past this point an increase in *sgdd* and *wai* seems to increase basal area along with a decrease of population size. However, the climate variation is relatively quick and we may need to test more hypothesis. Lastly, the evolution of metrics is not smooth, so the random effect on climate may be effective.
-
 ## Testing effect of stepMu
 
-The BA difference is already pretty low between IPM and mu simulations, but this section will illustrate that it's directly linked with `stepMu` value. Error is negligeable for stepMu of 0.0001, but computing mu values takes around 2 minutes.
+The BA difference is already pretty low between IPM and $\mu_G$ simulations, but this section will illustrate that it's directly linked with `stepMu` value. Error is negligible for stepMu of 0.0001, but computing $\mu_G$ values takes around 2 minutes.
 
 ```{r stepMu}
 steps <- c(0.05, 0.01, 0.005, 0.001, 0.0005)
@@ -345,15 +282,15 @@ diff_list <- vector("list", length(steps))
 
 for(s in seq_along(steps)){
     cat(sprintf(" %.4f", steps[s]))
-    mu_Picea <- make_mu_gr(
+    mu_Fagus <- make_mu_gr(
         species = "Fagus_sylvatica", fit = fit_Fagus_sylvatica,
         mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
         stepMu = steps[s])
     
-    Picea <- species(IPM = mu_Picea, init_pop = def_initBA(20), 
+    Fagus <- species(IPM = mu_Fagus, init_pop = def_initBA(20), 
                      harvest_fun = def_harv)
     
-    forest <- forest(species = list(Picea = Picea))
+    forest <- forest(species = list(Fagus = Fagus))
     set.seed(42)
     memor <- sim_deter_forest.forest(forest, tlim = time, 
                                      climate = step_climate,
@@ -381,7 +318,7 @@ res %>% group_by(stepMu) %>%
 
 ## Multiple species simulations
 
-We had a second species with mu values. This is just so we can have a distribution from species equilibrium at the climate given at very start of this document.
+We had a second species with $\mu_G$ values. This is just so we can have a distribution from species equilibrium at the climate given at very start of this document.
 
 ```{r Abies_alba}
 mu_Abies_alba <- make_mu_gr(
@@ -398,16 +335,16 @@ memor_abies <- sim_deter_forest.forest(forest, tlim = time, climate = step_clima
                                        equil_dist = time, equil_time = time,
                                        verbose = TRUE, correction = "cut")
 
-distrib_abies <- filter(memor_abies, equil, var == "m") %>% pull(value) * 0.03
+distrib_abies <- filter(memor_abies, equil, var == "n") %>% pull(value) 
 Abies_alba <- species(IPM = mu_Abies_alba, 
                       init_pop = def_init_k(distrib_abies), 
                       harvest_fun = def_harv)
 ```
 
-We create a forest with 2 species integrated with mu values. From this, we just need to run the simulation. Please note that the climate can be modified along time as before because all species use mu values. Another thing to note is the simulation time that is correlated with the number of mu species used.
+We create a forest with 2 species integrated with $\mu_G$ values. From this, we just need to run the simulation. Please note that the climate can be modified along time as before because all species use $\mu_G$ values. Another thing to note is the simulation time that is correlated with the number of $\mu_G$ species used.
 
 ```{r}
-nsp_forest <- forest(species = list(Picea = Fagus_sylvatica, Abies = Abies_alba))
+nsp_forest <- forest(species = list(Fagus = Fagus_sylvatica, Abies = Abies_alba))
 set.seed(42)
 memor_nsp <- sim_deter_forest.forest(nsp_forest, tlim = time, climate = exp_clim,
                                      equil_dist = time, equil_time = time,
@@ -421,11 +358,11 @@ memor_nsp %>%
     NULL
 ```
 
-If we want to simulate with species defined from mu and ipm, we can mix them but the climate used to integrate the ipm will be used. Providing a climate is thus useless in this case. 
+If we want to simulate with species defined from $\mu_G$ and IPM, we can mix them but the climate used to integrate the IPM will be used. Providing a climate is thus useless in this case. 
 
 ```{r}
 Fagus_sylvatica_ipm$init_pop <- def_init_k(distrib)
-msp_forest <- forest(species = list(Picea = Fagus_sylvatica_ipm, Abies = Abies_alba))
+msp_forest <- forest(species = list(Fagus = Fagus_sylvatica_ipm, Abies = Abies_alba))
 set.seed(42)
 memor_msp <- sim_deter_forest.forest(msp_forest, tlim = time, climate = exp_clim,
                                      equil_dist = time, equil_time = time,
