@@ -49,7 +49,7 @@ Note that this package does not cover the statistical fitting of the vital rates
 
 ## Define a species
 
-Before simulating forest, we need first to define tree species in R. Species regroups basic vital rates functions: growth, recruitment and survival. In this package, we provide the fitted vital rates functions used in @kunstler2021 and @guyennon2023 . These functions depend on tree size, local competition based on the sum of basal area of competitors, and two climatic variables. The climatic variables are the sum of the sum of growing degree days *sgdd*, the water aridity index *wai* (see @kunstler2021 for more details). @kunstler2021 and @guyennon2023 used a resampling procedure to estimate the vital rates functions resulting in 100 resampled estimate of the parameters of each functions, here to simplify the simulations we provide only the averaged parameters over those 100 resamples. It is however, in theory, possible to run simulations with other vital rates functions if they are provided as glm objects (please contact the authors to test new variables).
+Before simulating a forest, we need first to define tree species in R. Species regroups basic vital rates functions: growth, recruitment and survival. In this package, we provide the fitted vital rates functions used in @kunstler2021 and @guyennon2023 . These functions depend on tree size, local competition based on the sum of basal area of competitors, and two climatic variables. The climatic variables are the sum of the sum of growing degree days *sgdd*, the water aridity index *wai* (see @kunstler2021 for more details). @kunstler2021 and @guyennon2023 used a resampling procedure to estimate the vital rates functions resulting in 100 resampled estimates of the parameters of each function, here to simplify the simulations we provide only the averaged parameters over those 100 resamples. It is however, in theory, possible to run simulations with other vital rates functions if they are provided as glm objects (please contact the authors to test new variables).
 
 ```{r hide library, echo = FALSE}
 # I do this before to show data inline
@@ -135,7 +135,7 @@ Picea_sim <- sim_deter_forest(
 In the code above, we simulate for 200 years (`tlim`) years and past this time we continue the simulation till it reaches an equilibrium up to 300 years (see figure A). After `tlim`, the  simulation will continue until the population reaches an equilibrium up to a maximum of 300 years (`equil_time`). 
 
 
-The criteria for reaching an equilibrium (in green) is based on computing the range of variation of BA for a moving window of length `equil_dist` since the current step (in grey). The equilibrium is reached if the range of variation within this moving window is less than `equil_diff`. The equilibrium is reached at the first timestep for which the basal area range is lower than `equil_diff`. The steps between `tlim` and `t_equil` are not recorded. The search for the equilibrium start at `tlim` over the last `equil_dist` steps (see figure B). This is why `equil_dist` must not be higher than `tlim`. 
+The criteria for reaching an equilibrium (in green) is based on computing the range of variation of BA for a moving window of length `equil_dist` since the current step (in grey). The equilibrium is reached if the range of variation within this moving window is less than `equil_diff`. The equilibrium is reached at the first timestep for which the basal area range is lower than `equil_diff`. The steps between `tlim` and `t_equil` are not recorded. The search for the equilibrium starts at `tlim` over the last `equil_dist` steps (see figure B). This is why `equil_dist` must not be higher than `tlim`. 
 If we want to register the full dynamic, we can set `tlim = equil_time` (see figure C). **The equilibrium is always the last size distribution** (shown in green in figure). Note that in this case, the final distribution will be returned in the result twice. The `equil_dist` and `equil_diff` parameters are not important in this case.
 
 ```{r timeline_explain, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
@@ -339,7 +339,7 @@ Picea_sim  %>%
     geom_line(linewidth = .4) + ylab("BA")
 ```
 
-If size distributions needs to be extracted, it can be easily done with `{dplyr}` functions. The equilibrium step is associated with a logical variable to extract it.
+If size distributions need to be extracted, it can be easily done with `{dplyr}` functions. The equilibrium step is associated with a logical variable to extract it.
 
 ```{r sp1head}
 head(Picea_sim)
@@ -359,9 +359,9 @@ The above simulation is one of the simplest we can produce with this package. Th
 
 ## Initialisation step
 
-By default, the initialization of the population run random process to draw a size distribution for each species. We already show a function (`def_initBA()`) that scale this distribution to a given basal area. However, for a basal area value, multiple distribution are possible. To control the exact distribution at start, we use `def_init_k()`. This choice of starting distribution can be used to reproduce simulations, starting from an equilibrium or a post disturbance state.
+By default, the initialization of the population run a random process to draw a size distribution for each species. We already show a function (`def_initBA()`) that scale this distribution to a given basal area. However, for a basal area value, multiple distributions are possible. To control the exact distribution at start, we use `def_init_k()`. This choice of starting distribution can be used to reproduce simulations, starting from an equilibrium or a post disturbance state.
 
-Here is an example where we start from $t = 150$ of the previous simulation. This will illustrate that despite the simulation said it reached equilibrium at time $t =$ `r (prev_equil <- max(Picea_sim$time))`, our parameters have introduced failed to identify the true equilibrium. The previous equilibrium is highlighted in blue rectangle.
+Here is an example where we start from $t = 150$ of the previous simulation. This will illustrate that despite the simulation said it reached equilibrium at time $t =$ `r (prev_equil <- max(Picea_sim$time))`, our parameters have failed to identify the true equilibrium. The previous equilibrium is highlighted with a blue rectangle.
 
 ```{r sp1initk}
 # extract distribution
@@ -396,7 +396,7 @@ Picea_sim_k  %>%
 
 ## Recruitment delay
 
-New trees are recruited at $L$ (90mm). Trees takes however several years to grow from seed to the minimum size $L$. To represents the time lag for a tree to recruit up to $L$, we can modify a species by adding a delay for recruitment of new individuals. By default, the recruitment is a given number of new individuals. This number is split in half and adds to the first two class of size distribution. Adding delay expand the IPM with `n_delay` age based classes to represent the year its takes (here 5 years) to grow up to $L$. The new recruit will age from one age class to another until they enter the size-based IPM.
+New trees are recruited at $L$ (90mm). Trees take however several years to grow from seed to the minimum size $L$. To represent the time lag for a tree to recruit up to $L$, we can modify a species by adding a delay for recruitment for new individuals. By default, the recruitment is a given number of new individuals. This number is split in half and adds to the first two classes of size distribution. Adding delay expand the IPM with `n_delay` age-based classes to represent the year it takes (here 5 years) to grow up to $L$. The new recruit will age from one age class to another until they enter the size-based IPM.
 
 A default delay is used by `build_IPM()` for each species. These values are computed from regressions.
 
@@ -420,7 +420,7 @@ Picea_sim_d5 <- sim_deter_forest(
 )
 ```
 
-Equilibrium BA should be really close with or without delay ($\Delta_{BA} < 1$). N is expected to increase with delay since delayed mesh cell with seeds are counted in.
+Equilibrium BA should be really close with or without delay ($\Delta_{BA} < 1$). N is expected to increase with delay since the age-based mesh cells with seedlings are counted in.
 
 ```{r, delay_plot}
 Picea_sim_d5 %>%
@@ -455,9 +455,9 @@ Picea_sim_d5 %>%
 
 ## Multiple species
 
-Multi-specific simulations are performed like the simulations previously illustrated. The only difference is in the construction of the forest object. This explain why the `species` argument for `forest()` function require a list for input. 
+Multi-specific simulations are performed like the simulations previously illustrated. The only difference is in the construction of the forest object. This explains why the `species` argument for `forest()` function requires a list for input. 
 
-We need to modelise a second species. Be careful to select the same climate as the first species.
+We need to model a second species. Be careful to select the same climate as the first species.
 
 ```{r second_species}
 data("fit_Abies_alba")
@@ -496,7 +496,7 @@ Picea_Abies_sim  %>%
                  geom ='line', linetype = "dashed", linewidth = .3)
 ```
 
-An important point to note for multiple species is that the equilibrium is defined at the forest level, that is the sum of species basal area.
+An important point to note for multiple species is that the equilibrium is defined at the forest level, that is the sum of the species basal area.
 
 ```{r nsp_timeline, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE}
 \begin{tikzpicture}
