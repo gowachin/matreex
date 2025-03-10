@@ -22,7 +22,7 @@ options(cli.progress_show_after = 600)
 # 10 minutes before showing a cli progress bar
 ```
 
-This vignette illustrates the basic functions used to run simulations projecting the population of size-structured trees with `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities. Different modules allow also to simulate harvesting and disturbances. To project forward the dynamic of size-structured tree populations, this package relies on **integrated projection models** (later named IPM).
+This vignette illustrates the basic functions used to run simulations projecting the population of size-structured trees with `{matreex}` package. The package can model the dynamic of monospecific or multispecific tree communities. Different modules allow also to simulate harvesting and disturbances. To project forward the dynamic of size-structured tree populations, this package relies on **integral projection models** (later named IPM).
 
 
 # Rapid description of the Integral Projection Model
@@ -35,14 +35,14 @@ $$
 n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
 $$
 
-with $L$ and $U$ being, respectively, the lower and upper observed sizes for integration of the kernel $K$.
+with $L$ and $U$ being, respectively, the lower and upper sizes for integration of the kernel $K$.
 
 The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
 
 The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and $G$ the growth function. 
-The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
+The kernel $K(z' ,z)$, thus, integrates the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
 <!--The figure 1 presents the structure and approach of the IPM. -->
-Note, that this package do not cover the statistical fitting of the vital rates functions.
+Note that this package does not cover the statistical fitting of the vital rates functions but the fitted parameters used in @kunstler2021 and @guyennon2023 are provided with the package. 
 
 
 # Simulations input
@@ -93,15 +93,15 @@ Picea_ipm <- make_IPM(
 options(W_matreex_edist = FALSE)
 ```
 
-Once the IPM is integrated on a BA range, we can use it to build a species object. In R, a species is a list object that is constructed with the `species()` function. In addition to the IPM kernel $P$, this list require few more functions to work during simulations :
+Once the IPM is integrated on a BA range, we can use it to build a species object. In R, a species is a list object that is constructed with the `species()` function. In addition to the IPM kernel $P$, this list requires a few more functions to work during simulations :
 
-* `init_pop` : Function to draw the initial size distribution. The default one draw distribution for a basal area (later named BA) of 1 $m^2/ha$ with random functions (see the help of the function for more details). The package provide other functions to draw random distribution at a selected BA (`def_initBA()`) or a given distribution (`def_init_k()`).
+* `init_pop` : Function to draw the initial size distribution. The default one draw distribution for a basal area (later named BA) of 1 $m^2/ha$ with random functions (see the help of the function for more details). The package provides other functions to draw random distribution at a selected BA (`def_initBA()`) or a given distribution (`def_init_k()`).
 
-* `harvest_fun` : Function that cut tree given the size distribution. The default function cut 0.6% per year of the trees regardless of their size. Further functions allow to harvest according to Uneven and Even rules (see Harvesting Vignette).
+* `harvest_fun` : Function that cuts tree given the size distribution. The default function cut 0.6% per year of the trees regardless of their size. Further functions allow to harvest according to Uneven and Even rules (see Harvesting Vignette).
 
-* `disturb_fun` : Function that return tree mortality after a disturbance. The default is no disturbance.
+* `disturb_fun` : Function that returns tree mortality after a disturbance. The default is no disturbance.
 
-A species also comes with few parameters, but they are only used for harvest and disturbance modules.
+A species also comes with few parameters, but they are only used for the harvest and disturbance modules.
 
 For this example, we will just modify the initial size distribution to start at a basal area of 30 $m^2/ha$.
 
@@ -111,7 +111,7 @@ Picea_sp <- species(IPM = Picea_ipm, init_pop = def_initBA(30))
 
 ## Define a forest
 
-Once each species objects are built, we can assemble them in a `forest` object. This function also require additional parameters, but they are only used for harvest and disturbance modules.
+Once each species' objects are built, we can assemble them in a `forest` object. This function also requires additional parameters, but they are only used for harvest and disturbance modules.
 
 ```{r forest}
 Picea_for <- forest(species = list(Picea = Picea_sp))
@@ -119,7 +119,7 @@ Picea_for <- forest(species = list(Picea = Picea_sp))
 
 # Running simulations
 
-A simulations project forward a size-structured population from its initial state with the matrix kernel $P$ and the recruitment function. This function requires the length of the simulation and the time limit to search for an equilibrium. A simulation is run until the time limit is reached and can continue further if an equilibrium is not reached. Another parameter is the simulated surface `SurfEch`, it's define the surface of the studied forest. This parameter is mainly here for historical purpose as models were fitted on $300m^2$ plot, and output is scaled to one hectare.
+A simulation project forwards a size-structured population from its initial state with the matrix kernel $P$ and the recruitment function. This function requires the length of the simulation and the time limit to search for an equilibrium. A simulation is run until the end of the length of the simulation, but if an equilibrium is not reached, it will continue till it reaches an equilibrium or till the time limit to search for an equilibrium is reached. Another parameter is the simulated surface `SurfEch`, which defines the surface of the studied forest. This parameter is mainly here for historical purpose as models were fitted on plots of size close to  $300m^2$, and output is scaled to one hectare.
 
 ```{r sp1sim}
 set.seed(42) # The seed is here for initial population random functions.
@@ -132,7 +132,7 @@ Picea_sim <- sim_deter_forest(
 )
 ```
 
-In the code above, we simulate for 200 years (`tlim`) years and past this time we continue the simulation till it reach an equilibrium up to 300 years (see figure A). After `tlim`, the  simulation will continue until the population reach an equilibrium up to a maximum of 300 year (`equil_time`) . 
+In the code above, we simulate for 200 years (`tlim`) years and past this time we continue the simulation till it reaches an equilibrium up to 300 years (see figure A). After `tlim`, the  simulation will continue until the population reaches an equilibrium up to a maximum of 300 years (`equil_time`). 
 
 
 The criteria for reaching an equilibrium (in green) is based on computing the range of variation of BA for a moving window of length `equil_dist` since the current step (in grey). The equilibrium is reached if the range of variation within this moving window is less than `equil_diff`. The equilibrium is reached at the first timestep for which the basal area range is lower than `equil_diff`. The steps between `tlim` and `t_equil` are not recorded. The search for the equilibrium start at `tlim` over the last `equil_dist` steps (see figure B). This is why `equil_dist` must not be higher than `tlim`. 
