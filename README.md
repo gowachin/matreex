@@ -6,9 +6,9 @@
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gowachin/matreex/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gowachin/matreex)
 <!-- badges: end -->
 
-The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.
+This R package aims to simulate tree population dynamics with integral projection models for single or multiple species, both including density dependence. The simulations return the size distribution of each species at each time step. These models can include different harvest and disturbance events. The package includes a function to run the model until equilibrium.
 
-Main methods have been developped for [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533) and [Guyennon *et al* 2023](https://onlinelibrary.wiley.com/doi/10.1111/geb.13640) as well as european treee species growth/survival/recruitment models.
+The growth,survival, and recruitment functions for key European tree species have been developed in [Kunstler *et al* (2020)](https://doi.org/10.1111/1365-2745.13533), [Guyennon *et al* 2023](https://onlinelibrary.wiley.com/doi/10.1111/geb.13640), and [Barrere *et al* 2024](https://besjournals.onlinelibrary.wiley.com/doi/full/10.1111/1365-2435.14489).
 
 ## Installation
 
@@ -64,7 +64,7 @@ Issues are centralized on [the github project.](https://github.com/gowachin/matr
 
 ## Roadmap
 
-Future dev is listed on the github repository project to keep tracks of what we are working on.
+Future dev is listed on the github repository project to keep track of what we are working on.
 Link is [here](https://github.com/gowachin/matreex/projects/1)
 
 ## License
