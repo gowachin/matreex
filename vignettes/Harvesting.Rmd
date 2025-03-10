@@ -23,9 +23,9 @@ options(cli.progress_show_after = 600)
 library(tidyr)
 ```
 
-This vignette illustrates how to use harvesting scenarii with `{matreex}` package. An harvesting scenario provides the rules and the periodicity to trigger harvesting of trees in each size classes. The harvested trees are saved and exported for each simulation time step.
+This vignette illustrates how to use harvesting scenarii with `{matreex}` package. An harvesting scenario provides the rules and the periodicity to trigger trees harvesting in each size class. The harvested trees are saved and exported for each simulation time step.
 
-The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
+The basic `{matreex}` functions are shown in [a previous vignette](matreex.html).
 
 # Simulations input
 
@@ -65,7 +65,7 @@ Picea_ipm <- make_IPM(
 options(W_matreex_edist = FALSE)
 ```
 
-Harvesting scenario are defined at different levels: at the species level with the species harvesting function and its associated parameters, at the forest level with a set of parameters, and at the simulation level with the target of the harvesting scenario. Depending on the scenario used, not all the parameters are used. The table below summarise the required parameters for each scenario. Each scenario have an example in the following document.
+Harvesting scenarii are defined at different levels: at the species level with the species harvesting function and its associated parameters, at the forest level with a set of parameters, and at the simulation level with the target of the harvesting scenario. Depending on the scenario used, not all the parameters are used. The table below summarises the required parameters for each scenario. Each scenario has an example in the following document.
 
 | Harvesting scenario | Species harvesting function | Species parameters | Forest parameters | Simulation parameters |
 | -- | -- | -- | -- | -- |
@@ -73,15 +73,15 @@ Harvesting scenario are defined at different levels: at the species level with t
 | Uneven | `Uneven_harv()` | `harv_lim` | `harv_rules` | `targetBA` |
 | Even | `Even_harv()` | `rdi_coef` | `harv_rules` | `targetRDI` <br> `targetKg` <br> `final_harv` |
 
-Short example : When using an Uneven scenario, each species needs to use the `Uneven_harv()` function with `harv_lim` parameters. The forest will need to have `harv_rules` parameters. The `sim_deter_forest()` require `targetBA` argument. If `targetRDI` is defined, it will not be used.
+Short example: When using an Uneven scenario, each species needs to use the `Uneven_harv()` function with `harv_lim` parameters. The forest will need to have `harv_rules` parameters. The `sim_deter_forest()` requires `targetBA` argument. If `targetRDI` is defined, it will not be used.
 
 # Default scenario
 
 ## Presentation
 
-The default scenario is based on @kunstler2021. This mean there is a constant harvest rate triggered each year. This harvest rate is uniform over the size distribution. This is the scenario used by default.
+The default scenario is based on @kunstler2021. This means that there is a constant harvest rate triggered each year. This harvest rate is uniform over the size distribution. This is the scenario used by default.
 
-This rate is coded in `def_harv()` function as shown below and the frequency (each year) is given in `harv_rules["freq"]`. Note that the harvesting is applied to all size class except the age-classes used in delay (with `* (ct > 0)`). 
+This rate is coded in `def_harv()` function as shown below and the frequency (each year) is given in `harv_rules["freq"]`. Note that the harvesting is applied to all size classes except the age-classes used in delay (with `* (ct > 0)`). 
 
 
 ```{r def_Picea}
@@ -91,7 +91,7 @@ Picea_for <- forest(species = list(Picea = Picea_sp),
                     harv_rules = c(freq = 1))
 ```
 
-With this scenario, the simulation can be launched without any additional parameter.
+With this scenario, the simulation can be launched without any additional parameters.
 
 ```{r sp1sim}
 set.seed(42) # The seed is here to replicate the random population initialisation.
@@ -104,9 +104,9 @@ Picea_sim <- sim_deter_forest(
 )
 ```
 
-Once the simulation is done, we can extract the basal area and the number of individual at each step of the simulation, but also a new variable $H$. This is the sum of densities of harvested trees of all size classes at each time step. The density of harvested trees is also exported for each size mesh $h_i$.
+Once the simulation is done, we can extract the basal area and the number of individuals at each step of the simulation, but also a new variable $H$. This is the sum of densities of harvested trees of all size classes at each time step. The density of harvested trees is also exported for each size mesh $h_i$.
 
-In this case, $H$ is correlated with $N$ since it's a constant percentage not linked with a size distribution. The first step being the initialization step, it's normal to have no harvest.
+In this case, $H$ is correlated with $N$ since it's a constant percentage not linked with a size distribution. The first step being the initialization step, it's normal to have no harvest at this step.
 
 ```{r sp1plot}
 Picea_sim  %>%
@@ -118,7 +118,7 @@ Picea_sim  %>%
 
 ## Modulation
 
-This section will just illustrate variation of the default scenario. First we modify the frequency of the harvest. When the harvest is not triggered, the value returned is 0.
+This section will just illustrate a variation of the default scenario. First we modify the frequency of the harvest. When the harvest is not triggered, the value returned is 0.
 
 ```{r def_freq}
 set.seed(42) # The seed is here for initial population random functions.
@@ -137,7 +137,7 @@ Picea_sim_f20  %>%
     geom_line(linewidth = .2) + geom_point(size = 0.4) 
 ```
 
-A more advanced modification of the harvest function is ilustratted below. Obviously, this type of modification have not been thoroughly tested and thus is more prone to error so don't hesitate to contact `{matreex}` maintainer in case of trouble. For example, we add a function where we multiply a constant rate with the mesh, meaning that the larger the tree get, the higher the harvesting rate of its size class.
+A more advanced modification of the harvest function is illustrated below. Obviously, this type of modification has not been thoroughly tested and thus is more prone to error so don't hesitate to contact `{matreex}` maintainer in case of trouble. For example, we add a function where we multiply a constant rate with the mesh, meaning that the larger the tree gets, the higher the harvesting rate of its size class is.
 
 ```{r edit_def_harv}
 Picea_harv <- Picea_sp
@@ -170,7 +170,7 @@ Picea_sim_f20  %>%
 
 ## Theory
 
-Uneven-aged harvest scenario consist in harvesting trees in all size classes with the objective to reach a stable size structure with continuous replacing  of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree. This should lead to stands with uneven size distribution.
+Uneven-aged harvest scenario consists in harvesting trees in all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree. This should lead to stands with uneven size distribution.
 
 ### Monospecific case
 
@@ -196,7 +196,7 @@ Note that stand basal area $BA_{stand}$ is computed only considering trees with 
 Each tree harvest probability only depends on its diameter ($d$).
 There is a minimum diameter for harvest ($d_{th}$), harvest probability then increases with diameter until $d_{ha}$ after which harvest probability is constant.
 
-We therefore considered the harvesting function (which associates a $dbh$ to an harvesting probability, building on the approach used in previous model such as @guillemot2014). 
+We therefore considered the harvesting function (which associates a $dbh$ to an harvesting probability, building on the approach used in previous models such as @guillemot2014). 
 
 $$
 h(d) = \left\lbrace
@@ -209,7 +209,7 @@ h(d) = \left\lbrace
 $$
 
 The maximum harvesting for large tree $h_{max}$ can be tuned so that the probability for a large tree to be harvested approaches  1 (for instance $p = 0.999$) after several harvesting operations:
-$h_{max} =  1 - \sqrt[n]{1-p}$ with $n$ the number of harvesting operations. Parameter $k$ defines how quickly the harvesting rate increase from $d_{th}$  to $d_{ha}$.
+$h_{max} =  1 - \sqrt[n]{1-p}$ with $n$ the number of harvesting operations. Parameter $k$ defines how quickly the harvesting rate increases from $d_{th}$  to $d_{ha}$.
 
 ```{r setplot_val, echo = FALSE}
 library(latex2exp)
@@ -414,7 +414,7 @@ expand.grid(hmax = c(.5, .8), k = c(0.1, .5)) %>%
 ```
 
 
-The last parameter for an even harvested simulation is the final cut time. The stand will be harvested with the previous rules at a given frequency but at a certain point, the manager will harvest all trees and plant new ones. This time is dependant on the species growth and differents targets. The value is named `final_harv` in `sim_deter_forest()` function.
+The last parameter for an even harvested simulation is the final cut time. The stand will be harvested with the previous rules at a given frequency but at a certain point, the manager will harvest all trees and plant new ones. This time is dependent on the species growth and different targets. The value is named `final_harv` in `sim_deter_forest()` function.
 
 After a final harvest, the simulation will recruit with an initiation function. In order to take the lag into account, an artificial lag (mean of the simulated species lag) is added until the next start of growth. This step will add NA rows in the result. Any event (disturbance) happening during this lag will not be triggered.
 
@@ -428,9 +428,9 @@ After a final harvest, the simulation will recruit with an initiation function. 
 
 Because the species parameters are given in @Aussenac2021 for a single species stand, computing $N_{max}$ and $Dg$ for multispecific stands is not straightforward. 
 
-The most simple approach to deal with is to sum the partial RDi of each species (which ignore interactive effect in the $N_{max}$ between species) as done in @delRo2015 and @Aussenac2021.
+The simplest approach to deal with is to sum the partial RDI of each species (which ignores interactive effect in the $N_{max}$ between species) as done in @delRo2015 and @Aussenac2021.
 
-The stand RDI is the sum of the RDI of each species : $RDI_{stand} = \sum_{s=1}^{S} N_s / N_{max,s}$
+The stand RDI is the sum of the RDI of each species: $RDI_{stand} = \sum_{s=1}^{S} N_s / N_{max,s}$
 
 The mean quadratic diameter is computed with all species at once :
 
@@ -509,7 +509,7 @@ PiAb_sim_f20 <- sim_deter_forest(
 
 An additional function of the package is available for computing $Kg$ and $RDI$ after the simulations along time.
 
-```{r Comp_rdi, fig.cap="Summary variables for mutlispecific simulation with even harvesting function. Harvest frequence of 10 years and a final harvest at 150y. Dashed lines represent RDI and Kg targets. Both values where set to 0.9."}
+```{r Comp_rdi, fig.cap="Summary variables for mutlispecific simulation with even harvesting function. Harvest frequency of 10 years and a final harvest at 150y. Dashed lines represent RDI and Kg targets. Both values where set to 0.9."}
 rdi_kg <- sim_rdikg(sim = PiAb_sim_f20, rdi_c = NULL)
 
 PiAb_sim_f20 %>%
