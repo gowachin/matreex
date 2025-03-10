@@ -25,9 +25,9 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette expose how the different **integrated projection models** (later named IPM) are built and some mathematical explanations of the integration within `{matreex}` package. The package can model the dynamic of monospecific or plurispecific tree communities. It's composed of chapter about default function call, methods for Gauss Legendre and Midbin integration and finally more code examples for specific calls.
+This vignette exposes how the different **integral projection models** (later named IPM) are built and some mathematical explanations of the integration within `{matreex}` package. The package can model the dynamics of monospecific or multispecific tree communities. It's composed of four chapters about 1. default function call, 2. methods for Gauss Legendre, 3. midbin integration, and 4. more code examples for specific calls.
 
-The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
+The basic `{matreex}` functions are shown in [a previous introductory vignette](matreex.html).
 
 # Rapid description of the Integral Projection Model
 
@@ -39,16 +39,15 @@ $$
 n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
 $$
 
-with $L$ and $U$ being, respectively, the lower and upper observed sizes for integration of the kernel $K$.
+with $L$ and $U$ being, respectively, the lower and upper sizes for integration of the kernel $K$.
 
 The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
 
 The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and $G$ the growth function. 
-The kernel $K(z' ,z)$, thus, integrate the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
+The kernel $K(z' ,z)$, thus, integrates the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
 <!--The figure 1 presents the structure and approach of the IPM. -->
 Note, that this package do not cover the statistical fitting of the vital rates functions.
 
-**This vignette in not fully written**
 
 ## Pipeline example
 
@@ -97,25 +96,25 @@ IPM <- make_IPM(
 ```
 
 
-**The BA range will limit simulation capability so it's best to set it between 0 and a large value such as 200.** This example is lower to speed up computations, the integration time of 200 matrices is measured in minutes.
+**The BA range will limit the range of basal area that the IPM can simulate so it's best to set it between 0 and a large value such as 200.** This example is a smaller range of BA to speed up computations, the integration time of 200 matrices is measured in minutes.
 
 # Methods
 
-We implemented 2 waye to integrate our matrix with this package : Gauss-Legendre and Mid-bin. The first one is more precise but takes a lot more time whereas the second is rapid but include more error for a larger values in the derivative growth function. We combine both is most use cases.
+We implemented 2 ways to integrate our matrix with this package: Gauss-Legendre (GL) and Mid-bin. The first one is more precise but takes a lot more time, whereas the second is rapid but results in poorer approximation, particularly for complex shapes of the growth kernel. We combine both methods in most cases.
 
 ## Band matrix
 
 To speed up computations, several methods are used : 
 
-- The upper-half of the matrix is not integrated because it represent tree whose size reduces along time.
+- The upper-half of the matrix is not integrated because it represents negative growth which is not possible with our fitted models.
 
-- Only few cells next to the diagonal are computed because tree growth is very slow. This number of cell is divided between Gauss-Legendre and Mid-bin methods. Gauss-Legendre is used close to the diagonal, as we expect the largest derivative values for small growths. The number of cells integrated in GL is named $N_{int}$ and represent $50 mm$ growth by default. After $50 mm$ growth, the integration is done with Mid-bin method, for 25 cells.
+- Only cells next to the diagonal are integrated because tree growth is very slow. This cells are integrated either with Gauss-Legendre or Mid-bin methods. Gauss-Legendre is used close to the diagonal, corresponding to small growth values, for which we expect the largest probabilities in the growth kernel. The number of cells integrated in GL is named $N_{int}$ and represents $50 mm$ growth by default. After $50 mm$ growth, the integration is done with Mid-bin method, for 25 cells.
 
-- Since the integration takes place over a wide band of one distance from the diagonal on the $z$ distribution, it is possible to integrate a matrix of dimension $z$ after a change of dimension where $\delta_z = z_{t+1} - z_t$. This allow to vectorise the computation.
+- Since the integration takes place over a band matrix parallel to the diagonal, it is possible to integrate a matrix along $z$ and $\delta_z$ using a change of dimension where $\delta_z = z_{t+1} - z_t$. This allows to vectorise the computation.
 
 - Different levels of integration are used for the different methods. This will be explained in more detail in next chapters.
 
-```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transistion between IPM and the band matrix really integrated. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of observations."}
+```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transition between IPM and the integrated band matrix. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of the growth kernel."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
     \foreach \i in {3,2.5,...,0}{
     {\fill[blue!20] (\i, 5-\i-2) -- (5,5-\i-2) -- (5,5) -- (\i,5);}
@@ -172,7 +171,7 @@ To speed up computations, several methods are used :
 
 ## Gauss Legendre
 
-$N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. We can also understand it as
+$N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. Where $tresh$ is the maximum growth for which GL is applied (by default 500mm). We can also understand it as
 
 $$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
 
@@ -285,7 +284,7 @@ A correction is however applied in order to offset the position of the nodes on 
 \end{tikzpicture}
 ```
 
-What we need to compute is the predicted size $g(z_{t+1})$ depending on the mean growth for a year $\mu_G(z)$ at each node. Because the log diameter growth follow a normal kernel as : 
+What we need to compute is the predicted size $g(z_{t+1})$ depending on the mean annual growth $\mu_G(z)$ at each node. Because the log diameter growth follows a normal kernel as : 
 
 $$f(log(\frac{\delta_z}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
 We can write the kernel of diameter $z_{t+1}$ as : 
