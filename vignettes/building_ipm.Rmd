@@ -297,19 +297,4 @@ IPM <- make_IPM(
 
 
 
-# Glossary {-}
-
-sgdd
-
-:   Sum of Growing Degree Days above $5.5^{\circ}C$.
-
-wai
-
-:   Water Aridity Index.
-
-BA
-
-:   Basal area of population of tree. ${\displaystyle BA=\pi \times (DBH/2)^{2}}$.
-
-
 
