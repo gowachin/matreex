@@ -25,7 +25,7 @@ knitr::opts_chunk$set(
 )
 ```
 
-This vignette exposes how the different **integral projection models** (later named IPM) are built and some mathematical explanations of the integration within `{matreex}` package. The package can model the dynamics of monospecific or multispecific tree communities. It's composed of four chapters about 1. default function call, 2. methods for Gauss Legendre, 3. midbin integration, and 4. more code examples for specific calls.
+This vignette exposes how the **integral projection models** (later named IPM) are built and some mathematical explanations of the integration within `{matreex}` package. The package can model the dynamics of monospecific or multispecific tree communities. It comprises four chapters about 1. default function call, 2. methods for Gauss Legendre, 3. midbin integration, and 4. more code examples for specific calls.
 
 The basic `{matreex}` functions are shown in [a previous introductory vignette](matreex.html).
 
@@ -39,80 +39,31 @@ $$
 n(z', t+1) = \int_{L}^{U} K(z', z) n(z, t) dz 
 $$
 
-with $L$ and $U$ being, respectively, the lower and upper sizes for integration of the kernel $K$.
+with $L$ and $U$ being, respectively, the lower and upper integration sizes for the kernel $K$.
 
 The kernel $K(z' ,z)$ can be split into the survival and growth kernel $P(z' ,z)$ and the fecundity kernel $F(z', z)$, as follows : $K(z' ,z) = P(z' ,z) + F(z' ,z)$ .
 
 The fecundity kernel $F(z', z)$ gives the size distribution of newly recruited trees at time $t+1$ as a function of the size distribution at time t. The survival and growth kernel $P(z', z)$ is defined as $P(z', z) = s(z) \times G(z', z)$, $s$ being the survival function and $G$ the growth function. 
-The kernel $K(z' ,z)$, thus, integrates the three key vital rates functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and the width of the size class are selected to ensure a good numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
+The kernel $K(z' ,z)$, thus, integrates three key vital rate functions: growth, survival, and recruitment. The kernel $P$ is numerically approximated with a big iteration matrix and the continuous size distribution $n$ is approximated by a big state vector. The dimension and width of the size classes are selected to ensure an accurate numerical integration of the kernel $P$. Details on the numerical integration are given below and in @kunstler2021 and @guyennon2023 . 
 <!--The figure 1 presents the structure and approach of the IPM. -->
-Note, that this package do not cover the statistical fitting of the vital rates functions.
+Note, that this package does not cover the statistical fitting of the vital rates functions.
 
-
-## Pipeline example
-
-Below is a simple script to show default function calls. To build an IPM for a species, we need the fitted models for growth, survival and recruitment in a `fit_sgr` class (see the main vignette for class explanations). A vector of climatic variables is also needed, as it represent the climate of our simulations.
-
-
-```{r, example code}
-library(matreex)
-species <- "Pinus_pinea"
-# You can choose any species in the dataset.
-data("fit_species") # available species
-
-# Data sets ####
-# load data with fit models and place it in fit object.
-data(list = paste0("fit_", species))
-
-# load data et select optimum climate (N == 2, see ?climate_species)
-data("climate_species")
-climate <- subset(climate_species, N == 2 & sp == species, select = -sp)
-climate <- drop(as.matrix(climate)) # we need it as a vector.
-
-# Integration ####
-# Integration of IP. They are to large to be stored with the package.
-IPM <- make_IPM(
-    species = species, climate = climate, fit =  fit_Pinus_pinea,
-    clim_lab = "optimum clim",
-    mesh = c(m = 700, L = 90,
-             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
-    BA = 0:3#0
-)
-#> Launching integration loop
-#> GL integration occur on 27 cells
-#> midbin integration occur on 25 cells
-#> Loop done.                                                   
-#> Time difference of 22.6 secs
-```
-
-```{r, echo = FALSE, eval = FALSE}
-devtools::load_all()
-IPM <- make_IPM(
-    species = species, climate = climate, fit =  fit_Pinus_pinea,
-    clim_lab = "optimum clim",
-    mesh = c(m = 6, L = 100,  U = 1300), diag_tresh = 500, level = 12,
-    BA = 0:3#0
-)
-```
-
-
-**The BA range will limit the range of basal area that the IPM can simulate so it's best to set it between 0 and a large value such as 200.** This example is a smaller range of BA to speed up computations, the integration time of 200 matrices is measured in minutes.
 
 # Methods
 
-We implemented 2 ways to integrate our matrix with this package: Gauss-Legendre (GL) and Mid-bin. The first one is more precise but takes a lot more time, whereas the second is rapid but results in poorer approximation, particularly for complex shapes of the growth kernel. We combine both methods in most cases.
+To build the IPM we combine two different integration approaches in this package: Gauss-Legendre (GL) and Mid-bin. The first one is more precise but takes a lot more time, whereas the second is rapid but results in poorer approximation, particularly for complex shapes of the growth kernel.
 
 ## Band matrix
 
 To speed up computations, several methods are used : 
 
-- The upper-half of the matrix is not integrated because it represents negative growth which is not possible with our fitted models.
+- The upper half of the matrix is not integrated because it represents negative growth which is impossible with our fitted models.
 
-- Only cells next to the diagonal are integrated because tree growth is very slow. This cells are integrated either with Gauss-Legendre or Mid-bin methods. Gauss-Legendre is used close to the diagonal, corresponding to small growth values, for which we expect the largest probabilities in the growth kernel. The number of cells integrated in GL is named $N_{int}$ and represents $50 mm$ growth by default. After $50 mm$ growth, the integration is done with Mid-bin method, for 25 cells.
+- Only cells next to the diagonal are integrated because tree growth is very slow. These cells are integrated either with Gauss-Legendre or Mid-bin methods. Gauss-Legendre is used close to the diagonal, corresponding to small growth values, for which we expect the largest probabilities in the growth kernel. The number of cells integrated in GL is named $N_{int}$ and covers growth up $50 mm$ by default. After $50 mm$ growth, the integration is done with the Mid-bin method, for 25 cells.
 
 - Since the integration takes place over a band matrix parallel to the diagonal, it is possible to integrate a matrix along $z$ and $\delta_z$ using a change of dimension where $\delta_z = z_{t+1} - z_t$. This allows to vectorise the computation.
 
-- Different levels of integration are used for the different methods. This will be explained in more detail in next chapters.
+- The GL method uses different levels of integration for the two dimensions of integration. This will be explained in more detail in the next chapters.
 
 ```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transition between IPM and the integrated band matrix. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of the growth kernel."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
@@ -175,63 +126,11 @@ $N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` a
 
 $$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
 
-For each cell under Gauss-Legendre integration method, multiple levels are used : on $size_t$ we integrate at $level = 3$ whereas on $\delta_z$ we integrate at $level = \frac{level_{param}}{3}$. The input parameter $level_{param}$ default value is 420. This is used because as seen earlier we expect most variation to exist along the $\delta_z$ axis.
+For each cell under Gauss-Legendre integration method, multiple integration levels are used: on $size_t$ we integrate at $level = 3$ whereas on $\delta_z$ we integrate at $level = \frac{level_{param}}{3}$. The input parameter $level_{param}$ default value is 420. This is used because as seen earlier we expect most variation to exist along the $\delta_z$ axis.
 
-Distribution of the nodes and their weights is given by the `statmod::gauss.quad()` function. 
+The position of the nodes and their weights is given by the `statmod::gauss.quad()` function. A correction is however applied in order to offset the position of the nodes on the $\delta_z$ axis because the growth to reach the same value of $z_{t+1}$ is larger for a point corresponding to a smaller value of $z_{t}$ within the cell than for a point at larger value of $z_{t}$ within the cell. The offset value is the position of the nodes on $z_t$.
 
-```{r gauss-legendre, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Levels of integration on $size_t$ and $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example."}
-\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
-
-    \draw (0,0) grid[step=5] (5,5);
-
-    \node at (1.25,0.5) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,1.5) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,2.5) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,3.5) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,4.5) [circle,fill,inner sep=1pt]{};
-
-    \node at (2.5,0.5) [circle,fill,inner sep=1pt]{};
-    \node at (2.5,1.5) [circle,fill,inner sep=1pt]{};
-    \node at (2.5,2.5) [circle,fill,inner sep=1pt]{};
-    \node at (2.5,3.5) [circle,fill,inner sep=1pt]{};
-    \node at (2.5,4.5) [circle,fill,inner sep=1pt]{};
-
-    \node at (3.75,0.5) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,1.5) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,2.5) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,3.5) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,4.5) [circle,fill,inner sep=1pt]{};
-
-    \draw (2.5,5) node[above]{$z_t$} ;
-    \draw (0,2.5) node[left]{$\delta_{z}$} ;
-    \draw[|-|] (5.25,0) -- (5.25,5);
-    \draw(5.25,2.5) node[right] {$h$};
-
-    \draw(6,3) node[right] {$z_t$ $level = 3$};
-    \draw(6,2) node[right] {$\delta_{z} level = 5$};
-
-    \fill[red!50] (0, -2) -- (5,-2) -- (5, -1) -- (0,-1);
-    \draw (0,-2) grid[step=.5] (5,-1);
-    \draw (2.5,-1) node[above]{$z_t$} ;
-    \draw (-0.25,-1.5) node[left]{$\delta_{z}$} ;
-    \draw(0,-1) node[above] {$L$};
-    \draw(5,-1) node[above] {$U$};
-    \draw[->] (5.25,-1) -- (5.25,-2);
-    \draw(5.25,-1) node[right] {0};
-    \draw(5.25,-2) node[right] {$N_{int}$};
-
-    \draw(.25,0.25) node[] {$y$};
-    \draw(.25,-1.75) node[] {$y$};
-
-    \draw [>=stealth, ->] (0,4.5) to [out=-150,in=90] (-0.75, 2.5) to [out=-90,in=130] (0,-1.75);
-
-
-\end{tikzpicture}
-```
-
-A correction is however applied in order to offset the position of the nodes on the $\delta_z$ axis, to avoid the upper part of the matrix to affect the values. The offset value is the position of the nodes on $z_t$.
-
-```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. Diagonal dashed line is the identity where $\\delta_z = z_t$ and horizontal dotted line mark the cell limit."}
+```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. The diagonal dashed line is the identity where $\\delta_z = z_t$ and the horizontal dotted line marks the cell limit."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
 
     \draw[dotted] (0, 0) -- (5,0) -- (5, 5) -- (0,5) -- cycle;
@@ -240,11 +139,11 @@ A correction is however applied in order to offset the position of the nodes on 
     \draw[line width=0.2pt, dashed] (0,5) -- (5,0);
     
 
-    \node at (1.25,0.5+1.25) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,1.5+1.25) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,2.5+1.25) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,3.5+1.25) [circle,fill,inner sep=1pt]{};
-    \node at (1.25,4.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,0.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,1.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,2.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,3.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (1.25,4.5-1.25) [circle,fill,inner sep=1pt]{};
 
     \node at (2.5,0.5) [circle,fill,inner sep=1pt]{};
     \node at (2.5,1.5) [circle,fill,inner sep=1pt]{};
@@ -252,11 +151,11 @@ A correction is however applied in order to offset the position of the nodes on 
     \node at (2.5,3.5) [circle,fill,inner sep=1pt]{};
     \node at (2.5,4.5) [circle,fill,inner sep=1pt]{};
 
-    \node at (3.75,0.5-1.25) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,1.5-1.25) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,2.5-1.25) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,3.5-1.25) [circle,fill,inner sep=1pt]{};
-    \node at (3.75,4.5-1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,0.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,1.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,2.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,3.5+1.25) [circle,fill,inner sep=1pt]{};
+    \node at (3.75,4.5+1.25) [circle,fill,inner sep=1pt]{};
 
     \draw (2.5,6) node[above]{$z_t$} ;
     \draw (0,2.5) node[left]{$\delta_{z}$} ;
@@ -290,17 +189,12 @@ $$f(log(\frac{\delta_z}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
 We can write the kernel of diameter $z_{t+1}$ as : 
 
 $$g(z_{t+1}) = \frac{f(\mu_G(z))}{\delta_z} = \frac{f(log(\delta_z))}{\delta_z}$$
-The definition of annual growth is represented by two alternative models depending on climatic variables ($sgdd$ and $wai$) and plot basal area ($BA$).
-
-$$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 \frac{1}{sgdd} + a_5 \frac{1}{wai}$$
-
-$$log(\delta_z) = a_0 + a_1 D_i + a_2 log(D_i) + a_3 BA_i + a_4 sgdd + a_5 sgdd^2 + a_6 wai + a_7 wai^2$$
 
 ## Midbin
 
-For each cell under Mid-bin integration method, a single level is used, on $size_t$ we integrate at $level = 3$.
+For each cell under Mid-bin integration method, a single level is used on $z_{t+1}$, and on $size_t$ we integrate at $level = 3$.
 
-Distribution of the nodes is regular, in order to space them equally between $L - h/2$ and $U = h/2$. Each node has the same weight.
+The position of the nodes is regular, in order to space them equally between $L - h/2$ and $U = h/2$. Each node has the same weight.
 
 ```{r, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE , fig.cap="Mid bin integration."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
