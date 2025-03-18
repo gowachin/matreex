@@ -1,5 +1,5 @@
 ---
-title: 'matreex: Simulation IPM for forest dynamic.'
+title: 'matreex: Simulation European forest dynamic with IPM.'
 tags:
   - R
   - forestry
@@ -48,7 +48,11 @@ bibliography: paper.bib
 
 # Introduction
 
-Integrated projection models (IPMs) are important tools to study population dynamics toward equilibrium, by predicting continuous trait distributions along time (@ellner2016). By contrast with individual based model, the continuous distribution remove demographic stochasticity and lead to identical simulations given the same input. This point is crucial in studying difference between vital rates, climatic conditions, community composition or perturbations in ecology.
+Integrated projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing predictions of changes in trait distributions over time (@ellner2016). However, these models are rarely used to study forests, which are more commonly modeled using individual-based or cohort-based approaches.
+Unlike individual-based or cohort-based models, which represent populations as finite (discrete) population, IPMs describe populations as infinite (continuous) population, integrating over the uncertainty of growth processes. This removes demographic stochasticity and results in fully deterministic simulations. Despite these advantages, IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
+Here, we introduce an R package specifically designed to build IPMs for European forest tree species. Our package combines fitted demographic rate functions with climate, competition, and disturbance effects and includes functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. This package complements existing R packages for IPMs, such as ipmr and IPMpack, which are not specifically designed for forest ecosystems.
+![image](https://github.com/user-attachments/assets/d1c06ea0-9a28-4708-b6d3-3b76700b5732)
+
 
 # Statement of need
 
