@@ -48,39 +48,46 @@ bibliography: paper.bib
 
 # Introduction
 
-Integrated projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing predictions of changes in trait distributions over time (@ellner2016). However, these models are rarely used to study forests, which are more commonly modeled using individual-based or cohort-based approaches.
-Unlike individual-based or cohort-based models, which represent populations as finite (discrete) population, IPMs describe populations as infinite (continuous) population, integrating over the uncertainty of growth processes. This removes demographic stochasticity and results in fully deterministic simulations. Despite these advantages, IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
+Integrated projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing predictions of changes in trait distributions over time (@ellner2016). These models are rarely used to study forests, which are more commonly modeled using individual-based or cohort-based approaches.
+Unlike individual-based or cohort-based models, which represent populations as finite (discrete) population, IPMs describe populations as infinite (continuous) population, integrating over the uncertainty of growth processes. This removes demographic stochasticity and results in fully deterministic simulations which is complementary to IBM models. IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 Here, we introduce an R package specifically designed to build IPMs for European forest tree species. Our package combines fitted demographic rate functions with climate, competition, and disturbance effects and includes functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. This package complements existing R packages for IPMs, such as ipmr and IPMpack, which are not specifically designed for forest ecosystems.
 
 
 
 # Statement of need
 
-`matreex` is an R package speciallised on forestry dynamic. Other packages exist to use IPMs for various types of organisms (`pack`  for @Metcalf2013, `ipmr` for @Levin2021), however they focus on analysis on the matrix itselft whereas `matreex` package use the integrated matrices to simulate population dynamics.
+`matreex` is an R package specifically designed to build IPMs and run simulations for European forests. Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack`  for @Metcalf2013, `ipmr` for @Levin2021). In addition `matreex` integrates numerous functions to run simulations for multispecies communities with harvesting and disturbance scenarios .
 
-A specifity of `matreex` package is the focus on trees. As theses species have a small annual growth rate, most of the integration effort is grouped near the diagonal of matrices. We resolved this issue using different integrations methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which help speed up the integration. This speed is crucial as we integrated a matrix per competition level (based on species basal area) for density dependance.
+A specificity of `matreex` package is the development of IPM integration functions focused on trees. As trees have a small annual growth rate, most of the integration effort is put near the diagonal of the matrice. We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration. This speed is crucial as we integrated a matrix per competition level (based on species basal area)to account for density dependence.
 
 <!--
-figure sur l'intégration ?
+figure sur l'intégration ? GK= Juste la 1er fig pas celle donnant le detail de la band matrix
 -->
 
-A crucial development effort was also given in order to simplify usage for researcher in ecology, who may work on multi-specific models with climate variation. This is made easier by adding fitted vital model for european tree species directly in the package, altough other models can still be used. The object-oriented method also makes it possible to limit the complexity of the code so that we can concentrate on a larger number of simulations to explore different starting conditions.
+A crucial development effort was also to simplify usage for researchers in ecology, who may work on multi-specific models with climate variation, disturbances, and harvesting. This is made easier by providing fitted vital models for European tree species directly in the package RAJOUTER REF PAPIER, although other new models can still be used. The object-oriented method limits the complexity of the code so that users can concentrate on setting up large simulation experiments to tackle their ecological questions.
 
 
  <!-- but as forest are commonly managed, it was important to add different management algoritm as well as easily exploitable outputs for foresters. -->
 
 <!--
-## Climatic variabily
+## Climatic temporal variability
 
-While the first IPM model was designed for a static climatic point, we exploited computation approximation to compute integrated matrices during simulations.
+While the first IPM model was designed for a static climate, we developed new methods to approximate the IPM in a temporally variable climate in an efficient way in the simulations.
+
+## Disturbance
+TODO
+
+## Harvesting
+TODO
+
 -->
 
 
 ## Usage and availability
 
-`matreex` was designed to be expanded to fit new research ideas and is still in development, after being used in differents scientific publications (@kunstler2021, @guyennon2023, **TODO Barrere, Baranger ?**). The ability to simulate forest easily will help learning about management methods, climatic perturbation and species cohabitation in future european forest, by producing clear outputs that ecologist explore in R language.
+`matreex` was designed to be expanded to fit new research ideas and is in continuous development and have been used in different scientific publications (@kunstler2021, @guyennon2023, **TODO Barrere, Baranger ?**). The ability to simulate forests easily with a designed R package will help ecologists analyse the effect of climate change, change in disturbance regimes, and the interplay with forest management of European forests.
 
-`matreex` is an open source package made available under the MIT license. Installation and usage instructions can be found at the  website [TODO mettre le site en ligne avec une vrai url](https://forgemia.inra.fr/lessem/matreex)
+`matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the  website [TODO mettre le site en ligne avec une vrai url](https://forgemia.inra.fr/lessem/matreex)
 
 <!--
 # Figures
