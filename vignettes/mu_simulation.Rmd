@@ -28,7 +28,7 @@ This vignette illustrates how to use climate variation scenarii with `{matreex}`
 The basic `{matreex}` functions are shown in [a previous introduction vignette](matreex.html).
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, eval = FALSE)
+knitr::opts_chunk$set(echo = TRUE, eval = TRUE)
 ```
 
 
@@ -38,7 +38,7 @@ When we integrate an IPM, we compute the distribution of $z_{t+1}$ for each valu
 
 $$f(log(\frac{z_{t+y} - z_t}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
 
-Here, $f(log(\frac{z_{t+y} - z_t}{y}))$ if given for each climate situation, and it is the computation of the distribution that is the longuest part of the integration. This limit give us a very long time if we need to integrate a matrix per year and basal area, in case of climate variation.
+Here, $f(log(\frac{z_{t+y} - z_t}{y}))$ if given for each climate situation, and it is the computation of the distribution that is the longest part of the integration. This limit give us a very long time if we need to integrate a matrix per year and basal area, in case of climate variation.
 
 However we observe that there is two dimension here : a distribution of $\mu_G$ for each climate and a distribution of $z_{t+1}$ for each $\mu_G$ value. On the schematic illustration below, we can observe that depending on the climate $\alpha$ and $\beta$, different $\mu$ values are given on the $z_t$ axis, but the $z_{t+1}$ will be the same for a given $\mu$ value.
 
@@ -126,12 +126,11 @@ library(ggplot2)
 library(dplyr)
 library(matreex)
 
-# Loading all functions of the package
-devtools::load_all()
-species <- "Fagus_sylvatica"
-data(list = paste0("fit_", species))
-fit <- eval(parse(text=paste0("fit_", species)))
-climate <- subset(climate_species, sp == species, select = -sp)
+data("fit_Fagus_sylvatica")
+
+# Load associated climate
+data("climate_species")
+climate <- subset(climate_species, sp == "Fagus_sylvatica", select = -sp)
 ```
 
 ## Get $\mu_G$ range
@@ -140,7 +139,7 @@ The first step consist in computing all $\mu_G$ values for a species in its clim
 
 ```{r range_mu}
 mu_range <- getRangemu(
-    climate = climate, fit = fit, BA = seq(0, 200, by = 10), 
+    climate = climate, fit = fit_Fagus_sylvatica, BA = seq(0, 200, by = 10), 
     mesh = seq(90, get_maxdbh(fit_Fagus_sylvatica) * 1.1, by = 2))
 mu_range
 ```
@@ -181,7 +180,7 @@ Fagus_sylvatica <- species(IPM = mu_Fagus_sylvatica, init_pop = def_initBA(20),
 
 forest <- forest(species = list(mu_Fagus = Fagus_sylvatica))
 set.seed(42)
-memor_mu <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
+memor_mu <- sim_deter_forest(forest, tlim = time, climate = step_climate,
                                     equil_dist = time, equil_time = time,
                                     verbose = TRUE, correction = "cut")
 
@@ -189,15 +188,14 @@ memor_mu %>%
     filter(var %in% c("BAsp", "H", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(linewidth = .4) + geom_point(size = .4) +
-    NULL
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 We can compare this with a classical IPM simulation to see that it's not so different. Obviously this takes some times since integration takes longer. To limit this, we only integrate for basal area up to 40.
 
 ```{r compare_IPM}
 ipm_Fagus <- make_IPM(
-    "Fagus_sylvatica", step_climate, "opt_Picab_clim", fit = fit_Fagus_sylvatica,
+    "Fagus_sylvatica", step_climate, "opt_Fagus_clim", fit = fit_Fagus_sylvatica,
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
     BA = 0:40, verbose = TRUE
 )
@@ -205,33 +203,26 @@ Fagus_sylvatica_ipm <- species(IPM = ipm_Fagus, init_pop = def_initBA(20),
                                harvest_fun = def_harv)
 forest_ipm <- forest(species = list(ipm_Fagus = Fagus_sylvatica_ipm))
 set.seed(42)
-memor_ipm <- sim_deter_forest.forest(forest_ipm, tlim = time, 
+memor_ipm <- sim_deter_forest(forest_ipm, tlim = time, 
                                      equil_dist = time, equil_time = time,
                                      verbose = TRUE, correction = "cut")
 ```
 
-```{r compare_plot, fig.cap="comparison of simulations with integrated matrix and $\mu_G$ approximation"}
+```{r compare_plot, fig.cap="comparison of simulations with integrated matrix and $\\mu_G$ approximation"}
 e_memor <- dplyr::bind_rows(ipm = memor_ipm, mu = memor_mu, .id = "meth")
+par(mfrow= c(1, 2))
 e_memor %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = meth)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4) +
-    NULL
-
-e_memor %>%
-    filter(var == "n", time == 1) %>% filter(value > 0) %>%
-    ggplot(aes(x = size, y = value, color = meth)) +
-    geom_point(aes(shape = meth)) +
-    NULL
+    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4)
 
 e_memor %>%
     filter(var %in% c("BAsp"), ! equil) %>%
     group_by(time) %>% summarise(value = diff(value)) %>%
     ggplot(aes(x = time, y = value)) +
     ylab("BA difference") +
-    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4) +
-    NULL
+    geom_line(linewidth = .4, linetype = "dotted") + geom_point(size = .4)
 ```
 
 ## Climate evolution in time
@@ -260,7 +251,7 @@ Fagus_sylvatica <- species(IPM = mu_Fagus_sylvatica, init_pop = def_init_k(distr
                        harvest_fun = def_harv)
 clim_forest <- forest(species = list(clim_Fagus = Fagus_sylvatica))
 set.seed(42)
-memor_clim <- sim_deter_forest.forest(clim_forest, tlim = time, climate = exp_clim,
+memor_clim <- sim_deter_forest(clim_forest, tlim = time, climate = exp_clim,
                                       equil_dist = time, equil_time = time,
                                       verbose = TRUE, correction = "cut")
 
@@ -276,7 +267,11 @@ memor_clim %>%
 
 The BA difference is already pretty low between IPM and $\mu_G$ simulations, but this section will illustrate that it's directly linked with `stepMu` value. Error is negligible for stepMu of 0.0001, but computing $\mu_G$ values takes around 2 minutes.
 
-```{r stepMu}
+
+<details>
+    <summary>Code to generate figure</summary>
+```{r stepMu, eval = FALSE}
+# Computation is long here
 steps <- c(0.05, 0.01, 0.005, 0.001, 0.0005)
 diff_list <- vector("list", length(steps))
 
@@ -292,7 +287,7 @@ for(s in seq_along(steps)){
     
     forest <- forest(species = list(Fagus = Fagus))
     set.seed(42)
-    memor <- sim_deter_forest.forest(forest, tlim = time, 
+    memor <- sim_deter_forest(forest, tlim = time, 
                                      climate = step_climate,
                                      equil_dist = time, equil_time = time,
                                      correction = "cut") 
@@ -305,14 +300,33 @@ for(s in seq_along(steps)){
 
 names(diff_list) <- c("a: 5e-2", "b: 1e-2", "c: 5e-3", "d: 1e-3", "e: 5e-4")
 res <- do.call("bind_rows", c(diff_list, list(.id = "stepMu")))
-res %>%
+
+p <- res %>%
     ggplot(aes(x = time, y = value, color = stepMu)) +
     ylab("BA difference") +
-    geom_line(linewidth = .4) +
-    NULL
-
-res %>% group_by(stepMu) %>%
+    geom_line(linewidth = .4)
+# png("stepMu.png")
+p
+# dev.off()
+summary <- res %>% group_by(stepMu) %>%
     summarise(min = min(value), max = max(value), d = max - min)
+```
+</details> 
+
+```{r, echo = FALSE}
+knitr::include_graphics(system.file(
+        "extdata", "stepMu.png",
+        package = "matreex",
+        lib.loc = NULL,
+        mustWork = FALSE
+    ))
+summary <- structure(list(
+    stepMu = c("a: 5e-2", "b: 1e-2", "c: 5e-3", "d: 1e-3", "e: 5e-4"),
+    min = c(-0.198040903223223, -0.0637381853746728, -0.0455626793410637, -0.0312318108955409, -0.0293529789309943), 
+    max = c(0, 0, 0, 0, 0), 
+    d = c(0.198040903223223, 0.0637381853746728, 0.0455626793410637, 0.0312318108955409, 0.0293529789309943)), 
+    class = c("tbl_df", "tbl", "data.frame"), row.names = c(NA, -5L))
+summary
 ```
 
 
@@ -321,6 +335,7 @@ res %>% group_by(stepMu) %>%
 We had a second species with $\mu_G$ values. This is just so we can have a distribution from species equilibrium at the climate given at very start of this document.
 
 ```{r Abies_alba}
+data("fit_Abies_alba")
 mu_Abies_alba <- make_mu_gr(
     species = "Abies_alba", fit = fit_Abies_alba,
     mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
@@ -331,7 +346,7 @@ Abies_alba <- species(IPM = mu_Abies_alba, init_pop = def_initBA(20),
 
 forest <- forest(species = list(mu_Abies = Abies_alba))
 set.seed(42)
-memor_abies <- sim_deter_forest.forest(forest, tlim = time, climate = step_climate,
+memor_abies <- sim_deter_forest(forest, tlim = time, climate = step_climate,
                                        equil_dist = time, equil_time = time,
                                        verbose = TRUE, correction = "cut")
 
@@ -346,7 +361,7 @@ We create a forest with 2 species integrated with $\mu_G$ values. From this, we 
 ```{r}
 nsp_forest <- forest(species = list(Fagus = Fagus_sylvatica, Abies = Abies_alba))
 set.seed(42)
-memor_nsp <- sim_deter_forest.forest(nsp_forest, tlim = time, climate = exp_clim,
+memor_nsp <- sim_deter_forest(nsp_forest, tlim = time, climate = exp_clim,
                                      equil_dist = time, equil_time = time,
                                      verbose = TRUE, correction = "cut") 
 
@@ -354,8 +369,7 @@ memor_nsp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(linewidth = .4) + geom_point(size = .4) +
-    NULL
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```
 
 If we want to simulate with species defined from $\mu_G$ and IPM, we can mix them but the climate used to integrate the IPM will be used. Providing a climate is thus useless in this case. 
@@ -364,7 +378,7 @@ If we want to simulate with species defined from $\mu_G$ and IPM, we can mix the
 Fagus_sylvatica_ipm$init_pop <- def_init_k(distrib)
 msp_forest <- forest(species = list(Fagus = Fagus_sylvatica_ipm, Abies = Abies_alba))
 set.seed(42)
-memor_msp <- sim_deter_forest.forest(msp_forest, tlim = time, climate = exp_clim,
+memor_msp <- sim_deter_forest(msp_forest, tlim = time, climate = exp_clim,
                                      equil_dist = time, equil_time = time,
                                      verbose = TRUE, correction = "cut")
 
@@ -372,6 +386,5 @@ memor_msp %>%
     filter(var %in% c("BAsp", "N"), ! equil, value != 0) %>%
     ggplot(aes(x = time, y = value, color = species)) +
     facet_wrap(~ var, scales = "free_y") +
-    geom_line(linewidth = .4) + geom_point(size = .4) +
-    NULL
+    geom_line(linewidth = .4) + geom_point(size = .4)
 ```

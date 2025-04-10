@@ -53,7 +53,7 @@ expand_clim <- function(climate, inv_null){
 #' times. Example, for 100 year and an extrapolation of 50% will add 50 years of
 #' simulations beyond the last climate.
 #'
-#'
+#' @importFrom stats rnorm
 #' @details
 #' The climate will be linear between the two climate, using a seq() function.
 #' clim_table must encode the climate with numeric 1, 2 and 3 respectively
@@ -68,6 +68,8 @@ clim_gradient <- function(clim_table,
 
     match.arg(start_clim)
     match.arg(end_clim)
+
+    N <- NULL
 
     assertNumber(extrapolate, lower = 0)
     extrapolate <- extrapolate / 100

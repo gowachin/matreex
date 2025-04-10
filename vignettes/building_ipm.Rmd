@@ -48,6 +48,56 @@ The kernel $K(z' ,z)$, thus, integrates three key vital rate functions: growth, 
 <!--The figure 1 presents the structure and approach of the IPM. -->
 Note, that this package does not cover the statistical fitting of the vital rates functions.
 
+<!--
+## Pipeline example
+
+Below is a simple script to show default function calls. To build an IPM for a species, we need the fitted models for growth, survival and recruitment in a `fit_sgr` class (see the main vignette for class explanations). A vector of climatic variables is also needed, as it represent the climate of our simulations.
+
+
+```{r, example code}
+library(matreex)
+species <- "Pinus_pinea"
+# You can choose any species in the dataset.
+data("fit_species") # available species
+
+# Data sets ####
+# load data with fit models and place it in fit object.
+data(list = paste0("fit_", species))
+
+# load data et select optimum climate (N == 2, see ?climate_species)
+data("climate_species")
+climate <- subset(climate_species, N == 2 & sp == species, select = -sp)
+climate <- drop(as.matrix(climate)) # we need it as a vector.
+
+# Integration ####
+# Integration of IP. They are to large to be stored with the package.
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 700, L = 90,
+             U = as.numeric(fit_Pinus_pinea$info[["max_dbh"]]) * 1.1),
+    BA = 0:3#0
+)
+#> Launching integration loop
+#> GL integration occur on 27 cells
+#> midbin integration occur on 25 cells
+#> Loop done.                                                   
+#> Time difference of 22.6 secs
+```
+
+```{r, echo = FALSE, eval = FALSE}
+devtools::load_all()
+IPM <- make_IPM(
+    species = species, climate = climate, fit =  fit_Pinus_pinea,
+    clim_lab = "optimum clim",
+    mesh = c(m = 6, L = 100,  U = 1300), diag_tresh = 500, level = 12,
+    BA = 0:3#0
+)
+```
+
+
+**The BA range will limit the range of basal area that the IPM can simulate so it's best to set it between 0 and a large value such as 200.** This example is a smaller range of BA to speed up computations, the integration time of 200 matrices is measured in minutes.
+-->
 
 # Methods
 
@@ -122,7 +172,7 @@ To speed up computations, several methods are used :
 
 ## Gauss Legendre
 
-$N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. Where $tresh$ is the maximum growth for which GL is applied (by default 500mm). We can also understand it as
+$N_{int}$ is defined by the `mesh` argument of the functions. From  the `mesh` argument, a $mesh_{size}$ vector is defined by values between $L+h$ and $U-h$, with $h = \frac{U - L}{m}$. $N_{int}$ is the index of the last cell for which $(mesh_{size} - (L + \frac{h}{2}) < tresh$ is true. Where $tresh$ is the maximum growth for which GL is applied (by default 50mm). We can also understand it as
 
 $$N_{int} \approx \frac{tresh}{h}  \approx \frac{tresh \times m}{U - L}$$
 
@@ -130,7 +180,7 @@ For each cell under Gauss-Legendre integration method, multiple integration leve
 
 The position of the nodes and their weights is given by the `statmod::gauss.quad()` function. A correction is however applied in order to offset the position of the nodes on the $\delta_z$ axis because the growth to reach the same value of $z_{t+1}$ is larger for a point corresponding to a smaller value of $z_{t}$ within the cell than for a point at larger value of $z_{t}$ within the cell. The offset value is the position of the nodes on $z_t$.
 
-```{r gauss-legendre offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. The diagonal dashed line is the identity where $\\delta_z = z_t$ and the horizontal dotted line marks the cell limit."}
+```{r gauss_legendre_offset, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Integration offset on $\\delta_z$ for a single cell $y$. Level for $\\delta_z$ is an example. The diagonal dashed line is the identity where $\\delta_z = z_t$ and the horizontal dotted line marks the cell limit."}
 \begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
 
     \draw[dotted] (0, 0) -- (5,0) -- (5, 5) -- (0,5) -- cycle;
