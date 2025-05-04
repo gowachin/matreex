@@ -1,5 +1,5 @@
 ---
-title: 'matreex: Simulation European forest dynamic with IPM.'
+title: 'matreex: Simulating European forest dynamics with IPM.'
 tags:
   - R
   - forestry
