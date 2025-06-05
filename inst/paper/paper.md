@@ -85,7 +85,7 @@ TODO
 
 ## Usage and availability
 
-`matreex` was designed to be expanded to fit new research ideas and is in continuous development and have been used in different scientific publications (@kunstler2021, @guyennon2023, **TODO Barrere et 2014; Barrere et al. in prep, Baranger et al in prep**). The ability to simulate forests easily with a designed R package will help ecologists analyse the effect of climate change, change in disturbance regimes, and the interplay with forest management of European forests.
+`matreex` was designed to be expanded to fit new research ideas and is in continuous development and have been used in different scientific publications (@kunstler2021, @guyennon2023, @barrere2025**TODO Barrere et 2014 Baranger et al in prep**). The ability to simulate forests easily with a designed R package will help ecologists analyse the effect of climate change, change in disturbance regimes, and the interplay with forest management of European forests.
 
 `matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the  website [TODO mettre le site en ligne avec une vrai url](https://forgemia.inra.fr/lessem/matreex)
 
