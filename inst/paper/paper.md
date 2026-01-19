@@ -52,8 +52,6 @@ Integrated projection models (IPMs) are powerful tools for studying the temporal
 
 Here, we introduce an R package specifically designed to build IPMs for European forest tree species. Our package includes fitted species-specific functions of growth, survival and recruitment accounting for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. We also included the possibility to simulate natural disturbances (storm, fire, biotic and snow) affecting population survival depending on tree species sensitivity and stand structure. This package complements existing R packages for IPMs, such as ipmr and IPMpack, which are not specifically designed for forest ecosystems.
 
-
-
 # Statement of need
 
 `matreex` is an R package specifically designed to build IPMs and run simulations for European forests. Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack`  for @Metcalf2013, `ipmr` for @Levin2021). In addition `matreex` integrates numerous functions to run simulations for multispecies communities with harvesting and disturbance scenarios.
@@ -66,7 +64,6 @@ figure sur l'intégration ? GK= Juste la 1er fig pas celle donnant le detail de 
 
 A crucial development effort was also to simplify usage for ecological researchers, who may work on multi-specific models with climate variation, disturbances, and harvesting. This is made easier by providing fitted vital models for European tree species directly in the package RAJOUTER REF PAPIER, although other new models can still be used. The object-oriented method limits the complexity of the code so that users can concentrate on setting up large simulation experiments to tackle their ecological questions. The figure XX REF shows an example of multispecies simulations with storm disturbance from Barrere et al. 2024 ADD REF. ADD FIGURE
 
-
  <!-- but as forest are commonly managed, it was important to add different management algoritm as well as easily exploitable outputs for foresters. -->
 
 <!--
@@ -74,18 +71,19 @@ A crucial development effort was also to simplify usage for ecological researche
 
 While the first IPM model was designed for a static climate, we developed new methods to approximate the IPM in a temporally variable climate in an efficient way in the simulations.
 -->
+
 ## Disturbance
-One key originality of matreex is the possibility to apply storm, fire, biotic of snow disturbances of different intensity (ranging from 0 to 1) at any time of the  IPM simulations. When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023), which quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, and the nature and intensity of the disturbance. A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in each plot to that specific disturbance. 
+
+One key originality of matreex is the possibility to apply storm, fire, biotic of snow disturbances of different intensity (ranging from 0 to 1) at any time of the  IPM simulations. When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023), which quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, and the nature and intensity of the disturbance. A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in each plot to that specific disturbance.
 
 ## Regional dispersal
-Most stand-scale forest dynamics models tend to simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees. This limitation prevents the possibility to simulate immigration from external species, which is a key process of forest dynamics, particularily in a context of climate change. To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the summed basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on a regional pool associated with the plot simulated. This regional pool approach is extensively presented in Barrere et al. (in revision). 
+
+Most stand-scale forest dynamics models tend to simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees. This limitation prevents the possibility to simulate immigration from external species, which is a key process of forest dynamics, particularily in a context of climate change. To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the summed basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on a regional pool associated with the plot simulated. This regional pool approach is extensively presented in Barrere et al. (in revision).
 
 <!--
 ## Harvesting
 TODO
-
 -->
-
 
 ## Usage and availability
 
@@ -103,8 +101,6 @@ and referenced from text using \autoref{fig:example}.
 Figure sizes can be customized by adding an optional second parameter:
 ![Caption for example figure.](figure.png){ width=20% }
 
-
-
 We acknowledge contributions from Brigitta Sipocz, Syrtis Major, and Semyeong
 Oh, and support from Kathryn Johnston during the genesis of this project.
 
@@ -112,6 +108,11 @@ Oh, and support from Kathryn Johnston during the genesis of this project.
 
 # Acknowledgements
 
-**TODO : Projets européens ? Arnaud ?**
+**TODO : Projets européens ? Arnaud ? RESONATE FUNPOTENTIAL**
+
+JB, MJ, BR and GK are funded through the BiodivClim ERA-Net Cofund,(joint BiodivERsA Call on “Biodiversity and Climate Change”, 2019-2020) with national co–funding through ANR (France, project ANR-20-EBI5-0005-03).
+GK and LT were funded by the ANR DECLIC (grant ANR-1520-CE32-0005-01) and REGE-ADAPT PEPR FORESTT France 2030 (ANR-24-PEFO-0006).
+JB, MJ, BR and GK are funded by the RESONATE H2020 project (grant 101000574).
+G.K. and A.G. received support from the REFORCE – EU FP7ERA-NET Sumforest 2016 through the call ‘Sustainable forests for the society of the future’, with the ANR as national funding agency (grant ANR-16-SUMF-0002).
 
 # References
