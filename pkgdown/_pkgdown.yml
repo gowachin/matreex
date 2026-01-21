@@ -40,8 +40,12 @@ reference:
     - def_initBA
     - def_init_even
     - def_init_k
+    - def_init_pop
+    - def_initBA_pop
+    - def_init_kpop
     - def_harv
     - def_disturb
+    - def_init_planting
 
 - title: Running a simulation.
   desc: >
@@ -49,6 +53,8 @@ reference:
   contents:
     - forest
     - sim_deter_forest
+    - sim_indiv_forest
+    - clim_gradient
 
 - title: Harvesting
   desc: >
@@ -83,7 +89,6 @@ reference:
     - fit_Carpinus_betulus
     - fit_Fagus_sylvatica
     - fit_Fraxinus_excelsior
-    - fit_Juniperus_thurifera
     - fit_Larix_decidua
     - fit_Picea_abies
     - fit_Pinus_halepensis
@@ -102,6 +107,8 @@ reference:
     - fit_Quercus_robur
     - fit_Quercus_suber
     - fit_Salix_caprea
+    - species_maturity
+    - distrib_planting
 
 
 - title: Loading old objects
@@ -122,6 +129,7 @@ reference:
     - get_maxdbh
     - climatic
     - sp_name
+    - extinct
 
 
 - title: Deprecated Functions

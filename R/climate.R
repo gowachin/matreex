@@ -1,7 +1,7 @@
 #' @param x a named values for a climatic variable.
 #' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
 #' case of var can take 0 for value.
-#' Example : \code{x = c(sgdd = 2000)}
+#' Example : \code{x = data.frame(sgdd = 2000)}
 #'
 #' @noRd
 value2sqb <- function(x, inv_null = FALSE){
@@ -20,7 +20,7 @@ value2sqb <- function(x, inv_null = FALSE){
 #' @param climate Named vector of climatic variables.
 #' @param inv_null If TRUE, the inverse variable is \code{varb = 1/(var+1)}, in
 #' case of var can take 0 for value.
-#' Example : \code {climate = c(sgdd = 2000, wai = 0.16) ; inv_null = c(sgdd = FALSE, wai = TRUE)}
+#' Example : \code {climate = data.frame(sgdd = 2000, wai = 0.16) ; inv_null = c(sgdd = FALSE, wai = TRUE)}
 #'
 #' @noRd
 expand_clim <- function(climate, inv_null){

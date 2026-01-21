@@ -229,9 +229,9 @@ h <- function(d){
 }
 df <- data.frame(dbh=d, h=h(d))
 ggplot(df, aes(x=dbh, y=h)) + geom_line(col='red') + theme_bw() +
-	geom_label(x=dth, y=0.05, label=TeX("$d_{th}$")) +
-	geom_label(x=dha-5, y=0.05, label=TeX("$d_{ha}$")) +
-	geom_label(x=dha-5, y=hmax, label=TeX("$h_{max}$")) +
+	geom_label(x=dth, y=0.05, label=TeX("$d_{th}$", output = "character"), parse=TRUE) +
+	geom_label(x=dha-5, y=0.05, label=TeX("$d_{ha}$", output = "character"), parse=TRUE) +
+	geom_label(x=dha-5, y=hmax, label=TeX("$h_{max}$", output = "character"), parse=TRUE) +
 	geom_vline(aes(xintercept=dha), linetype=2)
 ```
 

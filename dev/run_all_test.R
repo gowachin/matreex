@@ -51,6 +51,7 @@ x <- file_coverage('R/make_ipm.R', 'tests/testthat/test-make_ipm.R')
 x <- file_coverage('R/step_IPM.R', 'tests/testthat/test-step_IPM.R')
 x <- file_coverage('R/Sim_Deter.R', 'tests/testthat/test-Sim_Deter.R')
 x <- file_coverage('R/formulas.R', 'tests/testthat/test-formula.R')
+x <- file_coverage('R/climate.R', 'tests/testthat/test-climate.R')
 report(x)
 # zero_coverage() shows only uncovered lines.
 # If run within RStudio, `zero_coverage()` will open a marker pane with the
