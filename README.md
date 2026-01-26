@@ -5,7 +5,7 @@
 ![coverage](https://forge.inrae.fr/lessem/rpackages/matreex/badges/joss/coverage.svg?job=coverage)
 -->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![](https://img.shields.io/badge/devel%20version-0.4.0-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![](https://img.shields.io/badge/devel%20version-1.0.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gowachin/matreex/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gowachin/matreex)
 <!-- badges: end -->
 

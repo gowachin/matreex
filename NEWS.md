@@ -1,5 +1,21 @@
 # matreex (development version)
 
+# matreex 1.0.0
+
+## News
+
+* Migration from github to gitlab #31
+
+* Introduction of IBM model #27
+
+## Documentation
+
+* New paper for citation
+
+* New vignette `Individuals.Rmd` after completion of the model by Georges and Maxime #27
+
+* New vignette `mu_simulations.Rmd` after completion of the model by Anne, Laura and Maxime #18
+
 # matreex 0.4.0
 
 ## News
