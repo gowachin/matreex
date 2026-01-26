@@ -27,3 +27,4 @@ inst/fig/ipm.svg
 inst/fig/RR.svg
 ^codemeta\.json$
 .gitlab-ci.yml
+^\.gitlab-ci\.yml$

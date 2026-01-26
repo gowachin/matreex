@@ -130,8 +130,6 @@ One key originality of matreex is the possibility to apply storm, fire, biotic o
 
 ![Figure 3: Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
 
-<!-- taken from appendix E https://besjournals.onlinelibrary.wiley.com/action/downloadSupplement?doi=10.1111%2F1365-2435.14489&file=fec14489-sup-0001-AppendixS1.pdf-->
-
 ## Regional dispersal
 
 Most stand-scale forest dynamics models tend to simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees. This limitation prevents the possibility to simulate immigration from external species, which is a key process of forest dynamics, particularily in a context of climate change. To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the summed basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on a regional pool associated with the plot simulated. This regional pool approach is extensively presented in @barrereprep.
@@ -148,17 +146,6 @@ Third, we implement an unven-aged harvesting. Uneven-aged harvest scenario consi
 `matreex` was designed to be expanded to fit new research ideas and is in continuous development and have been used in different scientific publications [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep]. The ability to simulate forests easily with a designed R package will help ecologists analyse the effect of climate change, change in disturbance regimes, and the interplay with forest management of European forests.
 
 `matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the  [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
-
-<!--
-# Figures
-
-Figures can be included like this:
-![Caption for example figure.\label{fig:example}](figure.png)
-and referenced from text using \autoref{fig:example}.
-
-Figure sizes can be customized by adding an optional second parameter:
-![Caption for example figure.](figure.png){ width=20% }
--->
 
 # Acknowledgements
 

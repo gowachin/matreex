@@ -1,8 +1,11 @@
 # {matreex} <img src="man/figures/logo.png" align="right" height="138" />
 <!-- badges: start -->
-[![R build status](https://github.com/gowachin/matreex/workflows/R-CMD-check/badge.svg)](https://github.com/gowachin/matreex/actions?workflow=R-CMD-check)
+[![R build status](https://forge.inrae.fr/lessem/rpackages/matreex/badges/joss/pipeline.svg)](https://forge.inrae.fr/lessem/rpackages/matreex/-/pipelines)
+<!--
+![coverage](https://forge.inrae.fr/lessem/rpackages/matreex/badges/joss/coverage.svg?job=coverage)
+-->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![](https://img.shields.io/badge/devel%20version-0.3.0-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![](https://img.shields.io/badge/devel%20version-0.4.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gowachin/matreex/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gowachin/matreex)
 <!-- badges: end -->
 
@@ -28,44 +31,46 @@ for (i in deps ){
 ### Stable version
 
 <!-- 
-Be aware that anyone who installs directly from GitHub will need to explicitly request vignettes, e.g. with devtools::install_github(dependencies = TRUE, build_vignettes = TRUE).
+Be aware that anyone who installs directly from Gitlab will need to explicitly request vignettes, e.g. with devtools::install_gitlab(dependencies = TRUE, build_vignettes = TRUE).
 -->
 
-You can install the `{matreex}` package from [github](https://github.com/gowachin/matreex) with :
+You can install the `{matreex}` package from [gitlab](https://forge.inrae.fr/lessem/rpackages/matreex) with :
 
 ```
 # install.packages("remotes")
-remotes::install_github("gowachin/matreex")
+remotes::install_gitlab("lessem/rpackages/matreex", host = "https://forge.inrae.fr")
 ```
 
 ### Development version
 
-You can install the development version of {matreex} from github with :
+You can install the development version of `{matreex}` from gitlab with :
+It require you to have git installed.
 
 ```
 # install.packages("remotes")
-remotes::install_github("gowachin/matreex", ref = "dev")
+remotes::install_git("https://forge.inrae.fr/lessem/rpackages/matreex", 
+                     ref = "dev")
 ```
 
 
-**If you install the development version of this package, please check the NEWS.md or [changelog](https://gowachin.github.io/matreex/news/index.html) regularly. The package is in active development and some changes may break your code !**
+**If you install the development version of this package, please check the NEWS.md or [changelog](https://lessem.pages-forge.inrae.fr/rpackages/matreex/index.html) regularly. The package is in active development and some changes may break your code !**
 
 ## Usage Guide
 
-[Getting started vignette](https://gowachin.github.io/matreex/articles/matreex.html) is now available to run basic simulations with `{matreex}` package.
+[Getting started vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/matreex.html) is now available to run basic simulations with `{matreex}` package.
 
-A second [vignette about harvesting](https://gowachin.github.io/matreex/articles/Harvesting.html) module is also available. 
+For more scenario customisation, two vignettes about [harvesting](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html) and [disturbance](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Disturbance.html) are availables.
 
-A third [vignette about disturbance](https://gowachin.github.io/matreex/articles/Disturbance.html) module is also available. 
+Lastly, few vignettes introduce more in depth explanation about [IPM integration](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html), the possibility of [climatic variation](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html) and [Individual Based Model (IBM)](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Individuals.html).
 
 ## Support
 
-Issues are centralized on [the github project.](https://github.com/gowachin/matreex/issues). 
+Issues are centralized on [the gitlab project.](https://forge.inrae.fr/lessem/rpackages/matreex/-/issues). 
 
 ## Roadmap
 
-Future dev is listed on the github repository project to keep track of what we are working on.
-Link is [here](https://github.com/gowachin/matreex/projects/1)
+Future dev is listed on the gitlab repository project to keep track of what we are working on.
+Link is [here](https://forge.inrae.fr/lessem/rpackages/matreex/-/boards)
 
 ## License
 

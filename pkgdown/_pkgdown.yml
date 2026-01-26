@@ -4,7 +4,7 @@ template:
 navbar:
   structure:
     left:  [intro, reference, articles, tutorials, news]
-    right: [search, github]
+    right: [search, gitlab]
 
 authors:
   footer:
@@ -14,8 +14,8 @@ authors:
 
 repo:
   url:
-    home: https://github.com/gowachin/matreex
-    source: https://github.com/gowachin/matreex
+    home: https://forge.inrae.fr/lessem/rpackages/matreex
+    source: https://forge.inrae.fr/lessem/rpackages/matreex
 
 reference:
 - title: Main package documentation.

@@ -15,7 +15,7 @@ Fill the package description !
 \seealso{
 Useful links:
 \itemize{
-  \item \url{https://github.com/gowachin/matreex}
+  \item \url{https://forge.inrae.fr/lessem/rpackages/matreex}
 }
 
 }

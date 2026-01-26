@@ -4,7 +4,7 @@
   "identifier": "matreex",
   "description": " The goal of this package is to run integrated projection models of tree species in single or multi-specific density dependence context. The simulations return the size distribution dynamics along time. These models can be completed with different harvest and disturbance models and be runned untile equilibrium.",
   "name": "matreex: matreex: Simulation IPM for forest dynamic depending on climatic variables from Kunstler et al (2020)",
-  "codeRepository": "https://github.com/gowachin/matreex",
+  "codeRepository": "https://forge.inrae.fr/lessem/rpackages/matreex",
   "license": "https://spdx.org/licenses/MIT",
   "version": "0.4.0",
   "programmingLanguage": {
@@ -312,13 +312,13 @@
     "SystemRequirements": null
   },
   "fileSize": "2254.068KB",
-  "releaseNotes": "https://github.com/gowachin/matreex/blob/master/NEWS.md",
-  "readme": "https://github.com/gowachin/matreex/blob/main/README.md",
-  "contIntegration": "https://github.com/gowachin/matreex/actions?workflow=R-CMD-check",
+  "releaseNotes": "https://forge.inrae.fr/lessem/rpackages/matreex/-/blob/main/NEWS.md",
+  "readme": "https://forge.inrae.fr/lessem/rpackages/matreex/-/blob/main/README.md",
+  "contIntegration": "https://forge.inrae.fr/lessem/rpackages/matreex/-/pipelines",
   "developmentStatus": "https://www.repostatus.org/#active",
   "keywords": ["forestry", "r", "r-package", "rstats"],
   "dateCreated": "2022-07-01",
   "datePublished": "2022-12-21",
-  "dateModified": "2023-05-04",
-  "issueTracker": "https://github.com/gowachin/matreex/issues"
+  "dateModified": "2026-01-26",
+  "issueTracker": "https://forge.inrae.fr/lessem/rpackages/matreex/-/issues"
 }

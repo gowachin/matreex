@@ -162,6 +162,6 @@ The lag_species dataset contains the vector of default delay for each species.
 The lag was computed by Kunstler and missing values for Betula,
 Juniperus_thurifera, Prunus_padus, Quercus_faginea and Quercus_pyrenaica
 are set with the mean of other species. More details is given in
-https://github.com/gowachin/matreex/issues/10
+https://forge.inrae.fr/lessem/rpackages/matreex/-/issues/10
 }
 \keyword{datasets}
