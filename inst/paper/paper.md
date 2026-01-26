@@ -46,7 +46,9 @@ bibliography: paper.bib
 # aas-journal: Astrophysical Journal <- The name of the AAS journal.
 ---
 
-# Introduction
+<!--docker run --rm --volume $PWD/inst/paper:/data  --user $(id -u):$(id -g) --env JOURNAL=joss openjournals/inara -->
+
+# Summary
 
 Integrated projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing predictions of changes in trait distributions over time [@ellner2016]. Unlike individual-based or cohort-based models, which represent populations as finite (discrete) populations, IPMs describe populations as infinite (continuous) populations, integrating over the uncertainty of demographic processes. This removes demographic stochasticity and results in fully deterministic simulations which is complementary to IBM models. IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 
@@ -55,6 +57,8 @@ Here, we introduce an R package specifically designed to build IPMs for European
 # Statement of need
 
 `matreex` is an R package specifically designed to build IPMs and run simulations for European forests. Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack` [@Metcalf2013], `ipmr` [@Levin2021]). In addition `matreex` integrates numerous functions to run simulations for multispecies communities with harvesting and disturbance scenarios.
+
+# Software design
 
 A specificity of `matreex` package is the development of IPM integration functions focused on trees. As trees have a small annual growth rate, most of the integration effort is put near the diagonal of the matrix. We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration. This speed is crucial as we integrated a matrix per competition level (based on species basal area) to account for density dependence. More details about the integration are provided in the [`matreex` webpage](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html)
 
@@ -141,11 +145,16 @@ First, we implemented a simple constant annual harvesting rates which allow to a
 Second, we implement an even-aged management. The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort. Trees are harvested with thinning during the forest development till the final harvest. Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021. This is easily connected with management guidelines.
 Third, we implement an unven-aged harvesting. Uneven-aged harvest scenario consists in harvesting trees in all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014). These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
 
-## Usage and availability
+# Research impact statement
 
 `matreex` was designed to be expanded to fit new research ideas and is in continuous development and have been used in different scientific publications [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep]. The ability to simulate forests easily with a designed R package will help ecologists analyse the effect of climate change, change in disturbance regimes, and the interplay with forest management of European forests.
 
-`matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the  [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
+`matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
+
+# AI usage disclosure
+
+No generative AI tools were used in the development of this software, the writing
+of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
 
