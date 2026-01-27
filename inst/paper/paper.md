@@ -8,27 +8,22 @@ tags:
 authors:
   - name: Maxime Jaunatre
     orcid: 0009-0002-2816-1677
-    equal-contrib: true
     corresponding: true
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Julien Barrere
     orcid: 0000-0002-6686-726X
-    equal-contrib: true
     affiliation: "1"
   - name: Bjoern Reiniking
     orcid: 0000-0001-5277-9181
-    equal-contrib: true
-    affiliation: "1"
-  - name: Laura Touzot
-    orcid: 0000-0003-0445-554X
-    equal-contrib: true
     affiliation: "1"
   - name: Arnaud Guyennon
     orcid: 0000-0003-2178-3801
     affiliation: "2"
+  - name: Thomas Cordonnier
+    orcid: 0000-0003-3684-4662
+    affiliation: "3"
   - name: Georges Kunstler
     orcid: 0000-0002-2544-1940
-    equal-contrib: true
     corresponding: true
     affiliation: "1"
 affiliations:
@@ -37,6 +32,8 @@ affiliations:
    ror: 00hx57361
  - name: Independent Researcher, France
    index: 2
+ - name: ONF, Département Recherche Développement et Innovation, 21 rue du Muguet, 39100 Dole.
+   index: 3
 date: 11 February 2025
 bibliography: paper.bib
 
@@ -54,7 +51,7 @@ Integrated projection models (IPMs) are powerful tools for studying the temporal
 
 Here, we introduce an R package specifically designed to build IPMs for European forest tree species. Our package includes fitted species-specific functions of growth, survival and recruitment accounting for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. We also included the possibility to simulate natural disturbances (storm, fire, biotic and snow) affecting population survival depending on tree species sensitivity and stand structure. This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
 
-# Statement of need
+# Statement of need & state of the field
 
 `matreex` is an R package specifically designed to build IPMs and run simulations for European forests. Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack` [@Metcalf2013], `ipmr` [@Levin2021]). In addition `matreex` integrates numerous functions to run simulations for multispecies communities with harvesting and disturbance scenarios.
 
@@ -159,7 +156,7 @@ of this manuscript, or the preparation of supporting materials.
 # Acknowledgements
 
 JB, MJ, BR and GK are funded through the BiodivClim ERA-Net Cofund,(joint BiodivERsA Call on “Biodiversity and Climate Change”, 2019-2020) with national co–funding through ANR (France, project ANR-20-EBI5-0005-03).
-GK and LT were funded by the ANR DECLIC (grant ANR-1520-CE32-0005-01) and REGE-ADAPT PEPR FORESTT France 2030 (ANR-24-PEFO-0006).
+MJ and GK were funded by the ANR DECLIC (grant ANR-1520-CE32-0005-01) and REGE-ADAPT PEPR FORESTT France 2030 (ANR-24-PEFO-0006).
 JB, MJ, BR and GK are funded by the RESONATE H2020 project (grant 101000574).
 G.K. and A.G. received support from the REFORCE – EU FP7ERA-NET Sumforest 2016 through the call ‘Sustainable forests for the society of the future’, with the ANR as national funding agency (grant ANR-16-SUMF-0002).
 
