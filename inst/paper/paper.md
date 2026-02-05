@@ -13,7 +13,7 @@ authors:
   - name: Julien Barrere
     orcid: 0000-0002-6686-726X
     affiliation: "1"
-  - name: Bjoern Reiniking
+  - name: Björn Reiniking
     orcid: 0000-0001-5277-9181
     affiliation: "1"
   - name: Arnaud Guyennon
@@ -29,7 +29,7 @@ authors:
 affiliations:
  - name: Univ. Grenoble Alpes, INRAE, LESSEM, St-Martin-d'Hères, France
    index: 1
-   ror: 00hx57361
+   ror: 01a0ez112
  - name: Independent Researcher, France
    index: 2
  - name: ONF, Département Recherche Développement et Innovation, 21 rue du Muguet, 39100 Dole.
@@ -122,7 +122,7 @@ Sim  %>%
 ## Climatic temporal variability
 
 Modelling forest dynamics under fluctuating climatic conditions can be computationally expensive because the IPMs growth kernel must be integrated for every climatic condition.
-To avoid this high computation cost, we implement a new integration method pre-integrating IPM growth matrix blocks for a range of mean growth rate. The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
+To avoid this high computational cost, we implement a new integration method pre-integrating IPM growth matrix blocks for a range of mean growth rate. The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
 This allows to speed-up the simulations. This is described in the [matreex climate variation vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html).
 
 ## Disturbance
@@ -139,8 +139,8 @@ Most stand-scale forest dynamics models simulate closed systems, where only the 
 
 Since most temperate forests are managed, it is crucial to incorporate silvicultural effects into the simulations. We implemented three management strategies:
 * First, we implemented a simple constant annual harvesting rates accounting for the effect of the harvesting rates observed in NFI data used for the model calibration [@kunstler2021].
-* Second, we implement an even-aged management. The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort. Trees are harvested with successive thinning during stand development till the final harvest. Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021. This is easily connected with management guidelines.
-* Third, we implement an unven-aged harvesting. Uneven-aged harvest scenario consists in selective harvesting across all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014). These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
+* Second, we implement an even-aged management. The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort. Trees are harvested with successive thinning during stand development until the final harvest. Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021. This is easily connected with management guidelines.
+* Third, we implement an unven-aged harvesting. The uneven-aged harvest scenario consists in selective harvesting across all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014). These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
 
 # Research impact statement
 
