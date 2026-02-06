@@ -12,16 +12,16 @@ authors:
     affiliation: "1" # (Multiple affiliations must be quoted)
   - name: Julien Barrere
     orcid: 0000-0002-6686-726X
-    affiliation: "1"
+    affiliation: "1,2"
   - name: Björn Reiniking
     orcid: 0000-0001-5277-9181
     affiliation: "1"
   - name: Arnaud Guyennon
     orcid: 0000-0003-2178-3801
-    affiliation: "2"
+    affiliation: "3"
   - name: Thomas Cordonnier
     orcid: 0000-0003-3684-4662
-    affiliation: "3"
+    affiliation: "4"
   - name: Georges Kunstler
     orcid: 0000-0002-2544-1940
     corresponding: true
@@ -30,10 +30,12 @@ affiliations:
  - name: Univ. Grenoble Alpes, INRAE, LESSEM, St-Martin-d'Hères, France
    index: 1
    ror: 01a0ez112
- - name: Independent Researcher, France
+ - name: INRAE, Aix Marseille Université, UMR RECOVER, Aix-en-Provence, France
    index: 2
- - name: ONF, Département Recherche Développement et Innovation, 21 rue du Muguet, 39100 Dole.
+ - name: Independent Researcher, France
    index: 3
+ - name: ONF, Département Recherche Développement et Innovation, 21 rue du Muguet, 39100 Dole.
+   index: 4
 date: 11 February 2025
 bibliography: paper.bib
 
@@ -47,9 +49,12 @@ bibliography: paper.bib
 
 # Summary
 
-Integral projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing for predictions of changes in trait distributions over time [@ellner2016]. Unlike individual-based or cohort-based models, which represent populations as discrete populations, IPMs describe populations as continuous populations, integrating over the uncertainty of demographic processes. This removes demographic stochasticity and results in fully deterministic simulations, which are complementary to IBM models. IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
+Integral projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing for predictions of changes in trait distributions over time [@ellner2016]. Unlike individual-based or cohort-based models, which represent populations as discrete populations, IPMs describe populations as continuous populations, integrating over the uncertainty of demographic processes. This removes demographic stochasticity and results in fully deterministic simulations, which are complementary to individual-based models (IBMs). IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 
-Here, we introduce an R package specifically designed to build IPMs for European forest tree species. Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. We also implemented the capacity to simulate natural disturbances (storm, fire, biotic and snow) affecting population survival depending on tree species sensitivity and stand structure. This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
+Here, we introduce `matreex`, an R package specifically designed to build IPMs for European forest tree species. Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. 
+In `matreex` IPM simulations, it is also possible to include temporally variable climatic conditions, natural disturbances, harvesting scenarios and regional dispersal affecting population dynaminc depending on tree species sensitivity and stand structure. 
+This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
+>>>>>>> inst/paper/paper.md
 
 # Statement of need & state of the field
 
@@ -127,7 +132,7 @@ This allows to speed-up the simulations. This is described in the [matreex clima
 
 ## Disturbance
 
-One key originality of matreex is the possibility to apply storm, fire, biotic of snow disturbances of varying intensity (ranging from 0 to 1) at any time of the IPM simulations. When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023). These equations quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, and the nature and intensity of the disturbance. A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the plot. The [figure 3](@fig:disturbance) illustrates an example of multispecies simulations with storm disturbance from @barrere2024.
+One key originality of `matreex` is the possibility to apply storm, fire, biotic of snow disturbances of varying intensity (ranging from 0 to 1) at any time of the IPM simulations. When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023). These equations quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, nature and intensity of the disturbance. A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the plot. Disturbances in `matreex` are described in details in @barrere2024 and in @barrereprep. [figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance from @barrere2024.
 
 ![Figure 3: Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
 
@@ -144,7 +149,7 @@ Since most temperate forests are managed, it is crucial to incorporate silvicult
 
 # Research impact statement
 
-`matreex` was designed to be easily adapted to various research ideas and is in continuous development. It has been used in several scientific publications tackling diverse scientific questions [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep]. The ability to simulate forests easily with a dedicated R package will help ecologists analyse the effect of climate change, shifting disturbance regimes, and their interplay with forest management across European forests.
+`matreex` was designed to be easily adapted to various research ideas and is in continuous development. It has already been used in several scientific publications tackling diverse scientific questions [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep]. The ability to simulate forests easily with a dedicated R package will help ecologists to analyse the effect of climate change, shifting disturbance regimes, and their interplay with forest management across European forests.
 
 `matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
 
