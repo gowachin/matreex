@@ -4,11 +4,11 @@ Version: 1.0.0
 Authors@R: c(
     person("Maxime", "Jaunatre", comment = c(ORCID = "0009-0002-2816-1677"), email = "maxime.jaunatre@inrae.fr", role = c("aut", "cre", "trl")),
     person("Julien", "Barrere", comment = c(ORCID = "0000-0002-6686-726X"), email = "julien.barrere@inrae.fr", role = "aut"),
-    person("Thomas", "Cordonnier", comment = c(ORCID = "0000-0003-3684-4662"), email = "thomas.cordonnier@inrae.fr", role = "aut"),
-    person("Arnaud", "Guyennon", comment = c(ORCID = "0000-0003-2178-3801"), email = "arnaud.guyennon@inrae.fr", role = "aut"),
+    person("Thomas", "Cordonnier", comment = c(ORCID = "0000-0003-3684-4662"), email = "thomas.cordonnier@onf.fr", role = "aut"),
+    person("Arnaud", "Guyennon", comment = c(ORCID = "0000-0003-2178-3801"), role = "aut"),
     person("Bjoern", "Reineking", comment = c(ORCID = "0000-0001-5277-9181"), email = "bjoern.reineking@inrae.fr", role = "aut"),
-    person("Anne", "Baranger", comment = c(ORCID = "0000-0001-6929-6362"), role = "ctr"),
-    person("Laura", "Touzot", comment = c(ORCID = "0000-0003-0445-554X"), role = "ctr"),
+    person("Anne", "Baranger", comment = c(ORCID = "0000-0001-6929-6362"), role = "ctb"),
+    person("Laura", "Touzot", comment = c(ORCID = "0000-0003-0445-554X"), role = "ctb"),
     person("INRAE", role = "cph"),
     person("Georges", "Kunstler", comment = c(ORCID = "0000-0002-2544-1940"), email = "georges.kunstler@inrae.fr", role = "aut")
   )

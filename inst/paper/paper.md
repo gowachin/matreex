@@ -9,7 +9,7 @@ authors:
   - name: Maxime Jaunatre
     orcid: 0009-0002-2816-1677
     corresponding: true
-    affiliation: "1" # (Multiple affiliations must be quoted)
+    affiliation: "1"
   - name: Julien Barrere
     orcid: 0000-0002-6686-726X
     affiliation: "1,2"
@@ -49,24 +49,35 @@ bibliography: paper.bib
 
 # Summary
 
-Integral projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing for predictions of changes in trait distributions over time [@ellner2016]. Unlike individual-based or cohort-based models, which represent populations as discrete populations, IPMs describe populations as continuous populations, integrating over the uncertainty of demographic processes. This removes demographic stochasticity and results in fully deterministic simulations, which are complementary to individual-based models (IBMs). IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
+Integral projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing for predictions of changes in trait distributions over time [@ellner2016].
+Unlike individual-based or cohort-based models, which represent populations as discrete populations, IPMs describe populations as continuous populations, integrating over the uncertainty of demographic processes.
+This removes demographic stochasticity and results in fully deterministic simulations, which are complementary to individual-based models (IBMs).
+IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 
-Here, we introduce `matreex`, an R package specifically designed to build IPMs for European forest tree species. Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium. 
-In `matreex` IPM simulations, it is also possible to include temporally variable climatic conditions, natural disturbances, harvesting scenarios and regional dispersal affecting population dynaminc depending on tree species sensitivity and stand structure. 
+Here, we introduce `matreex`, an R package specifically designed to build IPMs for European forest tree species.
+Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium.
+In `matreex` IPM simulations, it is also possible to include temporally variable climatic conditions, natural disturbances, harvesting scenarios and regional dispersal affecting population dynaminc depending on tree species sensitivity and stand structure.
 This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
->>>>>>> inst/paper/paper.md
 
 # Statement of need & state of the field
 
-`matreex` is an R package specifically designed to build IPMs and run simulations for European forests. Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack` [@Metcalf2013], `ipmr` [@Levin2021]). In addition `matreex` integrates numerous functions to run simulations for multispecies communities under various harvesting and disturbance scenarios.
+`matreex` is an R package specifically designed to build IPMs and run simulations for European forests.
+Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack` [@Metcalf2013], `ipmr` [@Levin2021]).
+In addition `matreex` integrates numerous functions to run simulations for multispecies communities under various harvesting and disturbance scenarios.
 
 # Software design
 
-A key feature of the `matreex` package is the development of IPM integration functions designed for complec tree growth kernels. As trees have a small annual growth rate, most of the integration effort is concentrated near the diagonal of the matrix. We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration. This speed is crucial as we integrate a matrix per competition level (based on species basal area) to account for density dependence. More details about the integration are provided in the [`matreex` webpage](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html)
+A key feature of the `matreex` package is the development of IPM integration functions designed for complex tree growth kernels.
+As trees have a small annual growth rate, most of the integration effort is concentrated near the diagonal of the matrix.
+We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration.
+This speed is crucial as we integrate a matrix per competition level (based on species basal area) to account for density dependence.
+More details about the integration are provided in the [`matreex` webpage](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html)
 
 ![Figure 1: Combination of different integration methods. Dashed line is the identity where $z_t=z_t+1$ and dark blue distribution is an expected distribution of the growth kernel.\label{fig:band_matrix](fig/figures_files/figure-html/band_matrix-1.png)
 
-A crucial development objective was to simplify the workflow for ecological researchers, who may work on multispecies models with climate variation, disturbances, and harvesting. To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new models can be used. The object-oriented architecture limits code complexity, allowing users to focus on desining large simulation experiments to tackle their ecological questions.
+A crucial development objective was to simplify the workflow for ecological researchers, who may work on multispecies models with climate variation, disturbances, and harvesting.
+To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new models can be used.
+The object-oriented architecture limits code complexity, allowing users to focus on desining large simulation experiments to tackle their ecological questions.
 
 ```
 library(matreex)
@@ -127,36 +138,59 @@ Sim  %>%
 ## Climatic temporal variability
 
 Modelling forest dynamics under fluctuating climatic conditions can be computationally expensive because the IPMs growth kernel must be integrated for every climatic condition.
-To avoid this high computational cost, we implement a new integration method pre-integrating IPM growth matrix blocks for a range of mean growth rate. The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
-This allows to speed-up the simulations. This is described in the [matreex climate variation vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html).
+To avoid this high computational cost, we implement a new integration method pre-integrating IPM growth matrix blocks for a range of mean growth rate.
+The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
+This allows to speed-up the simulations.
+This is described in the [matreex climate variation vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html).
 
 ## Disturbance
 
-One key originality of `matreex` is the possibility to apply storm, fire, biotic of snow disturbances of varying intensity (ranging from 0 to 1) at any time of the IPM simulations. When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023). These equations quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, nature and intensity of the disturbance. A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the plot. Disturbances in `matreex` are described in details in @barrere2024 and in @barrereprep. [figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance from @barrere2024.
+One key originality of `matreex` is the possibility to apply storm, fire, biotic of snow disturbances of varying intensity (ranging from 0 to 1) at any time of the IPM simulations.
+When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023).
+These equations quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, nature and intensity of the disturbance.
+A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the plot.
+Disturbances in `matreex` are described in details in @barrere2024 and in @barrereprep.
+[Figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance from @barrere2024.
 
 ![Figure 3: Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
 
 ## Regional dispersal
 
-Most stand-scale forest dynamics models simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees. This limitation perclude the simulation of immigration from external species, which is a key process of forest dynamics, particularily under climate change. To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the sum of basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on the regional pool. This regional pool approach is extensively presented in @barrereprep.
+Most stand-scale forest dynamics models simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees.
+This limitation perclude the simulation of immigration from external species, which is a key process of forest dynamics, particularily under climate change.
+To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the sum of basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on the regional pool.
+This regional pool approach is extensively presented in @barrereprep.
 
 ## Harvesting
 
-Since most temperate forests are managed, it is crucial to incorporate silvicultural effects into the simulations. We implemented three management strategies:
-* First, we implemented a simple constant annual harvesting rates accounting for the effect of the harvesting rates observed in NFI data used for the model calibration [@kunstler2021].
-* Second, we implement an even-aged management. The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort. Trees are harvested with successive thinning during stand development until the final harvest. Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021. This is easily connected with management guidelines.
-* Third, we implement an unven-aged harvesting. The uneven-aged harvest scenario consists in selective harvesting across all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees. This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014). These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
+Since most temperate forests are managed, it is crucial to incorporate silvicultural effects into the simulations.
+We implemented three management strategies:
+
+- First, we implemented a simple constant annual harvesting rates accounting for the effect of the harvesting rates observed in NFI data used for the model calibration [@kunstler2021].
+
+- Second, we implement an even-aged management.
+The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort.
+Trees are harvested with successive thinning during stand development until the final harvest.
+Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021.
+This is easily connected with management guidelines.
+
+- Third, we implement an unven-aged harvesting.
+The uneven-aged harvest scenario consists in selective harvesting across all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees.
+This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014).
+These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
 
 # Research impact statement
 
-`matreex` was designed to be easily adapted to various research ideas and is in continuous development. It has already been used in several scientific publications tackling diverse scientific questions [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep]. The ability to simulate forests easily with a dedicated R package will help ecologists to analyse the effect of climate change, shifting disturbance regimes, and their interplay with forest management across European forests.
+`matreex` was designed to be easily adapted to various research ideas and is in continuous development.
+It has already been used in several scientific publications tackling diverse scientific questions [@kunstler2021; @guyennon2023; @barrere2024; @barrereprep; @barangerprep].
+The ability to simulate forests easily with a dedicated R package will help ecologists to analyse the effect of climate change, shifting disturbance regimes, and their interplay with forest management across European forests.
 
-`matreex` is an open-source package made available under the MIT license. Installation and usage instructions can be found at the [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
+`matreex` is an open-source package made available under the MIT license.
+Installation and usage instructions can be found at the [website](https://lessem.pages-forge.inrae.fr/rpackages/matreex/)
 
 # AI usage disclosure
 
-No generative AI tools were used in the development of this software, the writing
-of this manuscript, or the preparation of supporting materials.
+No generative AI tools were used in the development of this software, the writing of this manuscript, or the preparation of supporting materials.
 
 # Acknowledgements
 
