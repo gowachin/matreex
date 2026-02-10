@@ -67,7 +67,7 @@ In addition `matreex` integrates numerous functions to run simulations for multi
 
 # Software design
 
-A key feature of the `matreex` package is the development of IPM integration functions designed for complex tree growth kernels.
+A key feature of the `matreex` package is the development of IPM integration functions designed for complex forest tree growth kernels.
 As trees have a small annual growth rate, most of the integration effort is concentrated near the diagonal of the matrix.
 We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration.
 This speed is crucial as we integrate a matrix per competition level (based on species basal area) to account for density dependence.
@@ -76,7 +76,7 @@ More details about the integration are provided in the [`matreex` webpage](https
 ![Figure 1: Combination of different integration methods. Dashed line is the identity where $z_t=z_t+1$ and dark blue distribution is an expected distribution of the growth kernel.\label{fig:band_matrix](fig/figures_files/figure-html/band_matrix-1.png)
 
 A crucial development objective was to simplify the workflow for ecological researchers, who may work on multispecies models with climate variation, disturbances, and harvesting.
-To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new models can be used.
+To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new vital models can be used.
 The object-oriented architecture limits code complexity, allowing users to focus on desining large simulation experiments to tackle their ecological questions.
 
 ```
@@ -86,9 +86,10 @@ library(ggplot2)
 
 # select a climate to run in
 data("climate_species")
+# N is the climate number to user, 2 being the optimum climate for the species
 climate <- subset(climate_species, N == 2 & sp == "Fagus_sylvatica", select = -sp)
 
-# integrate ipms and integrate them in species object
+# integrate ipms and store them in species object
 Picea <- species(IPM = make_IPM(
     species = "Picea_abies", fit = fit_Picea_abies,
     climate = climate, clim_lab = "optimum clim", 
@@ -130,7 +131,8 @@ Sim <- sim_deter_forest(
 Sim  %>%
     dplyr::filter(var == "BAsp", ! equil) |>
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) + ylab("Basal Area (m2)")
+    geom_line(linewidth = .4) + 
+    ylab("Basal Area (m2)") + xlab("Simulation time (years)") 
 ```
 
 ![Figure 2: Simulation output for 4 species. \label{fig:simulation}](fig/simulation.png)
@@ -138,7 +140,7 @@ Sim  %>%
 ## Climatic temporal variability
 
 Modelling forest dynamics under fluctuating climatic conditions can be computationally expensive because the IPMs growth kernel must be integrated for every climatic condition.
-To avoid this high computational cost, we implement a new integration method pre-integrating IPM growth matrix blocks for a range of mean growth rate.
+To avoid this high computation cost, we implement a new method involving the pre-integration of IPM growth matrix blocks for different mean growth rates.
 The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
 This allows to speed-up the simulations.
 This is described in the [matreex climate variation vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html).
@@ -146,11 +148,11 @@ This is described in the [matreex climate variation vignette](https://lessem.pag
 ## Disturbance
 
 One key originality of `matreex` is the possibility to apply storm, fire, biotic of snow disturbances of varying intensity (ranging from 0 to 1) at any time of the IPM simulations.
-When a disturbance strikes a given year of the simulation, the survival function is replaced by the species-specific equations from Barrere et al. (2023).
+When a disturbance strikes the stand a given year of the simulation, the survival function is replaced by the species-specific equations from @barrere2024.
 These equations quantify the annual mortality probability of a tree in a disturbed stand as a function of its species, diameter at breast height, stand structure, nature and intensity of the disturbance.
-A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the plot.
+A disturbance striking two different stands with the same intensity will thus result in different mortality rates, depending notably on the sensitivity of the tree species present in the stand.
 Disturbances in `matreex` are described in details in @barrere2024 and in @barrereprep.
-[Figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance from @barrere2024.
+[Figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance.
 
 ![Figure 3: Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
 
@@ -163,20 +165,20 @@ This regional pool approach is extensively presented in @barrereprep.
 
 ## Harvesting
 
-Since most temperate forests are managed, it is crucial to incorporate silvicultural effects into the simulations.
+Since most temperate forests are managed, it is crucial to incorporate silvicultural interventions into the simulations.
 We implemented three management strategies:
 
 - First, we implemented a simple constant annual harvesting rates accounting for the effect of the harvesting rates observed in NFI data used for the model calibration [@kunstler2021].
 
 - Second, we implement an even-aged management.
-The objective is to apply harvesting typical of even-aged harvesting, based on a single cohort.
+The objective is to apply typical even-aged harvesting, based on a single cohort.
 Trees are harvested with successive thinning during stand development until the final harvest.
 Thinning harvest are based on the distance to a self-thinning boundary, based on @Aussenac2021.
 This is easily connected with management guidelines.
 
 - Third, we implement an unven-aged harvesting.
 The uneven-aged harvest scenario consists in selective harvesting across all size classes with the objective to reach a stable size structure with continuous replacement of large mature trees.
-This scenario depends on the basal area of the stand and the size distribution of the tree (building on @guillemot2014).
+This scenario depends on the basal area of the stand and the size distribution of the trees (building on @Lafond2014).
 These three managements are described in the [matreex harvesting vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html).
 
 # Research impact statement
@@ -194,9 +196,9 @@ No generative AI tools were used in the development of this software, the writin
 
 # Acknowledgements
 
-JB, MJ, BR and GK are funded through the BiodivClim ERA-Net Cofund,(joint BiodivERsA Call on “Biodiversity and Climate Change”, 2019-2020) with national co–funding through ANR (France, project ANR-20-EBI5-0005-03).
+JB, MJ, BR and GK are funded through the BiodivClim ERA-Net Cofund (joint BiodivERsA Call on “Biodiversity and Climate Change”, 2019-2020) with national co–funding through ANR (France, project ANR-20-EBI5-0005-03).
 MJ and GK were funded by the ANR DECLIC (grant ANR-1520-CE32-0005-01) and REGE-ADAPT PEPR FORESTT France 2030 (ANR-24-PEFO-0006).
 JB, MJ, BR and GK are funded by the RESONATE H2020 project (grant 101000574).
-G.K. and A.G. received support from the REFORCE – EU FP7ERA-NET Sumforest 2016 through the call ‘Sustainable forests for the society of the future’, with the ANR as national funding agency (grant ANR-16-SUMF-0002).
+GK, BR and AG received support from the REFORCE – EU FP7ERA-NET Sumforest 2016 through the call ‘Sustainable forests for the society of the future’, with the ANR as national funding agency (grant ANR-16-SUMF-0002).
 
 # References

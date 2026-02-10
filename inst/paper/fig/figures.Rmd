@@ -104,7 +104,8 @@ Sim <- sim_deter_forest(
 plot <- Sim  %>%
     dplyr::filter(var == "BAsp", ! equil) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) + ylab("Basal Area (m2)")
+    geom_line(linewidth = .4) +
+    ylab("Basal Area (m2)") + xlab("Simulation time (years)")
 png(file = "inst/paper/fig/simulation.png", width = 1080, height = 480)
 plot
 dev.off()
@@ -125,7 +126,8 @@ Sim2 <- sim_deter_forest(
 plot <- Sim2  %>%
     dplyr::filter(var == "BAsp", ! equil, ) %>%
     ggplot(aes(x = time, y = value, color = species)) +
-    geom_line(linewidth = .4) + ylab("Basal Area (m2)") + 
+    geom_line(linewidth = .4) +
+    ylab("Basal Area (m2)") + xlab("Simulation time (years)") +
     geom_vline(aes(xintercept = 2600), linetype = "dotted", color = "grey", linewidth = 1.5)
 png(file = "inst/paper/fig/disturbance.png", width = 1080, height = 480)
 plot
