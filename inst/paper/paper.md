@@ -13,7 +13,7 @@ authors:
   - name: Julien Barrere
     orcid: 0000-0002-6686-726X
     affiliation: "1,2"
-  - name: Björn Reiniking
+  - name: Björn Reineking
     orcid: 0000-0001-5277-9181
     affiliation: "1"
   - name: Arnaud Guyennon
