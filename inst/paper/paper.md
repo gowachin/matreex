@@ -52,17 +52,26 @@ bibliography: paper.bib
 Integral projection models (IPMs) are powerful tools for studying the temporal dynamics of populations structured by continuous traits, allowing for predictions of changes in trait distributions over time [@ellner2016].
 Unlike individual-based or cohort-based models, which represent populations as discrete populations, IPMs describe populations as continuous populations, integrating over the uncertainty of demographic processes.
 This removes demographic stochasticity and results in fully deterministic simulations, which are complementary to individual-based models (IBMs).
-IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 
 Here, we introduce `matreex`, an R package specifically designed to build IPMs for European forest tree species.
 Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium.
-In `matreex` IPM simulations, it is also possible to include temporally variable climatic conditions, natural disturbances, harvesting scenarios and regional dispersal affecting population dynaminc depending on tree species sensitivity and stand structure.
 This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
 
-# Statement of need & state of the field
+# Statement of need 
 
+<!--
+Statement of need: A section that clearly illustrates the research purpose of the software and places it in the context of related work. This should clearly state what problems the software is designed to solve, who the target audience is, and its relation to other work.
+-->
+
+IPMs are rarely applied to forest ecosystems due to the complexity of tree growth kernels, which are challenging to integrate, making the construction of forest IPMs particularly difficult.
 `matreex` is an R package specifically designed to build IPMs and run simulations for European forests.
+These IPMs can be used by the forest ecology research community, to study population dynamic and forest communities trajectories.
+In `matreex` IPM simulations, it is also possible to include temporally variable climatic conditions, natural disturbances, harvesting scenarios and regional dispersal affecting population dynaminc depending on tree species sensitivity and stand structure.
+
+# State of the field
+
 Other, more generalist, packages exist to build IPMs for various types of organisms (`IPMpack` [@Metcalf2013], `ipmr` [@Levin2021]).
+However they focus on analysis on the matrix itself whereas `matreex` use the integrated matrices to simulate population dynamics.
 In addition `matreex` integrates numerous functions to run simulations for multispecies communities under various harvesting and disturbance scenarios.
 
 # Software design
