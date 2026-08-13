@@ -65,7 +65,7 @@ Lastly, few vignettes introduce more in depth explanation about [IPM integration
 
 ## Support
 
-Issues are centralized on [the gitlab project.](https://forge.inrae.fr/lessem/rpackages/matreex/-/issues). 
+Issues are centralized on [the github mirror project.](https://github.com/gowachin/matreex/issues).
 
 ## Roadmap
 

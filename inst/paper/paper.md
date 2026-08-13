@@ -57,7 +57,7 @@ Here, we introduce `matreex`, an R package specifically designed to build IPMs f
 Our package includes pre-fitted species-specific growth, survival and recruitment functions that account for the effect of climate and competition, and functions to efficiently integrate IPMs and run temporal simulations of single-species or multispecies forest communities until equilibrium.
 This package complements existing R packages for IPMs, such as `ipmr` [@Metcalf2013] and `IPMpack` [@Levin2021], which are not specifically designed for forest ecosystems.
 
-# Statement of need 
+# Statement of need
 
 <!--
 Statement of need: A section that clearly illustrates the research purpose of the software and places it in the context of related work. This should clearly state what problems the software is designed to solve, who the target audience is, and its relation to other work.
@@ -86,7 +86,7 @@ More details about the integration are provided in the [`matreex` webpage](https
 
 A crucial development objective was to simplify the workflow for ecological researchers, who may work on multispecies models with climate variation, disturbances, and harvesting.
 To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new vital models can be used.
-The object-oriented architecture limits code complexity, allowing users to focus on desining large simulation experiments to tackle their ecological questions.
+The object-oriented architecture limits code complexity, allowing users to focus on designing large simulation experiments to tackle their ecological questions.
 
 ```
 library(matreex)
@@ -150,7 +150,7 @@ Sim  %>%
 
 Modelling forest dynamics under fluctuating climatic conditions can be computationally expensive because the IPMs growth kernel must be integrated for every climatic condition.
 To avoid this high computation cost, we implement a new method involving the pre-integration of IPM growth matrix blocks for different mean growth rates.
-The IPM for each climatic conditions is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
+The IPM for each climatic condition is then reassembled from these mean growth rate IPM matrix blocks (mu matrix).
 This allows to speed-up the simulations.
 This is described in the [matreex climate variation vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html).
 
