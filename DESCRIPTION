@@ -27,11 +27,11 @@ Imports:
     rlang,
     statmod,
     stats,
-    tidyr
+    tidyr,
+    ggplot2
 Suggests: 
     lifecycle,
     covr,
-    ggplot2,
     knitr,
     latex2exp,
     rmarkdown,
