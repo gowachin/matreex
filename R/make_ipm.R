@@ -4,8 +4,8 @@
 #' species on a basal area variation.
 #'
 #' @param species The species names to be registered in the object
-#' @param climate Named vector of the environmental variables used in the fitted
-#' model. Was data_plot_pred before.
+#' @param climate Named numeric vector of the environmental variables used in 
+#' the fitted model. Was data_plot_pred before.
 #' @param clim_lab Label for climatic used. This values will be matched when
 #' simulating multiple species together.
 #' @param fit Fitted model for growth and survival of the species and climate

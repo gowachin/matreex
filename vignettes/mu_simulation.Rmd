@@ -38,9 +38,9 @@ When we integrate an IPM, we compute the distribution of $z_{t+1}$ for each valu
 
 $$f(log(\frac{z_{t+y} - z_t}{y})) \sim \mathcal{N}(\mu,\sigma^2)$$
 
-Here, $f(log(\frac{z_{t+y} - z_t}{y}))$ if given for each climate situation, and it is the computation of the distribution that is the longest part of the integration. This limit give us a very long time if we need to integrate a matrix per year and basal area, in case of climate variation.
+Here, $f(log(\frac{z_{t+y} - z_t}{y}))$ is given for each climate situation, and it is the computation of the distribution that is the longest part of the integration. This limit give us a very long time if we need to integrate a matrix per year and basal area, in case of climate variation.
 
-However we observe that there is two dimension here : a distribution of $\mu_G$ for each climate and a distribution of $z_{t+1}$ for each $\mu_G$ value. On the schematic illustration below, we can observe that depending on the climate $\alpha$ and $\beta$, different $\mu$ values are given on the $z_t$ axis, but the $z_{t+1}$ will be the same for a given $\mu$ value.
+However we observe that there are two dimension here : a distribution of $\mu_G$ for each climate and a distribution of $z_{t+1}$ for each $\mu_G$ value. On the schematic illustration below, we can observe that depending on the climate $\alpha$ and $\beta$, different $\mu$ values are given on the $z_t$ axis, but the $z_{t+1}$ will be the same for a given $\mu$ value.
 
 ```{r mu_distribution, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Schematic illustration of difference between $\\mu_G$ distributions and distribution of $z_{t+1}$ for a given $\\mu value.$"}
 \begin{tikzpicture}%[scale = 0.5, every node/.style={scale=0.5}]
@@ -135,7 +135,7 @@ climate <- subset(climate_species, sp == "Fagus_sylvatica", select = -sp)
 
 ## Get $\mu_G$ range
 
-The first step consist in computing all $\mu_G$ values for a species in its climatic and basal area range. For this, we compute the $\mu_G$ range of the species and simulate a matrix for each values of $\mu_G$, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
+The first step consists of computing all $\mu_G$ values for a species in its climatic and basal area range. For this, we compute the $\mu_G$ range of the species and simulate a matrix for each values of $\mu_G$, with a small step. Keep in mind that the time of this computation rely mostly on the step and this step will influence the precision of the simulation later. The mu range step is done inside the `make_mu_gr` function call, but it's possible to check it before.
 
 ```{r range_mu}
 mu_range <- getRangemu(
@@ -160,7 +160,11 @@ This object is a matrix with as many row as integrated cells for a given $\mu_G$
 **This step is 5 times longer than extracting the IPM matrix, this is the bottleneck during simulation.**
 
 ```{r get step_IPM}
-step_climate <- subset(climate, N ==2, select = -N)
+step_climate <- subset(
+    climate, 
+    climate_label == "optimum", 
+    select = -climate_label
+)
 step_climate <- drop(as.matrix(step_climate))
 Fagus_IPM_BA20 <- get_step_IPM(x = mu_Fagus_sylvatica, BA = 20, 
                                climate = step_climate, sim_corr = "cut")

@@ -64,10 +64,12 @@ data("fit_species") # available species
 # load data with fit models and place it in fit object.
 data(list = paste0("fit_", species))
 
-# load data et select optimum climate (N == 2, see ?climate_species)
+# load data et select optimum climate (see ?climate_species)
 data("climate_species")
-climate <- subset(climate_species, N == 2 & sp == species, select = -sp)
-climate <- drop(as.matrix(climate)) # we need it as a vector.
+climate <- subset(
+    climate_species, 
+    climate_label == "optimum" & sp == species, select = -c(sp, climate_label)
+)
 
 # Integration ####
 # Integration of IP. They are to large to be stored with the package.

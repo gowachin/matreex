@@ -2,7 +2,7 @@
 #'
 #' @name rdi_coef
 #'
-#' @source Personnal contact with Patrick Vallet
+#' @source Personal contact with Patrick Vallet
 #'
 #' @details Missing values for Quercus faginea from french NFI
 #'

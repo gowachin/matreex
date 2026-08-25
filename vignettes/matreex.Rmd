@@ -72,10 +72,11 @@ data("fit_Picea_abies")
 
 # Load associated climate
 data("climate_species")
-climate <- subset(climate_species, N == 2 & sp == "Picea_abies", select = -sp)
-# N here is a climate defined in Kunstler et al 2021. 
-# N == 2 is the optimum climate for the species. 
-# see ?climate_species for more info.
+climate <- subset(
+    climate_species, 
+    climate_label == "optimum" & sp == "Picea_abies", 
+    select = -c(sp, climate_label)
+)
 climate
 
 Picea_ipm <- make_IPM(

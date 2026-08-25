@@ -8,7 +8,7 @@
 An object of class \code{data.frame} with 28 rows and 4 columns.
 }
 \source{
-Personnal contact with Patrick Vallet
+Personal contact with Patrick Vallet
 }
 \usage{
 rdi_coef

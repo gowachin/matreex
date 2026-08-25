@@ -11,7 +11,7 @@
 #' (size, size2, logsize), "intercept" and "BATOTcomp". An error will be
 #' triggered if the climate variable is missing.
 #'
-#' One can desactivate each kind of integration with some treshold values.
+#' One can deactivate each kind of integration with some treshold values.
 #' A negative value in diag_tresh (ex: -1) will cancel the Gauss-Legendre
 #' integration and a midbin_tresh null value (ex: 0) will cancel the midbin
 #' integration.

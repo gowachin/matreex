@@ -6,11 +6,12 @@
 \alias{matreex}
 \title{matreex}
 \description{
-This package is developped for LESSEM internal users only.
-It allow to run simulation from IPM and NFI datasets.
-}
-\details{
-Fill the package description !
+This R package aims to simulate tree population dynamics with integral
+projection models for single or multiple species, both including density
+dependence. The simulations return the size distribution of each species
+at each time step. These models can include different harvest and
+disturbance events. The package includes a function to run the model until
+equilibrium.This package is developped for LESSEM internal users only.
 }
 \seealso{
 Useful links:
@@ -25,15 +26,16 @@ Useful links:
 Authors:
 \itemize{
   \item Julien Barrere \email{julien.barrere@inrae.fr} (\href{https://orcid.org/0000-0002-6686-726X}{ORCID})
-  \item Thomas Cordonnier \email{thomas.cordonnier@inrae.fr} (\href{https://orcid.org/0000-0003-3684-4662}{ORCID})
-  \item Arnaud Guyennon \email{arnaud.guyennon@inrae.fr} (\href{https://orcid.org/0000-0003-2178-3801}{ORCID})
+  \item Thomas Cordonnier \email{thomas.cordonnier@onf.fr} (\href{https://orcid.org/0000-0003-3684-4662}{ORCID})
+  \item Arnaud Guyennon (\href{https://orcid.org/0000-0003-2178-3801}{ORCID})
   \item Bjoern Reineking \email{bjoern.reineking@inrae.fr} (\href{https://orcid.org/0000-0001-5277-9181}{ORCID})
-  \item Laura Touzot \email{laura.touzot@inrae.fr} (\href{https://orcid.org/0000-0003-0445-554X}{ORCID})
   \item Georges Kunstler \email{georges.kunstler@inrae.fr} (\href{https://orcid.org/0000-0002-2544-1940}{ORCID})
 }
 
 Other contributors:
 \itemize{
+  \item Anne Baranger (\href{https://orcid.org/0000-0001-6929-6362}{ORCID}) [contributor]
+  \item Laura Touzot (\href{https://orcid.org/0000-0003-0445-554X}{ORCID}) [contributor]
   \item INRAE [copyright holder]
 }
 

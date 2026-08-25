@@ -5,7 +5,7 @@
 \alias{climate_species}
 \title{Species climate optimum dataset.}
 \format{
-An object of class \code{data.frame} with 81 rows and 11 columns.
+An object of class \code{data.frame} with 78 rows and 12 columns.
 }
 \source{
 https://doi.org/10.1111/1365-2745.13533
@@ -15,14 +15,12 @@ climate_species
 }
 \description{
 Climate defined per species from Kunstler et al. 2021. Each species
-had its IPM integrated for 3 climates :
-\describe{
-\item{1}{hot edge}
-\item{2}{optimum climate for the species}
-\item{3}{cold edge}
-}
+had its IPM integrated for 3 climates : optimum on climate 2,
+hot edge at climate 1 and cold edge for climate 3. Climate was defined
+from sgdd and wai variables.
 }
 \details{
-Climate was defined from sgdd and wai variables.
+N column is to be deprecated for climate_label, best practice is to
+use the climate column.
 }
 \keyword{datasets}

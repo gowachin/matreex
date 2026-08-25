@@ -2,7 +2,7 @@ test_that("get_step_IPM.mu_gr works", {
 
     species<- "Picea_abies"
     climate <- subset(matreex::climate_species,
-                      sp == species & N == 2, select = -sp)
+                      sp == species & climate_label == "optimum", select = -c(sp, climate_label))
     climate <- drop(as.matrix(climate))
 
     x <- make_mu_gr(species = "Picea_abies", fit_Picea_abies,
@@ -24,7 +24,7 @@ test_that("get_step_IPM.ipm works", {
 
     species<- "Picea_abies"
     climate <- subset(matreex::climate_species,
-                      sp == species & N == 2, select = -sp)
+                      sp == species & climate_label == "optimum", select = -c(sp, climate_label))
     climate <- drop(as.matrix(climate))
     mesh = c(m = 10, L = 90, U = 1500)
     fit =  fit_Picea_abies

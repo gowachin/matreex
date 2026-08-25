@@ -25,8 +25,8 @@ make_IPM(
 \arguments{
 \item{species}{The species names to be registered in the object}
 
-\item{climate}{Named vector of the environmental variables used in the fitted
-model. Was data_plot_pred before.}
+\item{climate}{Named numeric vector of the environmental variables used in
+the fitted model. Was data_plot_pred before.}
 
 \item{clim_lab}{Label for climatic used. This values will be matched when
 simulating multiple species together.}

@@ -81,7 +81,7 @@ validate_mu_gr <- function(x){
 #'
 #' @param species The species names to be registered in the object
 #' @param climate Climate table for the species.
-#' Optionnal if the species is defined in the package.
+#' Optional if the species is defined in the package.
 #' The format is climatic variable
 #' in column and different climate by row. An example is in the package with
 #' \code{cliamte_species}.
@@ -108,11 +108,11 @@ validate_mu_gr <- function(x){
 #' integrate with the mid bin method.
 #' @param mid_level Number of point to use for integration in a cell during
 #' mid bin integration.
-#' @param year_delta Number of year between 2 obersavtion when using this model.
-#' default 1, single int. NOTE : value for dev usage only !
+#' @param year_delta Number of year between 2 observations when using this model.
+#' default 1, single int. NOTE : Using year_delta > 1 is experimental.
 #' @param IsSurv Adding survival to the IPM. Set to FALSE is useful to test for
 #' eviction of the model. TRUE by default.
-#' @param verbose Print message. FALSE by defaul
+#' @param verbose Print message. FALSE by default
 #'
 #'
 #' @details
@@ -156,10 +156,10 @@ make_mu_gr <- function(species,
             stop(paste0("This species is not listed in species for which ",
                         "matreex package has climate."))
         }
-        sp <- NULL # hack to bind value.
+        sp <- climate_label <- NULL # hack to bind value.
         climate <- subset(matreex::climate_species,
                           sp == species,
-                          select = -sp
+                          select = -c(sp, climate_label)
         )
     }
     assertDataFrame(climate, nrows = 3)
@@ -340,12 +340,12 @@ getRangemu <- function(climate,
     assertIntegerish(BA, lower = 0, upper = 200)
     assertNumeric(mesh, lower = 0)
 
-    N <- NULL # hack to bind global value
+    N <- climate_label <- NULL # hack to bind global value
     n <- nrow(climate)
 
     fres <- data.frame(min = 1:n, max = 1:n)
     for (Nc in 1:n) {
-        sub_climate <- subset(climate, N == Nc, select = -N)
+        sub_climate <- subset(climate, N == Nc, select = -c(N, climate_label))
         sub_climate <- drop(as.matrix(sub_climate)) # we need it as a vector.
         list_covs <- c(sub_climate, BATOTcomp = 0)
         res <- matrix(

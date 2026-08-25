@@ -24,8 +24,8 @@ dev_make_IPM(
 \arguments{
 \item{species}{The species names to be registered in the object}
 
-\item{climate}{Named vector of the environmental variables used in the fitted
-model. Was data_plot_pred before.}
+\item{climate}{Named numeric vector of the environmental variables used in
+the fitted model. Was data_plot_pred before.}
 
 \item{clim_lab}{Label for climatic used. This values will be matched when
 simulating multiple species together.}
@@ -76,7 +76,7 @@ variables in the model are provided expect variables derived from "size"
 (size, size2, logsize), "intercept" and "BATOTcomp". An error will be
 triggered if the climate variable is missing.
 
-One can desactivate each kind of integration with some treshold values.
+One can deactivate each kind of integration with some treshold values.
 A negative value in diag_tresh (ex: -1) will cancel the Gauss-Legendre
 integration and a midbin_tresh null value (ex: 0) will cancel the midbin
 integration.

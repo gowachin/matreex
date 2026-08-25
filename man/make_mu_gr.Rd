@@ -28,7 +28,7 @@ make_mu_gr(
 given. Functions will depend on size and basal area.}
 
 \item{climate}{Climate table for the species.
-Optionnal if the species is defined in the package.
+Optional if the species is defined in the package.
 The format is climatic variable
 in column and different climate by row. An example is in the package with
 \code{cliamte_species}.}
@@ -62,13 +62,13 @@ integrate with the mid bin method.}
 \item{mid_level}{Number of point to use for integration in a cell during
 mid bin integration.}
 
-\item{year_delta}{Number of year between 2 obersavtion when using this model.
-default 1, single int. NOTE : value for dev usage only !}
+\item{year_delta}{Number of year between 2 observations when using this model.
+default 1, single int. NOTE : Using year_delta > 1 is experimental.}
 
 \item{IsSurv}{Adding survival to the IPM. Set to FALSE is useful to test for
 eviction of the model. TRUE by default.}
 
-\item{verbose}{Print message. FALSE by defaul}
+\item{verbose}{Print message. FALSE by default}
 }
 \description{
 Integrate IPM for growth and survival function at a specific climate for a

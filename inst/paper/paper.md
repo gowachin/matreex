@@ -80,7 +80,7 @@ A key feature of the `matreex` package is the development of IPM integration fun
 As trees have a small annual growth rate, most of the integration effort is concentrated near the diagonal of the matrix.
 We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration.
 This speed is crucial as we integrate a matrix per competition level (based on species basal area) to account for density dependence.
-More details about the integration are provided in the [`matreex` webpage](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html)
+More details about the integration are provided in the [`Building IPM` vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html).
 
 ![Figure 1: Combination of different integration methods. Dashed line is the identity where $z_t=z_t+1$ and dark blue distribution is an expected distribution of the growth kernel.\label{fig:band_matrix](fig/figures_files/figure-html/band_matrix-1.png)
 
@@ -95,8 +95,11 @@ library(ggplot2)
 
 # select a climate to run in
 data("climate_species")
-# N is the climate number to user, 2 being the optimum climate for the species
-climate <- subset(climate_species, N == 2 & sp == "Fagus_sylvatica", select = -sp)
+climate <- subset(
+  climate_species, 
+  climate_label == "optimum" & sp == "Fagus_sylvatica", 
+  select = -c(sp, climate_label)
+)
 
 # integrate ipms and store them in species object
 Picea <- species(IPM = make_IPM(
@@ -127,7 +130,7 @@ Abies <- species(IPM = make_IPM(
 # assemble species in a forest object
 Forest <- forest(species = list(Picea = Picea, Abies = Abies, 
                                    Fagus = Fagus, Betula = Betula))
-set.seed(42) # The seed is here for initial population random functions.
+set.seed(20260825) # The seed is here for initial population random functions.
 
 # Run simulation and plot it
 Sim <- sim_deter_forest(
@@ -169,7 +172,7 @@ Disturbances in `matreex` are described in details in @barrere2024 and in @barre
 
 Most stand-scale forest dynamics models simulate closed systems, where only the tree species already present in the stand contribute to the recruitment of new trees.
 This limitation perclude the simulation of immigration from external species, which is a key process of forest dynamics, particularily under climate change.
-To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the sum of basal area of fecund tree species in the plot, and (ii) external dispersal, that depends on the regional pool.
+To overcome this limitation, we included the possibility to split the recruitment function in two component : (i) within-plot dispersal that depends on the sum of basal area of fecund tree species in the plot, and (ii) external dispersal that depends on the regional pool.
 This regional pool approach is extensively presented in @barrereprep.
 
 ## Harvesting
