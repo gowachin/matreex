@@ -34,7 +34,7 @@ for (i in deps ){
 Be aware that anyone who installs directly from Gitlab will need to explicitly request vignettes, e.g. with devtools::install_gitlab(dependencies = TRUE, build_vignettes = TRUE).
 -->
 
-You can install the `{matreex}` package from [gitlab](https://forge.inrae.fr/lessem/rpackages/matreex) with :
+You can install the `{matreex}` package from [GitLab](https://forge.inrae.fr/lessem/rpackages/matreex) with :
 
 ```
 # install.packages("remotes")
@@ -43,7 +43,7 @@ remotes::install_gitlab("lessem/rpackages/matreex", host = "https://forge.inrae.
 
 ### Development version
 
-You can install the development version of `{matreex}` from gitlab with :
+You can install the development version of `{matreex}` from GitLab with :
 It require you to have git installed.
 
 ```
@@ -65,17 +65,17 @@ Lastly, few vignettes introduce more in depth explanation about [IPM integration
 
 ## Support
 
-Issues are centralized on [the github mirror project.](https://github.com/gowachin/matreex/issues).
+Issues are centralized on [the GitHub mirror project](https://github.com/gowachin/matreex/issues).
 
 ## Roadmap
 
-Future dev is listed on the gitlab repository project to keep track of what we are working on.
+Future dev is listed on the GitLab repository project to keep track of what we are working on.
 Link is [here](https://forge.inrae.fr/lessem/rpackages/matreex/-/boards)
 ## Contribution
 
-External contributions are welcome on the public Github repository, where any user can reports bugs, request features and contribute code. Contributions are accepted when coming from [github pull-requests](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
+External contributions are welcome on the [public GitHub repository](https://github.com/gowachin/matreex/), where any user can reports bugs, request features and contribute code. Contributions are accepted when coming from [GitHub pull-requests](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
 
-This package is actively developped in [INRAE Gitlab](https://forge.inrae.fr/lessem/rpackages/matreex/). This Gitlab instance is reserved to academics contributions and thus require a French research institute account for contribution or reporting issues. Accounts can be openned for major contributions, during academic projects and paper publication.
+This package is actively developped in [INRAE GitLab](https://forge.inrae.fr/lessem/rpackages/matreex/). This GitLab instance is reserved to academics contributions and thus require a French research institute account for contribution or reporting issues. Accounts can be openned for major contributions, during academic projects and paper publication.
 
 A script is available to run tests and see if the package documentation works once you have edited it. It is available in `dev/run_all_test.R`.
 
