@@ -1,0 +1,139 @@
+---
+title: "Building paper figures"
+output: 
+    rmarkdown::html_vignette:
+        toc: true # table of content true
+vignette: >
+  %\VignetteIndexEntry{Building IPM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+.
+
+```{r band_matrix, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transition between IPM and the integrated band matrix. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of the growth kernel."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
+    \foreach \i in {3,2.5,...,0}{
+    {\fill[blue!20] (\i, 5-\i-2) -- (5,5-\i-2) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {4,3.5,...,0}{
+    {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {5,4.5,...,0.5}{
+    {\fill[gray!50] (\i, 5-\i) -- (5,5-\i) -- (5,5) -- (\i,5);}
+    }
+    
+    \draw (0,0) grid[step=.5] (5,5);
+    \draw (2.5,5) node[above]{$z_t$} ;
+    \draw (0,2.5) node[left]{$z_{t+1}$} ;
+    \draw(0,5) node[above] {$L$};
+    \draw(5,5) node[above] {$U$};
+    
+    \draw(6,4) node[fill=gray!50,right] {Un-integrated};
+    \draw(6,3.5) node[right] {$m = 10$ ; $h = 2.5$};
+    \draw(6,3) node[fill=red!50,right] {Gauss-Legendre};
+    \draw(6,2.5) node[right] {$diag\_tresh = 5$ ; $N_{intGL} = 2$};
+    \draw(6,2) node[fill=blue!20,right] {Midbin};
+    \draw(6,1.5) node[right] {$N_{intMB} = 2$};
+    
+    \node[draw,text width=5cm, right] at (6,0.5) {
+    $L$: Lower value of the mesh \\
+    $U$: Upper value of the mesh
+    %$mesh = [L + h / 2, U - h / 2]$ with $m$ element \\
+    %$N_{int} = sum((mesh - (L + \frac{h}{2}) < tresh)$
+    };
+    
+    \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+                                              .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 0);
+    \draw[line width=1pt, dashed] (0,5) -- (5,0);
+
+    
+\end{tikzpicture}
+```
+
+
+```{r simu}
+library(matreex)
+library(dplyr)
+library(ggplot2)
+data("fit_Picea_abies")
+data("climate_species")
+climate <- subset(
+    climate_species, 
+    climate_label == "optimum" & sp == "Fagus_sylvatica", 
+    select = -c(sp, climate_label)
+)
+Picea <- species(IPM = make_IPM(
+    species = "Picea_abies", fit = fit_Picea_abies,
+    climate = climate, clim_lab = "optimum clim", 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Betula <- species(IPM = make_IPM(
+    species = "Betula", fit = fit_Betula,
+    climate = climate, clim_lab = "optimum clim", 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Betula) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Fagus <- species(IPM = make_IPM(
+    species = "Fagus_sylvatica", fit = fit_Fagus_sylvatica,
+    climate = climate, clim_lab = "optimum clim", 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Abies <- species(IPM = make_IPM(
+    species = "Abies_alba", fit = fit_Abies_alba,
+    climate = climate, clim_lab = "optimum clim", 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+
+
+Forest <- forest(species = list(Picea = Picea, Abies = Abies, 
+                                   Fagus = Fagus, Betula = Betula))
+set.seed(20260825) # The seed is here for initial population random functions.
+Sim <- sim_deter_forest(
+    Forest, 
+    tlim = 1000, 
+    equil_time = 1000, equil_dist = 50, equil_diff = 1,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+plot <- Sim  %>%
+    dplyr::filter(var == "BAsp", ! equil) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linewidth = .4) +
+    ylab("Basal Area (m2)") + xlab("Simulation time (years)")
+png(file = "inst/paper/fig/simulation.png", width = 1080, height = 480)
+plot
+dev.off()
+
+disturb <- data.frame(type = "storm", intensity = 0.9, IsSurv = FALSE, t = 2600)
+for(n in names(Forest$species)){
+  Forest$species[[n]]$disturb_fun <- matreex::disturb_fun
+  Forest$species[[n]]$disturb_coef <- filter(matreex::disturb_coef, species == n)
+}
+Forest$species$Betula <- NULL
+Sim2 <- sim_deter_forest(
+    Forest, 
+    tlim = 4500, disturbance = disturb,
+    equil_time = 4500, equil_dist = 50, equil_diff = 1,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+plot <- Sim2  %>%
+    dplyr::filter(var == "BAsp", ! equil, ) %>%
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linewidth = .4) +
+    ylab("Basal Area (m2)") + xlab("Simulation time (years)") +
+    geom_vline(aes(xintercept = 2600), linetype = "dotted", color = "grey", linewidth = 1.5)
+png(file = "inst/paper/fig/disturbance.png", width = 1080, height = 480)
+plot
+dev.off()
+```

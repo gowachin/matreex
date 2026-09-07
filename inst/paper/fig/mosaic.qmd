@@ -1,0 +1,60 @@
+---
+title: "Building paper figures"
+output: 
+    rmarkdown::html_vignette:
+        toc: true # table of content true
+vignette: >
+  %\VignetteIndexEntry{Building IPM}
+  %\VignetteEncoding{UTF-8}
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r, include = FALSE}
+knitr::opts_chunk$set(
+  collapse = TRUE,
+  comment = "#>"
+)
+```
+.
+
+$R_s = \alpha BA_s^\beta \cdot e^{-\delta BA_s} \cdot e^{-\epsilon BA_h}$
+
+```{r mosaic, engine='tikz', fig.ext = 'png', engine.opts = list(template = "tex/tikz.tex"), echo = FALSE, eval=TRUE, fig.cap="Transition between IPM and the integrated band matrix. Dashed line is the identity where $z_t = z_{t+1}$ and dark blue distribution is an expected distribution of the growth kernel."}
+\begin{tikzpicture}[scale = 0.5, every node/.style={scale=0.5}]
+    \foreach \i in {3,2.5,...,0}{
+    {\fill[blue!20] (\i, 5-\i-2) -- (5,5-\i-2) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {4,3.5,...,0}{
+    {\fill[red!50] (\i, 5-\i-1) -- (5,5-\i-1) -- (5,5) -- (\i,5);}
+    }
+    \foreach \i in {5,4.5,...,0.5}{
+    {\fill[gray!50] (\i, 5-\i) -- (5,5-\i) -- (5,5) -- (\i,5);}
+    }
+    
+    \draw (0,0) grid[step=.5] (5,5);
+    \draw (2.5,5) node[above]{$z_t$} ;
+    \draw (0,2.5) node[left]{$z_{t+1}$} ;
+    \draw(0,5) node[above] {$L$};
+    \draw(5,5) node[above] {$U$};
+    
+    \draw(6,4) node[fill=gray!50,right] {Un-integrated};
+    \draw(6,3.5) node[right] {$m = 10$ ; $h = 2.5$};
+    \draw(6,3) node[fill=red!50,right] {Gauss-Legendre};
+    \draw(6,2.5) node[right] {$diag\_tresh = 5$ ; $N_{intGL} = 2$};
+    \draw(6,2) node[fill=blue!20,right] {Midbin};
+    \draw(6,1.5) node[right] {$N_{intMB} = 2$};
+    
+    \node[draw,text width=5cm, right] at (6,0.5) {
+    $L$: Lower value of the mesh \\
+    $U$: Upper value of the mesh
+    %$mesh = [L + h / 2, U - h / 2]$ with $m$ element \\
+    %$N_{int} = sum((mesh - (L + \frac{h}{2}) < tresh)$
+    };
+    
+    \draw[line width=1pt, fill=teal, color=teal] (0.75,4.25) .. controls (0.87,4.12)  and (1,3.9) .. (1,3.8)
+                                              .. controls (1,3.75) and (0.8, 3.62) .. (0.8,3) -- (0.75, 0);
+    \draw[line width=1pt, dashed] (0,5) -- (5,0);
+
+    
+\end{tikzpicture}
+```

@@ -1,0 +1,639 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<!DOCTYPE article PUBLIC "-//NLM//DTD JATS (Z39.96) Journal Publishing DTD v1.2 20190208//EN"
+                  "JATS-publishing1.dtd">
+<article xmlns:mml="http://www.w3.org/1998/Math/MathML" xmlns:xlink="http://www.w3.org/1999/xlink" dtd-version="1.2" article-type="other">
+<front>
+<journal-meta>
+<journal-id></journal-id>
+<journal-title-group>
+<journal-title>Journal of Open Source Software</journal-title>
+<abbrev-journal-title>JOSS</abbrev-journal-title>
+</journal-title-group>
+<issn publication-format="electronic">2475-9066</issn>
+<publisher>
+<publisher-name>Open Journals</publisher-name>
+</publisher>
+</journal-meta>
+<article-meta>
+<article-id pub-id-type="publisher-id">0</article-id>
+<article-id pub-id-type="doi">N/A</article-id>
+<title-group>
+<article-title>matreex: Simulating European forest dynamics with
+IPM.</article-title>
+</title-group>
+<contrib-group>
+<contrib contrib-type="author" corresp="yes">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0009-0002-2816-1677</contrib-id>
+<name>
+<surname>Jaunatre</surname>
+<given-names>Maxime</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="corresp" rid="cor-1"><sup>*</sup></xref>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0002-6686-726X</contrib-id>
+<name>
+<surname>Barrere</surname>
+<given-names>Julien</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="aff" rid="aff-2"/>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0001-5277-9181</contrib-id>
+<name>
+<surname>Reineking</surname>
+<given-names>Björn</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0003-2178-3801</contrib-id>
+<name>
+<surname>Guyennon</surname>
+<given-names>Arnaud</given-names>
+</name>
+<xref ref-type="aff" rid="aff-3"/>
+</contrib>
+<contrib contrib-type="author">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0003-3684-4662</contrib-id>
+<name>
+<surname>Cordonnier</surname>
+<given-names>Thomas</given-names>
+</name>
+<xref ref-type="aff" rid="aff-4"/>
+</contrib>
+<contrib contrib-type="author" corresp="yes">
+<contrib-id contrib-id-type="orcid">https://orcid.org/0000-0002-2544-1940</contrib-id>
+<name>
+<surname>Kunstler</surname>
+<given-names>Georges</given-names>
+</name>
+<xref ref-type="aff" rid="aff-1"/>
+<xref ref-type="corresp" rid="cor-2"><sup>*</sup></xref>
+</contrib>
+<aff id="aff-1">
+<institution-wrap>
+<institution>Univ. Grenoble Alpes, INRAE, LESSEM, St-Martin-d’Hères,
+France</institution>
+<institution-id institution-id-type="ROR">01a0ez112</institution-id>
+</institution-wrap>
+</aff>
+<aff id="aff-2">
+<institution-wrap>
+<institution>INRAE, Aix Marseille Université, UMR RECOVER,
+Aix-en-Provence, France</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-3">
+<institution-wrap>
+<institution>Independent Researcher, France</institution>
+</institution-wrap>
+</aff>
+<aff id="aff-4">
+<institution-wrap>
+<institution>ONF, Département Recherche Développement et Innovation, 21
+rue du Muguet, 39100 Dole.</institution>
+</institution-wrap>
+</aff>
+</contrib-group>
+<author-notes>
+<corresp id="cor-1">* E-mail: <email></email></corresp>
+<corresp id="cor-2">* E-mail: <email></email></corresp>
+</author-notes>
+<pub-date date-type="pub" publication-format="electronic" iso-8601-date="2025-02-11">
+<day>11</day>
+<month>2</month>
+<year>2025</year>
+</pub-date>
+<volume>¿VOL?</volume>
+<issue>¿ISSUE?</issue>
+<fpage>¿PAGE?</fpage>
+<permissions>
+<copyright-statement>Authors of papers retain copyright and release the
+work under a Creative Commons Attribution 4.0 International License (CC
+BY 4.0)</copyright-statement>
+<copyright-year>1970</copyright-year>
+<copyright-holder>The article authors</copyright-holder>
+<license license-type="open-access" xlink:href="https://creativecommons.org/licenses/by/4.0/">
+<license-p>Authors of papers retain copyright and release the work under
+a Creative Commons Attribution 4.0 International License (CC BY
+4.0)</license-p>
+</license>
+</permissions>
+<kwd-group kwd-group-type="author">
+<kwd>R</kwd>
+<kwd>forestry</kwd>
+<kwd>dynamics</kwd>
+<kwd>ecology</kwd>
+</kwd-group>
+</article-meta>
+</front>
+<body>
+<sec id="summary">
+  <title>Summary</title>
+  <p>Integral projection models (IPMs) are powerful tools for studying
+  the temporal dynamics of populations structured by continuous traits,
+  allowing for predictions of changes in trait distributions over time
+  (<xref alt="Ellner et al., 2016" rid="ref-ellner2016" ref-type="bibr">Ellner
+  et al., 2016</xref>). Unlike individual-based or cohort-based models,
+  which represent populations as discrete populations, IPMs describe
+  populations as continuous populations, integrating over the
+  uncertainty of demographic processes. This removes demographic
+  stochasticity and results in fully deterministic simulations, which
+  are complementary to individual-based models (IBMs).</p>
+  <p>Here, we introduce <monospace>matreex</monospace>, an R package
+  specifically designed to build IPMs for European forest tree species.
+  Our package includes pre-fitted species-specific growth, survival and
+  recruitment functions that account for the effect of climate and
+  competition, and functions to efficiently integrate IPMs and run
+  temporal simulations of single-species or multispecies forest
+  communities until equilibrium. This package complements existing R
+  packages for IPMs, such as <monospace>ipmr</monospace>
+  (<xref alt="Metcalf et al., 2013" rid="ref-Metcalf2013" ref-type="bibr">Metcalf
+  et al., 2013</xref>) and <monospace>IPMpack</monospace>
+  (<xref alt="Levin et al., 2021" rid="ref-Levin2021" ref-type="bibr">Levin
+  et al., 2021</xref>), which are not specifically designed for forest
+  ecosystems.</p>
+</sec>
+<sec id="statement-of-need">
+  <title>Statement of need</title>
+  <p>IPMs are rarely applied to forest ecosystems due to the complexity
+  of tree growth kernels, which are challenging to integrate, making the
+  construction of forest IPMs particularly difficult.
+  <monospace>matreex</monospace> is an R package specifically designed
+  to build IPMs and run simulations for European forests. These IPMs can
+  be used by the forest ecology research community, to study population
+  dynamic and forest communities trajectories. In
+  <monospace>matreex</monospace> IPM simulations, it is also possible to
+  include temporally variable climatic conditions, natural disturbances,
+  harvesting scenarios and regional dispersal affecting population
+  dynaminc depending on tree species sensitivity and stand
+  structure.</p>
+</sec>
+<sec id="state-of-the-field">
+  <title>State of the field</title>
+  <p>Other, more generalist, packages exist to build IPMs for various
+  types of organisms (<monospace>IPMpack</monospace>
+  (<xref alt="Metcalf et al., 2013" rid="ref-Metcalf2013" ref-type="bibr">Metcalf
+  et al., 2013</xref>), <monospace>ipmr</monospace>
+  (<xref alt="Levin et al., 2021" rid="ref-Levin2021" ref-type="bibr">Levin
+  et al., 2021</xref>)). However they focus on analysis on the matrix
+  itself whereas <monospace>matreex</monospace> use the integrated
+  matrices to simulate population dynamics. In addition
+  <monospace>matreex</monospace> integrates numerous functions to run
+  simulations for multispecies communities under various harvesting and
+  disturbance scenarios.</p>
+</sec>
+<sec id="software-design">
+  <title>Software design</title>
+  <p>A key feature of the <monospace>matreex</monospace> package is the
+  development of IPM integration functions designed for complex forest
+  tree growth kernels. As trees have a small annual growth rate, most of
+  the integration effort is concentrated near the diagonal of the
+  matrix. We achieve this by combining different integration methods
+  (Gauss-Legendre and Mid-bin) at different distances of the diagonal,
+  which helps speed up the integration.
+  <ext-link ext-link-type="uri" xlink:href="@fig:band_matrix">Figure
+  1</ext-link> illustrates how these different methods of integrating
+  the matrix are used. This speed is crucial as we integrate a matrix
+  per competition level (based on species basal area) to account for
+  density dependence. More details about the integration are provided in
+  the
+  <ext-link ext-link-type="uri" xlink:href="https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html"><monospace>Building IPM</monospace>
+  vignette</ext-link>.</p>
+  <fig>
+    <caption><p>Combination of different integration methods. Dashed
+    line is the identity where <inline-formula><alternatives>
+    <tex-math><![CDATA[z_t=z_t+1]]></tex-math>
+    <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:msub><mml:mi>z</mml:mi><mml:mi>t</mml:mi></mml:msub><mml:mo>=</mml:mo><mml:msub><mml:mi>z</mml:mi><mml:mi>t</mml:mi></mml:msub><mml:mo>+</mml:mo><mml:mn>1</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>
+    and dark blue distribution is an expected distribution of the growth
+    kernel.
+    <styled-content id="figU003Aband_matrix"></styled-content></p></caption>
+    <graphic mimetype="image" mime-subtype="png" xlink:href="band_matrix-1.png" />
+  </fig>
+  <p>A crucial development objective was to simplify the workflow for
+  ecological researchers, who may work on multispecies models with
+  climate variation, disturbances, and harvesting. To facilitate this,
+  <monospace>matreex</monospace> provides fitted vital models for
+  European tree species directly in the package
+  (<xref alt="Barrere et al., 2024" rid="ref-barrere2024" ref-type="bibr">Barrere
+  et al., 2024</xref>;
+  <xref alt="Guyennon et al., 2023" rid="ref-guyennon2023" ref-type="bibr">Guyennon
+  et al., 2023</xref>;
+  <xref alt="Kunstler et al., 2021" rid="ref-kunstler2021" ref-type="bibr">Kunstler
+  et al., 2021</xref>), although other new vital models can be used. The
+  object-oriented architecture limits code complexity, allowing users to
+  focus on designing large simulation experiments to tackle their
+  ecological questions. The code below demonstrates a quick way to use
+  the package, resulting in
+  <ext-link ext-link-type="uri" xlink:href="@fig:simulation">Figure
+  2</ext-link>, which shows the dynamics of four species in the same
+  environment.</p>
+  <preformat>library(matreex)
+library(dplyr)
+library(ggplot2)
+
+# select a climate to run in
+data(&quot;climate_species&quot;)
+climate &lt;- subset(
+  climate_species, 
+  climate_label == &quot;optimum&quot; &amp; sp == &quot;Fagus_sylvatica&quot;, 
+  select = -c(sp, climate_label)
+)
+
+# integrate ipms and store them in species object
+Picea &lt;- species(IPM = make_IPM(
+    species = &quot;Picea_abies&quot;, fit = fit_Picea_abies,
+    climate = climate, clim_lab = &quot;optimum clim&quot;, 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Picea_abies) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Betula &lt;- species(IPM = make_IPM(
+    species = &quot;Betula&quot;, fit = fit_Betula,
+    climate = climate, clim_lab = &quot;optimum clim&quot;, 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Betula) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Fagus &lt;- species(IPM = make_IPM(
+    species = &quot;Fagus_sylvatica&quot;, fit = fit_Fagus_sylvatica,
+    climate = climate, clim_lab = &quot;optimum clim&quot;, 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Fagus_sylvatica) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+Abies &lt;- species(IPM = make_IPM(
+    species = &quot;Abies_alba&quot;, fit = fit_Abies_alba,
+    climate = climate, clim_lab = &quot;optimum clim&quot;, 
+    mesh = c(m = 700, L = 90, U = get_maxdbh(fit_Abies_alba) * 1.1),
+    BA = 0:60
+), init_pop = def_initBA(1))
+
+# assemble species in a forest object
+Forest &lt;- forest(species = list(Picea = Picea, Abies = Abies, 
+                                   Fagus = Fagus, Betula = Betula))
+set.seed(20260825) # The seed is here for initial population random functions.
+
+# Run simulation and plot it
+Sim &lt;- sim_deter_forest(
+    Forest, 
+    tlim = 1000, 
+    equil_time = 1000, equil_dist = 50, equil_diff = 1,
+    SurfEch = 0.03,
+    verbose = TRUE
+)
+Sim  %&gt;%
+    dplyr::filter(var == &quot;BAsp&quot;, ! equil) |&gt;
+    ggplot(aes(x = time, y = value, color = species)) +
+    geom_line(linewidth = .4) + 
+    ylab(&quot;Basal Area (m2)&quot;) + xlab(&quot;Simulation time (years)&quot;) </preformat>
+  <fig>
+    <caption><p>Simulation output for 4 species.
+    <styled-content id="figU003Asimulation"></styled-content></p></caption>
+    <graphic mimetype="image" mime-subtype="png" xlink:href="simulation.png" />
+  </fig>
+  <sec id="climatic-temporal-variability">
+    <title>Climatic temporal variability</title>
+    <p>Modelling forest dynamics under fluctuating climatic conditions
+    can be computationally expensive because the IPMs growth kernel must
+    be integrated for every climatic condition. To avoid this high
+    computation cost, we implement a new method involving the
+    pre-integration of IPM growth matrix blocks for different mean
+    growth rates. The IPM for each climatic condition is then
+    reassembled from these mean growth rate IPM matrix blocks (mu
+    matrix). This allows to speed-up the simulations. This is described
+    in the
+    <ext-link ext-link-type="uri" xlink:href="https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/mu_simulation.html">matreex
+    climate variation vignette</ext-link>.</p>
+  </sec>
+  <sec id="disturbance">
+    <title>Disturbance</title>
+    <p>One key originality of <monospace>matreex</monospace> is the
+    possibility to apply storm, fire, biotic of snow disturbances of
+    varying intensity (ranging from 0 to 1) at any time of the IPM
+    simulations. When a disturbance strikes the stand a given year of
+    the simulation, the survival function is replaced by the
+    species-specific equations from Barrere et al.
+    (<xref alt="2024" rid="ref-barrere2024" ref-type="bibr">2024</xref>).
+    These equations quantify the annual mortality probability of a tree
+    in a disturbed stand as a function of its species, diameter at
+    breast height, stand structure, nature and intensity of the
+    disturbance. A disturbance striking two different stands with the
+    same intensity will thus result in different mortality rates,
+    depending notably on the sensitivity of the tree species present in
+    the stand. Disturbances in <monospace>matreex</monospace> are
+    described in details in Barrere et al.
+    (<xref alt="2024" rid="ref-barrere2024" ref-type="bibr">2024</xref>)
+    and in Barrere et al.
+    (<xref alt="in prep" rid="ref-barrereprep" ref-type="bibr">in
+    prep</xref>).
+    <ext-link ext-link-type="uri" xlink:href="@fig:disturbance">Figure
+    3</ext-link> shows an example of multispecies simulations with storm
+    disturbance.</p>
+    <fig id="figU003Adisturbance">
+      <caption><p>Simulation output for 3 species with a disturbance at
+      <inline-formula><alternatives>
+      <tex-math><![CDATA[time = 2600]]></tex-math>
+      <mml:math display="inline" xmlns:mml="http://www.w3.org/1998/Math/MathML"><mml:mrow><mml:mi>t</mml:mi><mml:mi>i</mml:mi><mml:mi>m</mml:mi><mml:mi>e</mml:mi><mml:mo>=</mml:mo><mml:mn>2600</mml:mn></mml:mrow></mml:math></alternatives></inline-formula>.</p></caption>
+      <graphic mimetype="image" mime-subtype="png" xlink:href="disturbance.png" />
+    </fig>
+  </sec>
+  <sec id="regional-dispersal">
+    <title>Regional dispersal</title>
+    <p>Most stand-scale forest dynamics models simulate closed systems,
+    where only the tree species already present in the stand contribute
+    to the recruitment of new trees. This limitation perclude the
+    simulation of immigration from external species, which is a key
+    process of forest dynamics, particularily under climate change. To
+    overcome this limitation, we included the possibility to split the
+    recruitment function in two component : (i) within-plot dispersal
+    that depends on the sum of basal area of fecund tree species in the
+    plot, and (ii) external dispersal that depends on the regional pool.
+    This regional pool approach is extensively presented in Barrere et
+    al. (<xref alt="in prep" rid="ref-barrereprep" ref-type="bibr">in
+    prep</xref>).</p>
+  </sec>
+  <sec id="harvesting">
+    <title>Harvesting</title>
+    <p>Since most temperate forests are managed, it is crucial to
+    incorporate silvicultural interventions into the simulations. We
+    implemented three management strategies:</p>
+    <list list-type="bullet">
+      <list-item>
+        <p>First, we implemented a simple constant annual harvesting
+        rates accounting for the effect of the harvesting rates observed
+        in NFI data used for the model calibration
+        (<xref alt="Kunstler et al., 2021" rid="ref-kunstler2021" ref-type="bibr">Kunstler
+        et al., 2021</xref>).</p>
+      </list-item>
+      <list-item>
+        <p>Second, we implement an even-aged management. The objective
+        is to apply typical even-aged harvesting, based on a single
+        cohort. Trees are harvested with successive thinning during
+        stand development until the final harvest. Thinning harvest are
+        based on the distance to a self-thinning boundary, based on
+        Aussenac et al.
+        (<xref alt="2021" rid="ref-Aussenac2021" ref-type="bibr">2021</xref>).
+        This is easily connected with management guidelines.</p>
+      </list-item>
+      <list-item>
+        <p>Third, we implement an unven-aged harvesting. The uneven-aged
+        harvest scenario consists in selective harvesting across all
+        size classes with the objective to reach a stable size structure
+        with continuous replacement of large mature trees. This scenario
+        depends on the basal area of the stand and the size distribution
+        of the trees (building on Lafond et al.
+        (<xref alt="2014" rid="ref-Lafond2014" ref-type="bibr">2014</xref>)).
+        These three managements are described in the
+        <ext-link ext-link-type="uri" xlink:href="https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/Harvesting.html">matreex
+        harvesting vignette</ext-link>.</p>
+      </list-item>
+    </list>
+  </sec>
+</sec>
+<sec id="research-impact-statement">
+  <title>Research impact statement</title>
+  <p><monospace>matreex</monospace> was designed to be easily adapted to
+  various research ideas and is in continuous development. It has
+  already been used in several scientific publications tackling diverse
+  scientific questions
+  (<xref alt="Baranger et al., in prep" rid="ref-barangerprep" ref-type="bibr">Baranger
+  et al., in prep</xref>;
+  <xref alt="Barrere et al., 2024" rid="ref-barrere2024" ref-type="bibr">Barrere
+  et al., 2024</xref>,
+  <xref alt="in prep" rid="ref-barrereprep" ref-type="bibr">in
+  prep</xref>;
+  <xref alt="Guyennon et al., 2023" rid="ref-guyennon2023" ref-type="bibr">Guyennon
+  et al., 2023</xref>;
+  <xref alt="Kunstler et al., 2021" rid="ref-kunstler2021" ref-type="bibr">Kunstler
+  et al., 2021</xref>). The ability to simulate forests easily with a
+  dedicated R package will help ecologists to analyse the effect of
+  climate change, shifting disturbance regimes, and their interplay with
+  forest management across European forests.</p>
+  <p><monospace>matreex</monospace> is an open-source package made
+  available under the MIT license. Installation and usage instructions
+  can be found at the
+  <ext-link ext-link-type="uri" xlink:href="https://lessem.pages-forge.inrae.fr/rpackages/matreex/">website</ext-link></p>
+</sec>
+<sec id="ai-usage-disclosure">
+  <title>AI usage disclosure</title>
+  <p>No generative AI tools were used in the development of this
+  software, the writing of this manuscript, or the preparation of
+  supporting materials.</p>
+</sec>
+<sec id="acknowledgements">
+  <title>Acknowledgements</title>
+  <p>JB, MJ, BR and GK are funded through the BiodivClim ERA-Net Cofund
+  (joint BiodivERsA Call on “Biodiversity and Climate Change”,
+  2019-2020) with national co–funding through ANR (France, project
+  ANR-20-EBI5-0005-03). MJ and GK were funded by the ANR DECLIC (grant
+  ANR-1520-CE32-0005-01) and REGE-ADAPT PEPR FORESTT France 2030
+  (ANR-24-PEFO-0006). JB, MJ, BR and GK are funded by the RESONATE H2020
+  project (grant 101000574). GK, BR and AG received support from the
+  REFORCE – EU FP7ERA-NET Sumforest 2016 through the call ‘Sustainable
+  forests for the society of the future’, with the ANR as national
+  funding agency (grant ANR-16-SUMF-0002).</p>
+</sec>
+</body>
+<back>
+<ref-list>
+  <title></title>
+  <ref id="ref-Levin2021">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Levin</surname><given-names>Sam C.</given-names></name>
+        <name><surname>Childs</surname><given-names>Dylan Z.</given-names></name>
+        <name><surname>Compagnoni</surname><given-names>Aldo</given-names></name>
+        <name><surname>Evers</surname><given-names>Sanne</given-names></name>
+        <name><surname>Knight</surname><given-names>Tiffany M.</given-names></name>
+        <name><surname>Salguero-Gómez</surname><given-names>Roberto</given-names></name>
+      </person-group>
+      <article-title>Ipmr: Flexible implementation of integral projection models in r</article-title>
+      <source>Methods in Ecology and Evolution</source>
+      <year iso-8601-date="2021">2021</year>
+      <volume>12</volume>
+      <issue>10</issue>
+      <uri>https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210X.13683</uri>
+      <pub-id pub-id-type="doi">10.1111/2041-210X.13683</pub-id>
+      <fpage>1826</fpage>
+      <lpage>1834</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-Metcalf2013">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Metcalf</surname><given-names>C. Jessica E.</given-names></name>
+        <name><surname>McMahon</surname><given-names>Sean M.</given-names></name>
+        <name><surname>Salguero-Gómez</surname><given-names>Roberto</given-names></name>
+        <name><surname>Jongejans</surname><given-names>Eelke</given-names></name>
+      </person-group>
+      <article-title>Pack: An r package for integral projection models</article-title>
+      <source>Methods in Ecology and Evolution</source>
+      <year iso-8601-date="2013">2013</year>
+      <volume>4</volume>
+      <issue>2</issue>
+      <uri>https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/2041-210x.12001</uri>
+      <pub-id pub-id-type="doi">10.1111/2041-210x.12001</pub-id>
+      <fpage>195</fpage>
+      <lpage>200</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-kunstler2021">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Kunstler</surname><given-names>Georges</given-names></name>
+        <name><surname>Guyennon</surname><given-names>Arnaud</given-names></name>
+        <name><surname>Ratcliffe</surname><given-names>Sophia</given-names></name>
+        <name><surname>Rüger</surname><given-names>Nadja</given-names></name>
+        <name><surname>Ruiz-Benito</surname><given-names>Paloma</given-names></name>
+        <name><surname>Childs</surname><given-names>Dylan Z.</given-names></name>
+        <name><surname>Dahlgren</surname><given-names>Jonas</given-names></name>
+        <name><surname>Lehtonen</surname><given-names>Aleksi</given-names></name>
+        <name><surname>Thuiller</surname><given-names>Wilfried</given-names></name>
+        <name><surname>Wirth</surname><given-names>Christian</given-names></name>
+        <name><surname>Zavala</surname><given-names>Miguel A.</given-names></name>
+        <name><surname>Salguero-Gomez</surname><given-names>Roberto</given-names></name>
+      </person-group>
+      <article-title>Demographic performance of european tree species at their hot and cold climatic edges</article-title>
+      <source>Journal of Ecology</source>
+      <year iso-8601-date="2021">2021</year>
+      <volume>109</volume>
+      <issue>2</issue>
+      <uri>https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2745.13533</uri>
+      <pub-id pub-id-type="doi">10.1111/1365-2745.13533</pub-id>
+      <fpage>1041</fpage>
+      <lpage>1054</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-guyennon2023">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Guyennon</surname><given-names>Arnaud</given-names></name>
+        <name><surname>Reineking</surname><given-names>Björn</given-names></name>
+        <name><surname>Salguero-Gomez</surname><given-names>Roberto</given-names></name>
+        <name><surname>Dahlgren</surname><given-names>Jonas</given-names></name>
+        <name><surname>Lehtonen</surname><given-names>Aleksi</given-names></name>
+        <name><surname>Ratcliffe</surname><given-names>Sophia</given-names></name>
+        <name><surname>Ruiz-Benito</surname><given-names>Paloma</given-names></name>
+        <name><surname>Zavala</surname><given-names>Miguel A.</given-names></name>
+        <name><surname>Kunstler</surname><given-names>Georges</given-names></name>
+      </person-group>
+      <article-title>Beyond mean fitness: Demographic stochasticity and resilience matter at tree species climatic edges</article-title>
+      <source>Global Ecology and Biogeography</source>
+      <year iso-8601-date="2023">2023</year>
+      <volume>n/a</volume>
+      <issue>n/a</issue>
+      <uri>https://onlinelibrary.wiley.com/doi/abs/10.1111/geb.13640</uri>
+      <pub-id pub-id-type="doi">10.1111/geb.13640</pub-id>
+      <fpage></fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-ellner2016">
+    <element-citation publication-type="book">
+      <person-group person-group-type="author">
+        <name><surname>Ellner</surname><given-names>Stephen P.</given-names></name>
+        <name><surname>Childs</surname><given-names>Dylan Z.</given-names></name>
+        <name><surname>Rees</surname><given-names>Mark</given-names></name>
+      </person-group>
+      <source>Data-driven Modelling of Structured Populations: A Practical Guide to the Integral Projection Model</source>
+      <publisher-name>Springer International Publishing</publisher-name>
+      <publisher-loc>Cham</publisher-loc>
+      <year iso-8601-date="2016">2016</year>
+      <date-in-citation content-type="access-date"><year iso-8601-date="2022-07-06">2022</year><month>07</month><day>06</day></date-in-citation>
+      <isbn>978-3-319-28893-2</isbn>
+      <uri>http://link.springer.com/10.1007/978-3-319-28893-2</uri>
+      <pub-id pub-id-type="doi">10.1007/978-3-319-28893-2</pub-id>
+    </element-citation>
+  </ref>
+  <ref id="ref-Aussenac2021">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Aussenac</surname><given-names>Raphaël</given-names></name>
+        <name><surname>Pérot</surname><given-names>Thomas</given-names></name>
+        <name><surname>Fortin</surname><given-names>Mathieu</given-names></name>
+        <name><surname>Coligny</surname><given-names>Francois de</given-names></name>
+        <name><surname>Monnet</surname><given-names>Jean-Matthieu</given-names></name>
+        <name><surname>Vallet</surname><given-names>Patrick</given-names></name>
+      </person-group>
+      <article-title>The salem simulator version 2.0: A tool for predicting the productivity of pure and mixed forest stands and simulating management operations</article-title>
+      <source>Open Research Europe</source>
+      <publisher-name>F1000 Research Ltd</publisher-name>
+      <year iso-8601-date="2021-11">2021</year><month>11</month>
+      <volume>1</volume>
+      <issn>2732-5121</issn>
+      <uri>http://dx.doi.org/10.12688/openreseurope.13671.2</uri>
+      <pub-id pub-id-type="doi">10.12688/openreseurope.13671.2</pub-id>
+      <fpage>61</fpage>
+      <lpage></lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-barrere2024">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Barrere</surname><given-names>Julien</given-names></name>
+        <name><surname>Reineking</surname><given-names>Björn</given-names></name>
+        <name><surname>Jaunatre</surname><given-names>Maxime</given-names></name>
+        <name><surname>Kunstler</surname><given-names>Georges</given-names></name>
+      </person-group>
+      <article-title>Forest storm resilience depends on the interplay between functional composition and climate—insights from european-scale simulations</article-title>
+      <source>Functional Ecology</source>
+      <year iso-8601-date="2024">2024</year>
+      <volume>38</volume>
+      <issue>3</issue>
+      <uri>https://besjournals.onlinelibrary.wiley.com/doi/abs/10.1111/1365-2435.14489</uri>
+      <pub-id pub-id-type="doi">10.1111/1365-2435.14489</pub-id>
+      <fpage>500</fpage>
+      <lpage>516</lpage>
+    </element-citation>
+  </ref>
+  <ref id="ref-barrereprep">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Barrere</surname><given-names>Julien</given-names></name>
+        <name><surname>Grünig</surname><given-names>Marc</given-names></name>
+        <name><surname>Jabot</surname><given-names>Franck</given-names></name>
+        <name><surname>Jaunatre</surname><given-names>Maxime</given-names></name>
+        <name><surname>Rammer</surname><given-names>Werner</given-names></name>
+        <name><surname>Reineking</surname><given-names>Björn</given-names></name>
+        <name><surname>Seidl</surname><given-names>Rupert</given-names></name>
+        <name><surname>Senf</surname><given-names>Cornelius</given-names></name>
+        <name><surname>Kunstler</surname><given-names>Georges</given-names></name>
+      </person-group>
+      <article-title>Competition, dispersal and disturbances drive the transient response of forest composition to climate change across europe</article-title>
+    </element-citation>
+  </ref>
+  <ref id="ref-barangerprep">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Baranger</surname><given-names>Anne</given-names></name>
+        <name><surname>Cordonnier</surname><given-names>Thomas</given-names></name>
+        <name><surname>Barrere</surname><given-names>Julien</given-names></name>
+        <name><surname>Kunstler</surname><given-names>Georges</given-names></name>
+      </person-group>
+      <article-title>Direct and indirect effects of climate on competition drive species population performance across their climatic ranges</article-title>
+    </element-citation>
+  </ref>
+  <ref id="ref-Lafond2014">
+    <element-citation publication-type="article-journal">
+      <person-group person-group-type="author">
+        <name><surname>Lafond</surname><given-names>Valentine</given-names></name>
+        <name><surname>Lagarrigues</surname><given-names>Guillaume</given-names></name>
+        <name><surname>Cordonnier</surname><given-names>Thomas</given-names></name>
+        <name><surname>Courbaud</surname><given-names>Benoît</given-names></name>
+      </person-group>
+      <article-title>Uneven-aged management options to promote forest resilience for climate change adaptation: Effects of group selection and harvesting intensity</article-title>
+      <source>Annals of Forest Science</source>
+      <year iso-8601-date="2014-03-01">2014</year><month>03</month><day>01</day>
+      <volume>71</volume>
+      <issue>2</issue>
+      <issn>1297-966X</issn>
+      <uri>https://doi.org/10.1007/s13595-013-0291-y</uri>
+      <pub-id pub-id-type="doi">10.1007/s13595-013-0291-y</pub-id>
+      <fpage>173</fpage>
+      <lpage>186</lpage>
+    </element-citation>
+  </ref>
+</ref-list>
+</back>
+</article>

@@ -79,14 +79,16 @@ In addition `matreex` integrates numerous functions to run simulations for multi
 A key feature of the `matreex` package is the development of IPM integration functions designed for complex forest tree growth kernels.
 As trees have a small annual growth rate, most of the integration effort is concentrated near the diagonal of the matrix.
 We achieve this by combining different integration methods (Gauss-Legendre and Mid-bin) at different distances of the diagonal, which helps speed up the integration.
+[Figure 1](@fig:band_matrix) illustrates how these different methods of integrating the matrix are used.
 This speed is crucial as we integrate a matrix per competition level (based on species basal area) to account for density dependence.
 More details about the integration are provided in the [`Building IPM` vignette](https://lessem.pages-forge.inrae.fr/rpackages/matreex/articles/building_ipm.html).
 
-![Figure 1: Combination of different integration methods. Dashed line is the identity where $z_t=z_t+1$ and dark blue distribution is an expected distribution of the growth kernel.\label{fig:band_matrix](fig/figures_files/figure-html/band_matrix-1.png)
+![Combination of different integration methods. Dashed line is the identity where $z_t=z_t+1$ and dark blue distribution is an expected distribution of the growth kernel. \label{fig:band_matrix}](fig/figures_files/figure-html/band_matrix-1.png)
 
 A crucial development objective was to simplify the workflow for ecological researchers, who may work on multispecies models with climate variation, disturbances, and harvesting.
 To facilitate this, `matreex` provides fitted vital models for European tree species directly in the package [@kunstler2021; @guyennon2023; @barrere2024], although other new vital models can be used.
 The object-oriented architecture limits code complexity, allowing users to focus on designing large simulation experiments to tackle their ecological questions.
+The code below demonstrates a quick way to use the package, resulting in [Figure 2](@fig:simulation), which shows the dynamics of four species in the same environment.
 
 ```
 library(matreex)
@@ -147,7 +149,7 @@ Sim  %>%
     ylab("Basal Area (m2)") + xlab("Simulation time (years)") 
 ```
 
-![Figure 2: Simulation output for 4 species. \label{fig:simulation}](fig/simulation.png)
+![Simulation output for 4 species. \label{fig:simulation}](fig/simulation.png)
 
 ## Climatic temporal variability
 
@@ -166,7 +168,7 @@ A disturbance striking two different stands with the same intensity will thus re
 Disturbances in `matreex` are described in details in @barrere2024 and in @barrereprep.
 [Figure 3](@fig:disturbance) shows an example of multispecies simulations with storm disturbance.
 
-![Figure 3: Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
+![Simulation output for 3 species with a disturbance at $time = 2600$.](fig/disturbance.png){#fig:disturbance}
 
 ## Regional dispersal
 
