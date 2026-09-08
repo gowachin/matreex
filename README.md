@@ -1,11 +1,11 @@
-# {matreex} <img src="man/figures/logo.png" align="right" height="138" />
+# {matreex} <img src="man/figures/logo.png" align="right" height="138" alt="matreex logo"/>
 <!-- badges: start -->
 [![R build status](https://forge.inrae.fr/lessem/rpackages/matreex/badges/joss/pipeline.svg)](https://forge.inrae.fr/lessem/rpackages/matreex/-/pipelines)
 <!--
 ![coverage](https://forge.inrae.fr/lessem/rpackages/matreex/badges/joss/coverage.svg?job=coverage)
 -->
 [![Project Status: Active – The project has reached a stable, usable state and is being actively developed.](https://www.repostatus.org/badges/latest/active.svg)](https://www.repostatus.org/#active)
-[![](https://img.shields.io/badge/devel%20version-1.0.0-blue.svg)](https://gitlab.com/gowachin/matreex)
+[![version number](https://img.shields.io/badge/devel%20version-1.0.0-blue.svg)](https://gitlab.com/gowachin/matreex)
 [![SWH](https://archive.softwareheritage.org/badge/origin/https://github.com/gowachin/matreex/)](https://archive.softwareheritage.org/browse/origin/?origin_url=https://github.com/gowachin/matreex)
 <!-- badges: end -->
 
@@ -19,7 +19,7 @@ The growth,survival, and recruitment functions for key European tree species hav
 
 This package relies on very few packages listed below, that you can install with the following code.
 
-```
+```{r}
 deps <- c('checkmate', 'cli', 'dplyr', 'here', 'Matrix', 
           'purrr', 'rlang', 'statmod', 'stats', 'tidyr')
 for (i in deps ){
@@ -36,7 +36,7 @@ Be aware that anyone who installs directly from Gitlab will need to explicitly r
 
 You can install the `{matreex}` package from [GitLab](https://forge.inrae.fr/lessem/rpackages/matreex) with :
 
-```
+```{r}
 # install.packages("remotes")
 remotes::install_gitlab("lessem/rpackages/matreex", host = "https://forge.inrae.fr")
 ```
@@ -46,12 +46,11 @@ remotes::install_gitlab("lessem/rpackages/matreex", host = "https://forge.inrae.
 You can install the development version of `{matreex}` from GitLab with :
 It require you to have git installed.
 
-```
+```{r}
 # install.packages("remotes")
 remotes::install_git("https://forge.inrae.fr/lessem/rpackages/matreex", 
                      ref = "dev")
 ```
-
 
 **If you install the development version of this package, please check the NEWS.md or [changelog](https://lessem.pages-forge.inrae.fr/rpackages/matreex/index.html) regularly. The package is in active development and some changes may break your code !**
 
@@ -70,7 +69,8 @@ Issues are centralized on [the GitHub mirror project](https://github.com/gowachi
 ## Roadmap
 
 Future dev is listed on the GitLab repository project to keep track of what we are working on.
-Link is [here](https://forge.inrae.fr/lessem/rpackages/matreex/-/boards)
+All tasks are [linked to this issue board.](https://forge.inrae.fr/lessem/rpackages/matreex/-/boards)
+
 ## Contribution
 
 External contributions are welcome on the [public GitHub repository](https://github.com/gowachin/matreex/), where any user can reports bugs, request features and contribute code. Contributions are accepted when coming from [GitHub pull-requests](https://docs.github.com/en/pull-requests/how-tos/create-pull-requests/creating-a-pull-request)
@@ -127,4 +127,3 @@ For open source projects, say how it is licensed.
 ## Project status
 If you have run out of energy or time for your project, put a note at the top of the README saying that development has slowed down or stopped completely. Someone may choose to fork your project or volunteer to step in as a maintainer or owner, allowing your project to keep going. You can also make an explicit request for maintainers.
 -->
-
